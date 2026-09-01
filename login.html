@@ -6,7 +6,7 @@
 <title>meaningless — login</title>
 <style>
 *{box-sizing:border-box}
-:root{--bg:#fff;--text:#29262a;--muted:#8a8588;--line:#e5eeee;--point:#62b9aa;--soft:#dff2ee}
+:root{--bg:#fff;--text:#29262a;--muted:#8a8588;--line:#e5eeee;--point:#62b9aa;--soft:#dff2ee;--theme-bg:#f7fbfa}
 body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .wrap{width:min(390px,calc(100% - 40px));margin:18vh auto 0}
 .back{display:inline-block;margin-bottom:48px;color:var(--muted);font-size:11px;text-decoration:none}
@@ -93,10 +93,10 @@ form.addEventListener("submit", async (event) => {
 
 <script>
 const themes = {
-  mint:{point:"#62b9aa",pointSoft:"#dff2ee",line:"#e5eeee"},
-  pink:{point:"#d8799a",pointSoft:"#f6dfe8",line:"#eee3e7"},
-  lavender:{point:"#9a8bc2",pointSoft:"#e9e4f4",line:"#e8e5ee"},
-  blue:{point:"#70a9c2",pointSoft:"#e0eef3",line:"#e3ebee"}
+  mint:{point:"#62b9aa",pointSoft:"#dff2ee",line:"#e5eeee",themeBg:"#f7fbfa"},
+  pink:{point:"#d8799a",pointSoft:"#f6dfe8",line:"#eee3e7",themeBg:"#fff8fa"},
+  lavender:{point:"#9a8bc2",pointSoft:"#e9e4f4",line:"#e8e5ee",themeBg:"#faf8fd"},
+  blue:{point:"#70a9c2",pointSoft:"#e0eef3",line:"#e3ebee",themeBg:"#f7fbfd"}
 };
 
 function applyTheme(name){
@@ -104,6 +104,7 @@ function applyTheme(name){
   document.documentElement.style.setProperty("--point",theme.point);
   document.documentElement.style.setProperty("--soft",theme.pointSoft);
   document.documentElement.style.setProperty("--line",theme.line);
+  document.documentElement.style.setProperty("--theme-bg",theme.themeBg);
   localStorage.setItem("meaningless-theme",name);
 }
 
