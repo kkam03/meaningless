@@ -628,7 +628,7 @@ async function loadLists(){
         <div class="archive-card-title">${esc(x.name)}</div>
         <div class="archive-card-subtitle">${esc(typeLabel(x.type))}</div>
         <div class="archive-card-bottom"><span>${esc(new Date(x.created_at).getFullYear())}</span><span>VIEW</span></div>
-        <button class="archive-delete" type="button" data-id="${esc(x.id)}" aria-label="${esc(x.name)} 삭제">×</button>
+        <button class="archive-delete" type="button" data-id="${x.id}" aria-label="${esc(x.name)} 삭제">×</button>
       </a>`).join("");
   }
 }
@@ -642,29 +642,25 @@ document.addEventListener("click",async e=>{
 
   if(!confirm("이 아카이브를 삭제할까요?"))return;
 
+  const archiveId=button.dataset.id;
+
+  if(!archiveId || archiveId==="undefined" || archiveId==="null"){
+    alert("ARCHIVE ID를 찾을 수 없습니다. 페이지를 새로고침해주세요.");
+    return;
+  }
+
   button.disabled=true;
 
   try{
-    // Prefer the button's own data-id, then fall back to the card URL.
-    let archiveId=button.dataset.id || "";
-    const card=button.closest(".archive-card");
-
-    if((!archiveId || archiveId==="undefined") && card){
-      const href=card.getAttribute("href") || "";
-      archiveId=new URL(href,location.href).searchParams.get("id") || "";
-    }
-
-    if(!archiveId || archiveId==="undefined"){
-      throw new Error("ARCHIVE ID를 찾을 수 없습니다.");
-    }
-
     const {data:{user},error:authError}=await supabase.auth.getUser();
+
     if(authError)throw authError;
     if(!user)throw new Error("로그인이 필요합니다.");
 
     const {error}=await supabase.rpc("delete_archive",{
       p_archive_id:archiveId
     });
+
     if(error)throw error;
 
     await loadLists();
