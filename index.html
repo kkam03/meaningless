@@ -507,197 +507,41 @@
   </div>
 
   <script type="module">
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-    import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-
-    const diaryList = document.getElementById("diaryList");
-    const archiveGrid = document.getElementById("archiveGrid");
-
-    const esc = (value) => String(value ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-
-    const formatDate = (date) => {
-      if (!date) return "";
-      const d = new Date(`${date}T00:00:00`);
-      if (Number.isNaN(d.getTime())) return String(date);
-      return `${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
-    };
-
-    const typeLabel = (type) => ({
-      basic: "BASIC",
-      concert: "CONCERT",
-      travel: "TRAVEL",
-      movie: "MOVIE",
-      custom: "ARCHIVE"
-    })[type] || "ARCHIVE";
-
-    async function loadPublicData() {
-      const [{ data: diaries, error: diaryError }, { data: archives, error: archiveError }] =
-        await Promise.all([
-          supabase.from("diary")
-            .select("id,date,title,content,image_url,created_at")
-            .order("date", { ascending:false })
-            .order("created_at", { ascending:false }),
-          supabase.from("archives")
-            .select("id,name,type,created_at")
-            .order("created_at", { ascending:true })
-        ]);
-
-      if (diaryError) {
-        console.error("DIARY LOAD:", diaryError);
-        diaryList.innerHTML = "";
-      } else {
-        renderDiary(diaries || []);
-      }
-
-      if (archiveError) {
-        console.error("ARCHIVE LOAD:", archiveError);
-        archiveGrid.innerHTML = "";
-      } else {
-        renderArchives(archives || []);
-      }
-    }
-
-    function renderDiary(items) {
-      diaryList.innerHTML = items.map(item => `
-        <article class="post">
-          <div class="post-date">${esc(formatDate(item.date))}</div>
-          <div>
-            <a class="post-title" href="./diary-view.html?id=${encodeURIComponent(item.id)}">${esc(item.title)}</a>
-          </div>
-        </article>
-      `).join("");
-    }
-
-    function renderArchives(items) {
-      archiveGrid.innerHTML = items.map(item => `
-        <a class="archive-card" href="./archive-view.html?id=${encodeURIComponent(item.id)}">
-          <div class="archive-card-top">
-            <span>${esc(typeLabel(item.type))}</span>
-            <span>↗</span>
-          </div>
-          <div class="archive-card-title">${esc(item.name)}</div>
-          <div class="archive-card-subtitle">${esc(typeLabel(item.type))}</div>
-          <div class="archive-card-bottom">
-            <span>${esc(new Date(item.created_at).getFullYear())}</span>
-            <span>VIEW</span>
-          </div>
-        </a>
-      `).join("");
-    }
-
-    loadPublicData().catch(error => console.error("PUBLIC DATA ERROR:", error));
-  </script>
-
-  <script>
-    const themes = {
-      mint: { point: "#62b9aa", pointSoft: "#dff2ee", line: "#e5eeee", themeBg: "#f7fbfa" },
-      pink: { point: "#d8799a", pointSoft: "#f6dfe8", line: "#eee3e7", themeBg: "#fff8fa" },
-      lavender: { point: "#9a8bc2", pointSoft: "#e9e4f4", line: "#e8e5ee", themeBg: "#faf8fd" },
-      blue: { point: "#70a9c2", pointSoft: "#e0eef3", line: "#e3ebee", themeBg: "#f7fbfd" }
-    };
-
-    function saveThemeCookie(name) {
-      document.cookie = "meaningless-theme=" + encodeURIComponent(name) +
-        "; path=/; max-age=31536000; SameSite=Lax";
-    }
-
-    function getThemeFromCookie() {
-      const match = document.cookie.match(/(?:^|;\s*)meaningless-theme=([^;]+)/);
-      return match ? decodeURIComponent(match[1]) : null;
-    }
-
-    function applyTheme(name, save = true) {
-      const theme = themes[name] || themes.mint;
-      document.documentElement.style.setProperty("--point", theme.point);
-      document.documentElement.style.setProperty("--point-soft", theme.pointSoft);
-      document.documentElement.style.setProperty("--line", theme.line);
-      document.documentElement.style.setProperty("--theme-bg", theme.themeBg);
-      if (save) saveThemeCookie(name);
-    }
-
-    const params = new URLSearchParams(location.search);
-    const savedTheme = themes[params.get("theme")] ? params.get("theme")
-      : (getThemeFromCookie() || "mint");
-    applyTheme(savedTheme);
-
-    const newDiaryLink = document.getElementById("newDiaryLink");
-    const newArchiveLink = document.getElementById("newArchiveLink");
-    const updateWriterLinks = (theme) => {
-      const safeTheme = themes[theme] ? theme : "mint";
-      newDiaryLink.href = "./diary-write.html?theme=" + encodeURIComponent(safeTheme);
-      newArchiveLink.href = "./archive-write_buttons_v2.html?theme=" + encodeURIComponent(safeTheme);
-    };
-    updateWriterLinks(savedTheme);
-
-    const loginLink = document.getElementById("loginLink");
-    loginLink.href = "./login.html?theme=" + encodeURIComponent(savedTheme);
-
-    const themeWrap = document.getElementById("themeWrap");
-    const themeButton = document.getElementById("themeButton");
-
-    themeButton.addEventListener("click", () => {
-      themeWrap.classList.toggle("open");
-    });
-
-    document.querySelectorAll(".theme-option").forEach((button) => {
-      button.addEventListener("click", () => {
-        const selectedTheme = button.dataset.theme;
-        applyTheme(selectedTheme);
-        updateWriterLinks(selectedTheme);
-        loginLink.href = "./login.html?theme=" + encodeURIComponent(selectedTheme);
-        themeWrap.classList.remove("open");
-      });
-    });
-
-    document.addEventListener("click", (event) => {
-      if (!themeWrap.contains(event.target)) {
-        themeWrap.classList.remove("open");
-      }
-    });
-  </script>
-
-  <script type="module">
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-    import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-    const diaryCreateRow = document.getElementById("diaryCreateRow");
-    const archiveCreateRow = document.getElementById("archiveCreateRow");
-
-    function updateAuthUI(session) {
-      if (session) {
-        loginLink.textContent = "LOGOUT";
-        loginLink.href = "#";
-        diaryCreateRow.style.display = "flex";
-        archiveCreateRow.style.display = "flex";
-
-        loginLink.onclick = async (event) => {
-          event.preventDefault();
-          await supabase.auth.signOut();
-        };
-      } else {
-        loginLink.textContent = "LOGIN";
-        loginLink.href = "./login.html?theme=" + encodeURIComponent(savedTheme);
-        diaryCreateRow.style.display = "none";
-        archiveCreateRow.style.display = "none";
-        loginLink.onclick = null;
-      }
-    }
-
-    const { data: { session } } = await supabase.auth.getSession();
-    updateAuthUI(session);
-
-    supabase.auth.onAuthStateChange((_event, nextSession) => {
-      updateAuthUI(nextSession);
-    });
-  </script>
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
+const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const themes={mint:{point:"#62b9aa",pointSoft:"#dff2ee",line:"#e5eeee",themeBg:"#f7fbfa"},pink:{point:"#d8799a",pointSoft:"#f6dfe8",line:"#eee3e7",themeBg:"#fff8fa"},lavender:{point:"#9a8bc2",pointSoft:"#e9e4f4",line:"#e8e5ee",themeBg:"#faf8fd"},blue:{point:"#70a9c2",pointSoft:"#e0eef3",line:"#e3ebee",themeBg:"#f7fbfd"}};
+const $=id=>document.getElementById(id);
+const diaryList=$("diaryList"),archiveGrid=$("archiveGrid"),diaryCreateRow=$("diaryCreateRow"),archiveCreateRow=$("archiveCreateRow"),newDiaryLink=$("newDiaryLink"),newArchiveLink=$("newArchiveLink"),loginLink=$("loginLink"),themeWrap=$("themeWrap"),themeButton=$("themeButton");
+const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+const fmt=d=>{if(!d)return"";const x=new Date(`${d}T00:00:00`);return Number.isNaN(x.getTime())?String(d):`${String(x.getMonth()+1).padStart(2,"0")}.${String(x.getDate()).padStart(2,"0")}`};
+const typeLabel=t=>({basic:"BASIC",concert:"CONCERT",travel:"TRAVEL",movie:"MOVIE",custom:"ARCHIVE"})[t]||"ARCHIVE";
+function getTheme(){const p=new URLSearchParams(location.search);if(themes[p.get("theme")])return p.get("theme");const m=document.cookie.match(/(?:^|;\s*)meaningless-theme=([^;]+)/);const n=m?decodeURIComponent(m[1]):null;return themes[n]?n:"mint";}
+function setTheme(n,save=true){const t=themes[n]||themes.mint;document.documentElement.style.setProperty("--point",t.point);document.documentElement.style.setProperty("--point-soft",t.pointSoft);document.documentElement.style.setProperty("--line",t.line);document.documentElement.style.setProperty("--theme-bg",t.themeBg);if(save)document.cookie=`meaningless-theme=${encodeURIComponent(n)}; path=/; max-age=31536000; SameSite=Lax`;}
+let currentTheme=getTheme();setTheme(currentTheme,false);
+function updateLinks(){const q=`?theme=${encodeURIComponent(currentTheme)}`;if(newDiaryLink)newDiaryLink.href=`./diary-write.html${q}`;if(newArchiveLink)newArchiveLink.href=`./archive-write_buttons_v2.html${q}`;if(loginLink)loginLink.href=`./login.html${q}`;}
+updateLinks();
+themeButton?.addEventListener("click",e=>{e.stopPropagation();themeWrap?.classList.toggle("open")});
+document.querySelectorAll(".theme-option").forEach(b=>b.addEventListener("click",()=>{currentTheme=b.dataset.theme;setTheme(currentTheme);updateLinks();themeWrap?.classList.remove("open")}));
+document.addEventListener("click",e=>{if(themeWrap&&!themeWrap.contains(e.target))themeWrap.classList.remove("open")});
+async function loadLists(){
+ const [{data:diaries,error:de},{data:archives,error:ae}]=await Promise.all([
+  supabase.from("diary").select("id,date,title,content,image_url,created_at").order("date",{ascending:false}).order("created_at",{ascending:false}),
+  supabase.from("archives").select("id,name,type,created_at").order("created_at",{ascending:true})
+ ]);
+ if(de){console.error("DIARY LOAD",de);diaryList.innerHTML="";}else{diaryList.innerHTML=(diaries||[]).map(x=>`<article class="post"><div class="post-date">${esc(fmt(x.date))}</div><div><a class="post-title" href="./diary-detail.html?id=${encodeURIComponent(x.id)}">${esc(x.title)}</a></div></article>`).join("");}
+ if(ae){console.error("ARCHIVE LOAD",ae);archiveGrid.innerHTML="";}else{archiveGrid.innerHTML=(archives||[]).map(x=>`<a class="archive-card" href="./archive-view.html?id=${encodeURIComponent(x.id)}"><div class="archive-card-top"><span>${esc(typeLabel(x.type))}</span><span>↗</span></div><div class="archive-card-title">${esc(x.name)}</div><div class="archive-card-subtitle">${esc(typeLabel(x.type))}</div><div class="archive-card-bottom"><span>${esc(new Date(x.created_at).getFullYear())}</span><span>VIEW</span></div></a>`).join("");}
+}
+function updateAuthUI(session){
+ if(!loginLink)return;
+ if(session){loginLink.textContent="LOGOUT";loginLink.href="#";if(diaryCreateRow)diaryCreateRow.style.display="flex";if(archiveCreateRow)archiveCreateRow.style.display="flex";loginLink.onclick=async e=>{e.preventDefault();await supabase.auth.signOut();};}
+ else{loginLink.textContent="LOGIN";updateLinks();if(diaryCreateRow)diaryCreateRow.style.display="none";if(archiveCreateRow)archiveCreateRow.style.display="none";loginLink.onclick=null;}
+}
+const {data:{session}}=await supabase.auth.getSession();
+updateAuthUI(session);
+await loadLists();
+supabase.auth.onAuthStateChange((_event,next)=>updateAuthUI(next));
+</script>
 
 </body>
 </html>
