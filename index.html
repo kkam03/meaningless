@@ -256,8 +256,29 @@
     }
 
 
-    .theme-wrap {
+    .top-nav {
       position: fixed;
+      top: 28px;
+      right: 28px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .login-button {
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      transition: color 0.2s ease;
+    }
+
+    .login-button:hover {
+      color: var(--point);
+    }
+
+    .theme-wrap {
+      position: relative;
       top: 28px;
       right: 28px;
       z-index: 10;
@@ -322,9 +343,10 @@
     }
 
     @media (max-width: 600px) {
-      .theme-wrap {
+      .top-nav {
         top: 18px;
         right: 18px;
+        gap: 13px;
       }
     }
 
@@ -395,8 +417,10 @@
 
 <body>
 
-    <div class="theme-wrap" id="themeWrap">
-      <button class="theme-button" id="themeButton" type="button">THEME</button>
+    <div class="top-nav">
+      <a class="login-button" href="./login.html">LOGIN</a>
+      <div class="theme-wrap" id="themeWrap">
+        <button class="theme-button" id="themeButton" type="button">THEME</button>
       <div class="theme-menu">
         <button class="theme-option" type="button" data-theme="mint">
           <span class="theme-dot" style="--theme-color:#62b9aa"></span> Mint
@@ -410,6 +434,7 @@
         <button class="theme-option" type="button" data-theme="blue">
           <span class="theme-dot" style="--theme-color:#70a9c2"></span> Blue
         </button>
+        </div>
       </div>
     </div>
 
@@ -554,18 +579,6 @@
       }
     });
   </script>
-
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-  import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
-
-  const supabase = createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
-  );
-
-  console.log("Supabase 연결 준비 완료:", supabase);
-</script>
 
 </body>
 </html>
