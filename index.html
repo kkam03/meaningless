@@ -547,17 +547,33 @@
       }
     };
 
-    function applyTheme(name) {
-      const theme = themes[name] || themes.mint;
-      document.documentElement.style.setProperty("--point", theme.point);
-      document.documentElement.style.setProperty("--point-soft", theme.pointSoft);
-      document.documentElement.style.setProperty("--line", theme.line);
-      document.documentElement.style.setProperty("--theme-bg", theme.themeBg);
-      localStorage.setItem("meaningless-theme", name);
-    }
+function saveTheme(name) {
+  document.cookie =
+    "meaningless-theme=" +
+    encodeURIComponent(name) +
+    "; path=/; max-age=31536000; SameSite=Lax";
+}
 
-    const savedTheme = localStorage.getItem("meaningless-theme") || "mint";
-    applyTheme(savedTheme);
+function getTheme() {
+  const match = document.cookie.match(
+    /(?:^|;\s*)meaningless-theme=([^;]+)/
+  );
+
+  return match ? decodeURIComponent(match[1]) : "mint";
+}
+
+function applyTheme(name) {
+  const theme = themes[name] || themes.mint;
+
+  document.documentElement.style.setProperty("--point", theme.point);
+  document.documentElement.style.setProperty("--point-soft", theme.pointSoft);
+  document.documentElement.style.setProperty("--line", theme.line);
+  document.documentElement.style.setProperty("--theme-bg", theme.themeBg);
+
+  saveTheme(name);
+}
+
+applyTheme(getTheme());
 
     const themeWrap = document.getElementById("themeWrap");
     const themeButton = document.getElementById("themeButton");
