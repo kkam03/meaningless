@@ -570,9 +570,12 @@
       custom: "ARCHIVE"
     })[type] || "ARCHIVE";
 
+    let isAuthenticated = false;
+
     function setDeleteButtonsVisible(visible) {
+      isAuthenticated = !!visible;
       document.querySelectorAll(".archive-delete").forEach((button) => {
-        button.style.display = visible ? "flex" : "none";
+        button.style.display = isAuthenticated ? "flex" : "none";
       });
     }
 
@@ -662,6 +665,8 @@
           <button class="archive-delete" type="button" data-id="${esc(item.id)}" aria-label="${esc(item.name)} 삭제">×</button>
         </div>
       `).join("");
+
+      setDeleteButtonsVisible(isAuthenticated);
     }
 
     loadPublicData().catch(error => console.error("PUBLIC DATA ERROR:", error));
@@ -766,6 +771,7 @@
     }
 
     const { data: { session } } = await supabase.auth.getSession();
+    setDeleteButtonsVisible(!!session);
     updateAuthUI(session);
 
     supabase.auth.onAuthStateChange((_event, nextSession) => {
