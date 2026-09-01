@@ -337,16 +337,32 @@
       blue: { point:"#70a9c2", pointSoft:"#e0eef3", line:"#e3ebee", themeBg:"#f7fbfd" }
     };
 
-    function applyTheme(name) {
+    function getThemeFromCookie() {
+      const match = document.cookie.match(/(?:^|;\\s*)meaningless-theme=([^;]+)/);
+      const name = match ? decodeURIComponent(match[1]) : null;
+      return themes[name] ? name : null;
+    }
+
+    function saveThemeCookie(name) {
+      document.cookie = "meaningless-theme=" + encodeURIComponent(name) +
+        "; path=/; max-age=31536000; SameSite=Lax";
+    }
+
+    function applyTheme(name, save = true) {
       const theme = themes[name] || themes.mint;
       document.documentElement.style.setProperty("--point", theme.point);
       document.documentElement.style.setProperty("--point-soft", theme.pointSoft);
       document.documentElement.style.setProperty("--line", theme.line);
       document.documentElement.style.setProperty("--theme-bg", theme.themeBg);
-      localStorage.setItem("meaningless-theme", name);
+      if (save) saveThemeCookie(name);
     }
 
-    applyTheme(localStorage.getItem("meaningless-theme") || "mint");
+    const params = new URLSearchParams(location.search);
+    const savedTheme = themes[params.get("theme")]
+      ? params.get("theme")
+      : (getThemeFromCookie() || "mint");
+
+    applyTheme(savedTheme, false);
 
     const themeWrap = document.getElementById("themeWrap");
     document.getElementById("themeButton").addEventListener("click", () => {
