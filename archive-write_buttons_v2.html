@@ -50,7 +50,7 @@ header{padding-top:32px;padding-bottom:40px}
 </div>
 <div class="container">
 <header>
-<a class="back" href="index.html">← ARCHIVE</a>
+<a class="back" id="backLink" href="index.html">← ARCHIVE</a>
 <div class="heading"><div class="label">NEW ARCHIVE</div><div class="subtitle">기록해두고 싶은 것들</div></div>
 </header>
 
@@ -77,7 +77,7 @@ header{padding-top:32px;padding-bottom:40px}
 </section>
 
 <div class="actions">
-<a class="cancel" href="index.html">CANCEL</a>
+<a class="cancel" id="cancelLink" href="index.html">CANCEL</a>
 <button class="save" id="save" type="button">SAVE</button>
 </div>
 </main>
@@ -108,9 +108,17 @@ function applyTheme(name,save=true){
   if(save) saveThemeCookie(name);
 }
 
-const params=new URLSearchParams(location.search);
-const savedTheme=themes[params.get("theme")] ? params.get("theme") : (getThemeFromCookie()||"mint");
-applyTheme(savedTheme,false);
+const params = new URLSearchParams(location.search);
+const queryTheme = params.get("theme");
+const savedTheme = themes[queryTheme]
+  ? queryTheme
+  : (getThemeFromCookie() || "mint");
+
+applyTheme(savedTheme, false);
+
+const themedIndexUrl = "./index.html?theme=" + encodeURIComponent(savedTheme);
+document.getElementById("backLink").href = themedIndexUrl;
+document.getElementById("cancelLink").href = themedIndexUrl;
 
 const themeWrap=document.getElementById("themeWrap");
 document.getElementById("themeButton").addEventListener("click",()=>themeWrap.classList.toggle("open"));
