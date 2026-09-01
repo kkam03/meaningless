@@ -478,7 +478,7 @@
         <div class="section-subtitle">하루 한 줄</div>
       </div>
       <div class="create-row" id="diaryCreateRow">
-        <a class="create-button" href="./diary-write.html">+ NEW DIARY</a>
+        <a class="create-button" id="newDiaryLink" href="./diary-write.html">+ NEW DIARY</a>
       </div>
 
       <div class="post-list">
@@ -489,7 +489,7 @@
           <span class="archive-note">기록해두고 싶은 것들</span>
         </div>
         <div class="create-row archive-create-row" id="archiveCreateRow">
-          <a class="create-button" href="./archive-write_buttons_v2.html">+ NEW ARCHIVE</a>
+          <a class="create-button" id="newArchiveLink" href="./archive-write_buttons_v2.html">+ NEW ARCHIVE</a>
         </div>
 
         <div class="archive-grid">
@@ -538,6 +538,15 @@
       : (getThemeFromCookie() || "mint");
     applyTheme(savedTheme);
 
+    const newDiaryLink = document.getElementById("newDiaryLink");
+    const newArchiveLink = document.getElementById("newArchiveLink");
+    const updateWriterLinks = (theme) => {
+      const safeTheme = themes[theme] ? theme : "mint";
+      newDiaryLink.href = "./diary-write.html?theme=" + encodeURIComponent(safeTheme);
+      newArchiveLink.href = "./archive-write_buttons_v2.html?theme=" + encodeURIComponent(safeTheme);
+    };
+    updateWriterLinks(savedTheme);
+
     const loginLink = document.getElementById("loginLink");
     loginLink.href = "./login.html?theme=" + encodeURIComponent(savedTheme);
 
@@ -552,6 +561,7 @@
       button.addEventListener("click", () => {
         const selectedTheme = button.dataset.theme;
         applyTheme(selectedTheme);
+        updateWriterLinks(selectedTheme);
         loginLink.href = "./login.html?theme=" + encodeURIComponent(selectedTheme);
         themeWrap.classList.remove("open");
       });
