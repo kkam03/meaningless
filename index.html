@@ -557,10 +557,13 @@
         renderDiary(diaries || []);
       }
 
-      if (archiveError) {
-        console.error("ARCHIVE LOAD:", archiveError);
-        archiveGrid.innerHTML = "";
-      } else {
+     if (archiveError) {
+  console.error("ARCHIVE LOAD:", archiveError);
+  archiveGrid.innerHTML =
+    '<div style="padding:20px 4px;color:#c66;font-size:11px;">ARCHIVE LOAD ERROR: '
+    + esc(archiveError.message)
+    + '</div>';
+} else {
         renderArchives(archives || []);
       }
     }
