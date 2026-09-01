@@ -266,7 +266,7 @@ async function loadCategory(){
   const enriched=await Promise.all(rows);
 
   document.getElementById("archiveList").innerHTML=enriched.map(archive=>`
-    <div class="archive-row">
+    <div class="archive-row" data-archive-id="${archive.id}">
       <a class="archive-row-main" href="./archive-view.html?id=${encodeURIComponent(archive.id)}&theme=${encodeURIComponent(currentTheme)}">
         <div class="archive-year">${esc(new Date(archive.created_at).getFullYear())}</div>
         <div class="archive-row-main">
@@ -276,7 +276,7 @@ async function loadCategory(){
         </div>
       </a>
       <div class="archive-row-arrow">↗</div>
-      <button class="archive-delete" type="button" data-id="${esc(archive.id)}" aria-label="${esc(archive.name)} 삭제">×</button>
+      <button class="archive-delete" type="button" data-id="${archive.id}" aria-label="${esc(archive.name)} 삭제">×</button>
     </div>
   `).join("");
 }
@@ -291,9 +291,15 @@ document.addEventListener("click",async e=>{
   if(!currentSession){alert("로그인이 필요합니다.");return}
   if(!confirm("이 ARCHIVE를 삭제할까요?"))return;
 
+  const archiveId=button.dataset.id || button.closest(".archive-row")?.dataset.archiveId;
+  if(!archiveId || archiveId==="undefined"){
+    alert("ARCHIVE ID를 읽지 못했습니다. 페이지를 새로고침해주세요.");
+    return;
+  }
+
   button.disabled=true;
   try{
-    const {error}=await supabase.rpc("delete_archive",{p_archive_id:button.dataset.id});
+    const {error}=await supabase.rpc("delete_archive",{p_archive_id:archiveId});
     if(error)throw error;
     await loadCategory();
   }catch(error){
