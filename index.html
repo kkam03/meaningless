@@ -203,32 +203,6 @@
       transition: transform 0.2s ease, border-color 0.2s ease;
     }
 
-    .archive-delete {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      z-index: 3;
-      width: 24px;
-      height: 24px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      border: 1px solid var(--line);
-      border-radius: 50%;
-      background: rgba(255,255,255,.94);
-      color: var(--muted);
-      font: inherit;
-      font-size: 15px;
-      line-height: 1;
-      cursor: pointer;
-    }
-
-    .archive-delete:hover {
-      color: var(--point);
-      border-color: var(--point);
-    }
-
     .archive-card::before {
       content: "";
       position: absolute;
@@ -239,6 +213,39 @@
       border-radius: 50%;
       background: var(--point-soft);
       opacity: 0.55;
+    }
+
+    .archive-card-wrap {
+      position: relative;
+      width: 100%;
+      min-width: 0;
+      height: 190px;
+    }
+
+    .archive-delete {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 10;
+      width: 24px;
+      height: 24px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: rgba(255,255,255,.95);
+      color: var(--muted);
+      font: inherit;
+      font-size: 15px;
+      line-height: 1;
+      padding: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .archive-delete:hover {
+      color: var(--point);
+      border-color: var(--point);
     }
 
     .archive-card:hover {
@@ -578,9 +585,6 @@
 
       if (!confirm("이 아카이브를 삭제할까요?")) return;
 
-      const id = button.dataset.id;
-      button.disabled = true;
-
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
@@ -591,7 +595,7 @@
         const { error } = await supabase
           .from("archives")
           .delete()
-          .eq("id", id)
+          .eq("id", button.dataset.id)
           .eq("user_id", user.id);
 
         if (error) throw error;
@@ -599,9 +603,6 @@
       } catch (error) {
         console.error("ARCHIVE DELETE:", error);
         alert("삭제에 실패했습니다.\n" + (error?.message || "알 수 없는 오류"));
-      } finally {
-        button.disabled = false;
-        setDeleteButtonsVisible(true);
       }
     });
 
@@ -645,21 +646,21 @@
 
     function renderArchives(items) {
       archiveGrid.innerHTML = items.map(item => `
-        <a class="archive-card" href="./archive-view.html?id=${encodeURIComponent(item.id)}">
-          <div class="archive-card-top">
-            <span>${esc(typeLabel(item.type))}</span>
-            <span>↗</span>
-          </div>
-          <div class="archive-card-title">${esc(item.name)}</div>
-          <div class="archive-card-subtitle">${esc(typeLabel(item.type))}</div>
-          <div class="archive-card-bottom">
-            <span>${esc(new Date(item.created_at).getFullYear())}</span>
-            <span>VIEW</span>
-          </div>
-          <button class="archive-delete" type="button"
-            data-id="${esc(item.id)}"
-            aria-label="${esc(item.name)} 삭제">×</button>
-        </a>
+        <div class="archive-card-wrap">
+          <a class="archive-card" href="./archive-view.html?id=${encodeURIComponent(item.id)}">
+            <div class="archive-card-top">
+              <span>${esc(typeLabel(item.type))}</span>
+              <span>↗</span>
+            </div>
+            <div class="archive-card-title">${esc(item.name)}</div>
+            <div class="archive-card-subtitle">${esc(typeLabel(item.type))}</div>
+            <div class="archive-card-bottom">
+              <span>${esc(new Date(item.created_at).getFullYear())}</span>
+              <span>VIEW</span>
+            </div>
+          </a>
+          <button class="archive-delete" type="button" data-id="${esc(item.id)}" aria-label="${esc(item.name)} 삭제">×</button>
+        </div>
       `).join("");
     }
 
