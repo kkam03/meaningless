@@ -192,14 +192,22 @@
       margin-bottom: 14px;
     }
 
+    .archive-card-wrap {
+      position: relative;
+      min-width: 0;
+    }
+
     .archive-card {
       position: relative;
+      display: block;
+      width: 100%;
       min-height: 190px;
       padding: 20px;
       border: 1px solid var(--line);
       border-radius: 16px;
       background: linear-gradient(145deg, #ffffff 0%, var(--theme-bg) 100%);
       overflow: hidden;
+      text-decoration: none;
       transition: transform 0.2s ease, border-color 0.2s ease;
     }
 
@@ -215,10 +223,7 @@
       opacity: 0.55;
     }
 
-    .archive-card-wrap {
-      position: relative;
-    }
-
+    
     .archive-delete {
       position: absolute;
       top: 12px;
@@ -246,10 +251,6 @@
       color: var(--point);
       border-color: var(--point);
       transform: scale(1.06);
-    }
-
-    .archive-delete:hover {
-      color: var(--point);
     }
 
     .archive-card:hover {
