@@ -6,11 +6,12 @@
 <title>meaningless — new archive</title>
 <style>
 *{box-sizing:border-box}
-:root{--bg:#fff;--text:#29262a;--muted:#8a8588;--line:#e5eeee;--point:#62b9aa;--soft:#dff2ee}
+:root{--bg:#fff;--text:#29262a;--muted:#8a8588;--line:#e5eeee;--point:#62b9aa;--soft:#dff2ee;--theme-bg:#f7fbfa}
 body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .container{width:min(680px,calc(100% - 40px));margin:auto}
 header{padding:45px 0 48px}
 .back{display:inline-block;margin-bottom:48px;color:var(--muted);font-size:11px;text-decoration:none}
+.back:hover{color:var(--point)}
 .heading{display:flex;align-items:baseline;gap:12px;margin-left:3px}
 .label{color:var(--point);font-size:12px;font-weight:700;letter-spacing:.08em}
 .subtitle{color:var(--muted);font-size:11px}
@@ -25,20 +26,42 @@ input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--
 .type{padding:7px 12px;border:1px solid var(--line);border-radius:20px;background:#fff;color:var(--muted);font-size:10px;letter-spacing:-.01em;cursor:pointer;transition:background .15s ease,border-color .15s ease,color .15s ease}
 .type:hover{border-color:#c9dfdb;color:var(--point)}
 .type.active{border-color:var(--point);background:var(--soft);color:var(--point);font-weight:600}
+.option-fields{padding-top:2px}
+.option-panel{display:grid;gap:8px}
+.option-panel input{height:40px}
+.option-panel textarea{min-height:95px}
+.add-custom{width:max-content;margin-top:2px;padding:4px 0;border:0;background:transparent;color:var(--point);font-size:10px;cursor:pointer}
+.custom-row{display:flex;gap:8px}
+.custom-row input{flex:1}
+.custom-remove{width:40px;height:40px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--muted);cursor:pointer}
+
+.photo-placeholder{display:flex;align-items:center;justify-content:center;min-height:110px;border:1px dashed #cfe5e1;border-radius:10px;background:var(--theme-bg);color:var(--muted);font-size:11px;cursor:pointer;transition:border-color .15s ease,color .15s ease}
+.photo-placeholder:hover{border-color:var(--point);color:var(--point)}
+.photo-placeholder input{display:none}
+.photo-preview{margin-top:10px;position:relative}
+.photo-preview img{display:block;width:100%;max-height:360px;object-fit:cover;border:1px solid var(--line);border-radius:10px}
+.photo-remove{margin-top:7px;border:0;background:transparent;color:var(--muted);font-size:10px;cursor:pointer;padding:2px 0}
+.photo-remove:hover{color:var(--point)}
 .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:48px;padding-top:18px;border-top:1px solid var(--line)}
 .actions a,.actions button{padding:8px 15px;border-radius:8px;font:inherit;font-size:11px;cursor:pointer}
 .cancel{border:1px solid var(--line);background:#fff;color:var(--muted);text-decoration:none}
 .save{border:1px solid var(--point);background:var(--point);color:#fff}
-.theme{position:fixed;top:28px;right:28px}
-.theme>button{border:0;background:transparent;color:var(--muted);font-size:10px;letter-spacing:.08em;cursor:pointer}.theme-menu{display:none;width:145px;margin-top:6px;padding:8px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.97);box-shadow:0 8px 25px rgba(50,100,95,.08)}.theme.open .theme-menu{display:block}.theme-option{display:flex;align-items:center;gap:8px;width:100%;padding:8px 7px;border:0;border-radius:7px;background:transparent;color:var(--text);font-size:11px;text-align:left;cursor:pointer}.theme-option:hover{background:var(--soft)}.theme-dot{width:9px;height:9px;border-radius:50%;background:var(--theme-color)}
+.theme{position:fixed;top:28px;right:28px;z-index:10}
+.theme>button{border:0;background:transparent;color:var(--muted);font-size:10px;letter-spacing:.08em;cursor:pointer;padding:6px 0}
+.theme-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;width:145px;padding:8px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.97);box-shadow:0 8px 25px rgba(50,100,95,.08)}
+.theme.open .theme-menu{display:block}
+.theme-option{display:flex;align-items:center;gap:8px;width:100%;padding:8px 7px;border:0;border-radius:7px;background:transparent;color:var(--text);font-size:11px;text-align:left;cursor:pointer}
+.theme-option:hover{background:var(--soft)}
+.theme-dot{width:9px;height:9px;border-radius:50%;background:var(--theme-color)}
 @media(max-width:600px){
-.container{width:calc(100% - 30px)}
-header{padding-top:32px;padding-bottom:40px}
-.theme{top:18px;right:18px}
+  .container{width:calc(100% - 30px)}
+  header{padding-top:32px;padding-bottom:40px}
+  .theme{top:18px;right:18px}
 }
 </style>
 </head>
 <body>
+
 <div class="theme" id="themeWrap">
   <button type="button" id="themeButton">THEME</button>
   <div class="theme-menu">
@@ -48,43 +71,82 @@ header{padding-top:32px;padding-bottom:40px}
     <button class="theme-option" type="button" data-theme="blue"><span class="theme-dot" style="--theme-color:#70a9c2"></span> Blue</button>
   </div>
 </div>
+
 <div class="container">
 <header>
-<a class="back" id="backLink" href="index.html">← ARCHIVE</a>
-<div class="heading"><div class="label">NEW ARCHIVE</div><div class="subtitle">기록해두고 싶은 것들</div></div>
+  <a class="back" id="backLink" href="index.html">← ARCHIVE</a>
+  <div class="heading"><div class="label">NEW ARCHIVE</div><div class="subtitle">기록해두고 싶은 것들</div></div>
 </header>
 
 <main>
 <section class="field name">
-<label class="field-label" for="archiveName">ARCHIVE NAME</label>
-<input id="archiveName" type="text" placeholder="예: NELL, TRAVEL, MOVIE">
+  <label class="field-label" for="archiveName">ARCHIVE NAME</label>
+  <input id="archiveName" type="text" placeholder="예: NELL, TRAVEL, MOVIE">
 </section>
 
 <section class="field">
-<label class="field-label" for="description">DESCRIPTION</label>
-<textarea id="description" placeholder="이 아카이브에 무엇을 기록할지 짧게 적어두기."></textarea>
+  <label class="field-label">TYPE</label>
+  <div class="types" role="group" aria-label="아카이브 종류">
+    <button class="type active" type="button" data-type="basic">기본 기록</button>
+    <button class="type" type="button" data-type="concert">공연 / 콘서트</button>
+    <button class="type" type="button" data-type="travel">여행</button>
+    <button class="type" type="button" data-type="movie">영화</button>
+    <button class="type" type="button" data-type="custom">직접 설정</button>
+  </div>
 </section>
 
-<section class="field">
-<label class="field-label">TYPE</label>
-<div class="types" role="group" aria-label="아카이브 종류">
-<button class="type active" type="button" data-type="basic">기본 기록</button>
-<button class="type" type="button" data-type="concert">공연 / 콘서트</button>
-<button class="type" type="button" data-type="travel">여행</button>
-<button class="type" type="button" data-type="movie">영화</button>
-<button class="type" type="button" data-type="custom">직접 설정</button>
-</div>
+<section class="field option-fields" id="optionFields">
+  <div class="field-label" id="optionLabel">RECORD</div>
+
+  <div id="basicOptions" class="option-panel">
+    <textarea placeholder="기록해두기."></textarea>
+  </div>
+
+  <div id="concertOptions" class="option-panel" style="display:none">
+    <input type="text" placeholder="공연장">
+    <input type="text" placeholder="회차">
+    <textarea placeholder="셋리스트"></textarea>
+    <input type="text" placeholder="앵콜">
+  </div>
+
+  <div id="travelOptions" class="option-panel" style="display:none">
+    <input type="text" placeholder="장소">
+    <input type="text" placeholder="숙소">
+    <textarea placeholder="여행 메모"></textarea>
+  </div>
+
+  <div id="movieOptions" class="option-panel" style="display:none">
+    <input type="text" placeholder="감독">
+    <input type="text" placeholder="별점">
+    <textarea placeholder="감상 메모"></textarea>
+  </div>
+
+  <div id="customOptions" class="option-panel" style="display:none">
+    <div id="customRows"></div>
+    <button class="add-custom" id="addCustom" type="button">＋ 항목 추가</button>
+  </div>
+</section>
+<section class="field photo-field">
+  <label class="field-label">PHOTO <span style="font-weight:400;letter-spacing:0">(optional)</span></label>
+  <label class="photo-placeholder" for="photo">
+    <input id="photo" type="file" accept="image/*">
+    <span id="photoText">+ 사진 추가</span>
+  </label>
+  <div id="photoPreview" class="photo-preview" hidden>
+    <img id="photoPreviewImage" alt="선택한 사진 미리보기">
+    <button id="removePhoto" class="photo-remove" type="button">사진 제거</button>
+  </div>
 </section>
 
 <div class="actions">
-<a class="cancel" id="cancelLink" href="index.html">CANCEL</a>
-<button class="save" id="save" type="button">SAVE</button>
+  <a class="cancel" id="cancelLink" href="index.html">CANCEL</a>
+  <button class="save" id="save" type="button">SAVE</button>
 </div>
 </main>
 </div>
 
 <script>
-const themes = {
+const themes={
   mint:{point:"#62b9aa",pointSoft:"#dff2ee",line:"#e5eeee",themeBg:"#f7fbfa"},
   pink:{point:"#d8799a",pointSoft:"#f6dfe8",line:"#eee3e7",themeBg:"#fff8fa"},
   lavender:{point:"#9a8bc2",pointSoft:"#e9e4f4",line:"#e8e5ee",themeBg:"#faf8fd"},
@@ -105,46 +167,125 @@ function applyTheme(name,save=true){
   document.documentElement.style.setProperty("--soft",t.pointSoft);
   document.documentElement.style.setProperty("--line",t.line);
   document.documentElement.style.setProperty("--theme-bg",t.themeBg);
-  if(save) saveThemeCookie(name);
+  document.documentElement.style.setProperty("--bg","#ffffff");
+  if(save)saveThemeCookie(name);
 }
 
-const params = new URLSearchParams(location.search);
-const queryTheme = params.get("theme");
-const savedTheme = themes[queryTheme]
-  ? queryTheme
-  : (getThemeFromCookie() || "mint");
+const params=new URLSearchParams(location.search);
+const initialTheme=themes[params.get("theme")]
+  ? params.get("theme")
+  : (getThemeFromCookie()||"mint");
+applyTheme(initialTheme,false);
 
-applyTheme(savedTheme, false);
-
-const themedIndexUrl = "./index.html?theme=" + encodeURIComponent(savedTheme);
-document.getElementById("backLink").href = themedIndexUrl;
-document.getElementById("cancelLink").href = themedIndexUrl;
+const themedIndexUrl="./index.html?theme="+encodeURIComponent(initialTheme);
+document.getElementById("backLink").href=themedIndexUrl;
+document.getElementById("cancelLink").href=themedIndexUrl;
 
 const themeWrap=document.getElementById("themeWrap");
-document.getElementById("themeButton").addEventListener("click",()=>themeWrap.classList.toggle("open"));
+document.getElementById("themeButton").addEventListener("click",(event)=>{
+  event.stopPropagation();
+  themeWrap.classList.toggle("open");
+});
 document.querySelectorAll(".theme-option").forEach(button=>{
   button.addEventListener("click",()=>{
     applyTheme(button.dataset.theme);
     themeWrap.classList.remove("open");
   });
 });
-document.addEventListener("click",e=>{
-  if(!themeWrap.contains(e.target)) themeWrap.classList.remove("open");
+document.addEventListener("click",event=>{
+  if(!themeWrap.contains(event.target))themeWrap.classList.remove("open");
 });
 
 const typeButtons=document.querySelectorAll(".type");
-typeButtons.forEach(button=>{
-  button.addEventListener("click",()=>{
-    typeButtons.forEach(b=>b.classList.remove("active"));
-    button.classList.add("active");
+const optionFields=document.getElementById("optionFields");
+const optionLabel=document.getElementById("optionLabel");
+const optionPanels={
+  basic:document.getElementById("basicOptions"),
+  concert:document.getElementById("concertOptions"),
+  travel:document.getElementById("travelOptions"),
+  movie:document.getElementById("movieOptions"),
+  custom:document.getElementById("customOptions")
+};
+
+function showType(type){
+  typeButtons.forEach(b=>b.classList.toggle("active",b.dataset.type===type));
+  Object.values(optionPanels).forEach(panel=>{
+    if(panel) panel.style.display="none";
   });
+
+  optionFields.style.display="block";
+  optionLabel.textContent =
+    type==="basic" ? "RECORD" :
+    type==="concert" ? "CONCERT DETAILS" :
+    type==="travel" ? "TRAVEL DETAILS" :
+    type==="movie" ? "MOVIE DETAILS" :
+    "CUSTOM FIELDS";
+
+  if(optionPanels[type]) optionPanels[type].style.display="grid";
+}
+
+typeButtons.forEach(button=>{
+  button.addEventListener("click",()=>showType(button.dataset.type));
 });
+
+showType("basic");
+
+const customRows=document.getElementById("customRows");
+document.getElementById("addCustom").addEventListener("click",()=>{
+  const row=document.createElement("div");
+  row.className="custom-row";
+  row.innerHTML='<input type="text" placeholder="항목 이름"><button type="button" class="custom-remove">×</button>';
+  row.querySelector(".custom-remove").addEventListener("click",()=>row.remove());
+  customRows.appendChild(row);
+});
+const photoInput=document.getElementById("photo");
+const photoPreview=document.getElementById("photoPreview");
+const photoPreviewImage=document.getElementById("photoPreviewImage");
+const photoText=document.getElementById("photoText");
+const removePhoto=document.getElementById("removePhoto");
+let selectedPhoto=null;
+let photoObjectUrl=null;
+
+photoInput.addEventListener("change",()=>{
+  const file=photoInput.files?.[0];
+  if(!file){
+    selectedPhoto=null;
+    photoPreview.hidden=true;
+    photoText.textContent="+ 사진 추가";
+    return;
+  }
+
+  if(!file.type.startsWith("image/")){
+    alert("이미지 파일만 첨부할 수 있습니다.");
+    photoInput.value="";
+    return;
+  }
+
+  if(photoObjectUrl) URL.revokeObjectURL(photoObjectUrl);
+  selectedPhoto=file;
+  photoObjectUrl=URL.createObjectURL(file);
+  photoPreviewImage.src=photoObjectUrl;
+  photoText.textContent=file.name;
+  photoPreview.hidden=false;
+});
+
+removePhoto.addEventListener("click",()=>{
+  photoInput.value="";
+  selectedPhoto=null;
+  photoPreview.hidden=true;
+  photoText.textContent="+ 사진 추가";
+  if(photoObjectUrl){
+    URL.revokeObjectURL(photoObjectUrl);
+    photoObjectUrl=null;
+  }
+});
+
 document.getElementById("save").addEventListener("click",()=>{
   if(!document.getElementById("archiveName").value.trim()){
     alert("아카이브 이름을 입력해주세요.");
     return;
   }
-  alert("디자인 테스트용입니다. 실제 저장은 DB 연결 후 작동합니다.");
+  alert("작성창 디자인 테스트용입니다. 다음 단계에서 실제 저장 기능을 연결합니다!");
 });
 </script>
 </body>
