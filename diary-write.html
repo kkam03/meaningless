@@ -338,7 +338,7 @@
     };
 
     function getThemeFromCookie() {
-      const match = document.cookie.match(/(?:^|;\\s*)meaningless-theme=([^;]+)/);
+      const match = document.cookie.match(/(?:^|;\s*)meaningless-theme=([^;]+)/);
       const name = match ? decodeURIComponent(match[1]) : null;
       return themes[name] ? name : null;
     }
