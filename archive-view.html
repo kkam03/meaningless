@@ -380,11 +380,19 @@ async function loadArchive(){
 
   const list=records||[];
 
-  // The most recently/earliest saved record with an image becomes the hero image.
-  const heroRecord=[...list].reverse().find(record=>record.image_url);
-  if(heroRecord){
+  // The first available photo becomes the archive hero image.
+  let heroUrl=null;
+  for(const record of list){
+    const blocks=Array.isArray(record.extra_data?.content_blocks)
+      ? record.extra_data.content_blocks
+      : [];
+    const blockImage=blocks.find(block=>block.type==="image" && block.url);
+    if(blockImage){ heroUrl=blockImage.url; break; }
+    if(record.image_url){ heroUrl=record.image_url; break; }
+  }
+  if(heroUrl){
     document.getElementById("hero").innerHTML=`
-      <img class="hero-photo" src="${esc(heroRecord.image_url)}" alt="">
+      <img class="hero-photo" src="${esc(heroUrl)}" alt="">
     `;
   }
 
@@ -398,13 +406,33 @@ async function loadArchive(){
     return;
   }
 
-  // Do not duplicate the hero image inside the record list.
+  function renderRecordBody(record){
+    const blocks=Array.isArray(record.extra_data?.content_blocks)
+      ? record.extra_data.content_blocks
+      : null;
+
+    if(blocks && blocks.length){
+      return blocks.map(block=>{
+        if(block.type==="image" && block.url){
+          return `<img class="record-image" src="${esc(block.url)}" alt="">`;
+        }
+        if(block.type==="text" && block.value){
+          return `<div class="record-content">${esc(block.value)}</div>`;
+        }
+        return "";
+      }).join("");
+    }
+
+    return record.content
+      ? `<div class="record-content">${esc(record.content)}</div>`
+      : "";
+  }
+
   recordsEl.innerHTML=list.map(record=>`
     <article class="record">
       <div class="record-date">${esc(formatDate(record.date))}</div>
       <div class="record-title">${esc(record.title||"기록")}</div>
-      ${record.content?`<div class="record-content">${esc(record.content)}</div>`:""}
-      ${record.image_url?`<img class="record-image" src="${esc(record.image_url)}" alt="">`:""}
+      ${renderRecordBody(record)}
     </article>
   `).join("");
 }
