@@ -169,37 +169,6 @@
       gap: 14px;
     }
 
-    .archive-card-wrap {
-      position: relative;
-      min-width: 0;
-    }
-
-    .archive-delete {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      z-index: 5;
-      width: 24px;
-      height: 24px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      border: 1px solid var(--line);
-      border-radius: 50%;
-      background: rgba(255,255,255,.94);
-      color: var(--muted);
-      font: inherit;
-      font-size: 15px;
-      line-height: 1;
-      cursor: pointer;
-    }
-
-    .archive-delete:hover {
-      color: var(--point);
-      border-color: var(--point);
-    }
-
     .create-row {
       display: none;
       justify-content: flex-end;
@@ -232,6 +201,32 @@
       background: linear-gradient(145deg, #ffffff 0%, var(--theme-bg) 100%);
       overflow: hidden;
       transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .archive-delete {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 3;
+      width: 24px;
+      height: 24px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: rgba(255,255,255,.94);
+      color: var(--muted);
+      font: inherit;
+      font-size: 15px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .archive-delete:hover {
+      color: var(--point);
+      border-color: var(--point);
     }
 
     .archive-card::before {
@@ -583,6 +578,7 @@
 
       if (!confirm("이 아카이브를 삭제할까요?")) return;
 
+      const id = button.dataset.id;
       button.disabled = true;
 
       try {
@@ -595,7 +591,7 @@
         const { error } = await supabase
           .from("archives")
           .delete()
-          .eq("id", button.dataset.id)
+          .eq("id", id)
           .eq("user_id", user.id);
 
         if (error) throw error;
@@ -649,21 +645,21 @@
 
     function renderArchives(items) {
       archiveGrid.innerHTML = items.map(item => `
-        <div class="archive-card-wrap">
-          <a class="archive-card" href="./archive-view.html?id=${encodeURIComponent(item.id)}">
-            <div class="archive-card-top">
-              <span>${esc(typeLabel(item.type))}</span>
-              <span>↗</span>
-            </div>
-            <div class="archive-card-title">${esc(item.name)}</div>
-            <div class="archive-card-subtitle">${esc(typeLabel(item.type))}</div>
-            <div class="archive-card-bottom">
-              <span>${esc(new Date(item.created_at).getFullYear())}</span>
-              <span>VIEW</span>
-            </div>
-          </a>
-          <button class="archive-delete" type="button" data-id="${esc(item.id)}" aria-label="${esc(item.name)} 삭제" style="display:none">×</button>
-        </div>
+        <a class="archive-card" href="./archive-view.html?id=${encodeURIComponent(item.id)}">
+          <div class="archive-card-top">
+            <span>${esc(typeLabel(item.type))}</span>
+            <span>↗</span>
+          </div>
+          <div class="archive-card-title">${esc(item.name)}</div>
+          <div class="archive-card-subtitle">${esc(typeLabel(item.type))}</div>
+          <div class="archive-card-bottom">
+            <span>${esc(new Date(item.created_at).getFullYear())}</span>
+            <span>VIEW</span>
+          </div>
+          <button class="archive-delete" type="button"
+            data-id="${esc(item.id)}"
+            aria-label="${esc(item.name)} 삭제">×</button>
+        </a>
       `).join("");
     }
 
