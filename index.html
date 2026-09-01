@@ -169,6 +169,29 @@
       gap: 14px;
     }
 
+    .create-row {
+      display: none;
+      justify-content: flex-end;
+      margin: -2px 4px 12px;
+    }
+
+    .create-button {
+      display: inline-block;
+      color: var(--point);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      transition: opacity 0.2s ease;
+    }
+
+    .create-button:hover {
+      opacity: 0.6;
+    }
+
+    .archive-create-row {
+      margin-top: -8px;
+      margin-bottom: 14px;
+    }
+
     .archive-card {
       position: relative;
       min-height: 190px;
@@ -454,58 +477,22 @@
         <div class="section-title"><span class="heart">♡</span> DIARY</div>
         <div class="section-subtitle">하루 한 줄</div>
       </div>
+      <div class="create-row" id="diaryCreateRow">
+        <a class="create-button" href="./diary-write.html">+ NEW DIARY</a>
+      </div>
 
       <div class="post-list">
-
-        <!-- 임시 기록입니다. 나중에 실제 기록 데이터와 연결합니다. -->
-        <a href="#" class="post">
-          <div class="post-date">2026.08.31</div>
-          <div class="post-title">또 뭔가를 만들었다.</div>
-        </a>
-
-        <a href="#" class="post">
-          <div class="post-date">2026.08.28</div>
-          <div class="post-title">오늘은 아무것도 안 했다.</div>
-        </a>
-
-        <a href="#" class="post">
-          <div class="post-date">2026.08.26</div>
-          <div class="post-title">이 사진이 마음에 든다.</div>
-        </a>
-
       </div>
       <section class="archive-section">
         <div class="archive-heading">
           <span class="archive-label">ARCHIVE</span>
           <span class="archive-note">기록해두고 싶은 것들</span>
         </div>
+        <div class="create-row archive-create-row" id="archiveCreateRow">
+          <a class="create-button" href="./archive-write_buttons_v2.html">+ NEW ARCHIVE</a>
+        </div>
 
         <div class="archive-grid">
-          <a href="#" class="archive-card nell-card">
-            <div class="archive-card-top">
-              <span>01</span>
-              <span>LIVE</span>
-            </div>
-            <div class="archive-card-title">NELL</div>
-            <div class="archive-card-subtitle">LIVE ARCHIVE</div>
-            <div class="archive-card-bottom">
-              <span>2011 — 2026</span>
-              <span>↗</span>
-            </div>
-          </a>
-
-          <a href="#" class="archive-card">
-            <div class="archive-card-top">
-              <span>02</span>
-              <span>ETC.</span>
-            </div>
-            <div class="archive-card-title">COMING</div>
-            <div class="archive-card-subtitle">SOON</div>
-            <div class="archive-card-bottom">
-              <span>something else</span>
-              <span>↗</span>
-            </div>
-          </a>
         </div>
       </section>
     </main>
@@ -521,30 +508,10 @@
 
   <script>
     const themes = {
-      mint: {
-        point: "#62b9aa",
-        pointSoft: "#dff2ee",
-        line: "#e5eeee",
-        themeBg: "#f7fbfa"
-      },
-      pink: {
-        point: "#d8799a",
-        pointSoft: "#f6dfe8",
-        line: "#eee3e7",
-        themeBg: "#fff8fa"
-      },
-      lavender: {
-        point: "#9a8bc2",
-        pointSoft: "#e9e4f4",
-        line: "#e8e5ee",
-        themeBg: "#faf8fd"
-      },
-      blue: {
-        point: "#70a9c2",
-        pointSoft: "#e0eef3",
-        line: "#e3ebee",
-        themeBg: "#f7fbfd"
-      }
+      mint: { point: "#62b9aa", pointSoft: "#dff2ee", line: "#e5eeee", themeBg: "#f7fbfa" },
+      pink: { point: "#d8799a", pointSoft: "#f6dfe8", line: "#eee3e7", themeBg: "#fff8fa" },
+      lavender: { point: "#9a8bc2", pointSoft: "#e9e4f4", line: "#e8e5ee", themeBg: "#faf8fd" },
+      blue: { point: "#70a9c2", pointSoft: "#e0eef3", line: "#e3ebee", themeBg: "#f7fbfd" }
     };
 
     function saveThemeCookie(name) {
@@ -553,7 +520,7 @@
     }
 
     function getThemeFromCookie() {
-      const match = document.cookie.match(/(?:^|;\\s*)meaningless-theme=([^;]+)/);
+      const match = document.cookie.match(/(?:^|;\s*)meaningless-theme=([^;]+)/);
       return match ? decodeURIComponent(match[1]) : null;
     }
 
@@ -594,6 +561,42 @@
       if (!themeWrap.contains(event.target)) {
         themeWrap.classList.remove("open");
       }
+    });
+  </script>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+    import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    const diaryCreateRow = document.getElementById("diaryCreateRow");
+    const archiveCreateRow = document.getElementById("archiveCreateRow");
+
+    function updateAuthUI(session) {
+      if (session) {
+        loginLink.textContent = "LOGOUT";
+        loginLink.href = "#";
+        diaryCreateRow.style.display = "flex";
+        archiveCreateRow.style.display = "flex";
+
+        loginLink.onclick = async (event) => {
+          event.preventDefault();
+          await supabase.auth.signOut();
+        };
+      } else {
+        loginLink.textContent = "LOGIN";
+        loginLink.href = "./login.html?theme=" + encodeURIComponent(savedTheme);
+        diaryCreateRow.style.display = "none";
+        archiveCreateRow.style.display = "none";
+        loginLink.onclick = null;
+      }
+    }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    updateAuthUI(session);
+
+    supabase.auth.onAuthStateChange((_event, nextSession) => {
+      updateAuthUI(nextSession);
     });
   </script>
 
