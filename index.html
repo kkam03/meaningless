@@ -506,9 +506,12 @@
 
   </div>
 
-  <script src="supabase-config.js"></script>
-  <script>
-    const cfg = window.WINKONG_SUPABASE || {};
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+    import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
     const diaryList = document.getElementById("diaryList");
     const archiveGrid = document.getElementById("archiveGrid");
 
@@ -534,79 +537,46 @@
       custom: "ARCHIVE"
     })[type] || "ARCHIVE";
 
-    async function rest(path) {
-      const response = await fetch(cfg.url + path, {
-        method: "GET",
-        headers: {
-          apikey: cfg.publishableKey,
-          Authorization: "Bearer " + cfg.publishableKey,
-          Accept: "application/json"
-        },
-        cache: "no-store"
-      });
-
-      const text = await response.text();
-      let data = [];
-      try { data = text ? JSON.parse(text) : []; } catch {}
-
-      if (!response.ok) {
-        throw new Error(data?.message || data?.hint || text || `HTTP ${response.status}`);
-      }
-      return data;
-    }
-
     async function loadPublicData() {
-      if (!cfg.url || !cfg.publishableKey) {
-        throw new Error("supabase-config.js 연결 정보가 없습니다.");
+      const [{ data: diaries, error: diaryError }, { data: archives, error: archiveError }] =
+        await Promise.all([
+          supabase.from("diary")
+            .select("id,date,title,content,image_url,created_at")
+            .order("date", { ascending:false })
+            .order("created_at", { ascending:false }),
+          supabase.from("archives")
+            .select("id,name,type,created_at")
+            .order("created_at", { ascending:true })
+        ]);
+
+      if (diaryError) {
+        console.error("DIARY LOAD:", diaryError);
+        diaryList.innerHTML = "";
+      } else {
+        renderDiary(diaries || []);
       }
 
-      try {
-        const diaries = await rest(
-          "/rest/v1/diary?select=id,date,title,content,image_url,created_at&order=date.desc,created_at.desc"
-        );
-        renderDiary(diaries);
-      } catch (error) {
-        console.error("DIARY LOAD:", error);
-        diaryList.innerHTML =
-          `<div style="padding:16px 4px;color:var(--muted);font-size:10px;">DIARY를 불러오지 못했습니다.</div>`;
-      }
-
-      try {
-        const archives = await rest(
-          "/rest/v1/archives?select=id,name,type,created_at&order=created_at.asc"
-        );
-        renderArchives(archives);
-      } catch (error) {
-        console.error("ARCHIVE LOAD:", error);
-        archiveGrid.innerHTML =
-          `<div style="padding:16px 4px;color:var(--muted);font-size:10px;">ARCHIVE를 불러오지 못했습니다.</div>`;
+      if (archiveError) {
+        console.error("ARCHIVE LOAD:", archiveError);
+        archiveGrid.innerHTML = "";
+      } else {
+        renderArchives(archives || []);
       }
     }
 
     function renderDiary(items) {
-      if (!items.length) {
-        diaryList.innerHTML = "";
-        return;
-      }
-
       diaryList.innerHTML = items.map(item => `
         <article class="post">
           <div class="post-date">${esc(formatDate(item.date))}</div>
           <div>
-            <a class="post-title" href="./diary-view.html?id=${encodeURIComponent(item.id)}">
-              ${esc(item.title)}
-            </a>
+            <a class="post-title" href="./diary-view.html?id=${encodeURIComponent(item.id)}">${esc(item.title)}</a>
+            <div class="post-excerpt">${esc(item.content)}</div>
           </div>
         </article>
       `).join("");
     }
 
     function renderArchives(items) {
-      if (!items.length) {
-        archiveGrid.innerHTML = "";
-        return;
-      }
-
       archiveGrid.innerHTML = items.map(item => `
         <a class="archive-card" href="./archive-view.html?id=${encodeURIComponent(item.id)}">
           <div class="archive-card-top">
@@ -623,11 +593,7 @@
       `).join("");
     }
 
-    loadPublicData().catch(error => {
-      console.error("PUBLIC DATA ERROR:", error);
-      archiveGrid.innerHTML =
-        `<div style="padding:16px 4px;color:var(--muted);font-size:10px;">데이터를 불러오지 못했습니다.</div>`;
-    });
+    loadPublicData().catch(error => console.error("PUBLIC DATA ERROR:", error));
   </script>
 
   <script>
