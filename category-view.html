@@ -70,27 +70,49 @@ main{padding-bottom:65px}
 }
 .archive-row:hover{transform:translateY(-2px);border-color:var(--point)}
 .archive-delete{
-  width:18px;height:18px;padding:0;
-  border:0;background:transparent;color:var(--muted);
-  font-family:Arial,sans-serif;font-size:12px;font-weight:300;
-  line-height:18px;text-align:center;
-  display:none;align-items:center;justify-content:center;
-  cursor:pointer;opacity:.45;
-  transition:opacity .15s ease,color .15s ease,transform .15s ease
+  appearance:none;
+  -webkit-appearance:none;
+  width:18px;
+  height:18px;
+  padding:0;
+  margin:0;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:var(--muted);
+  font-family:Arial,sans-serif;
+  font-size:12px;
+  font-weight:300;
+  line-height:18px;
+  text-align:center;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  opacity:.45;
+  transition:opacity .15s ease,color .15s ease,transform .15s ease;
 }
 .is-authenticated .archive-delete{display:flex}
 .archive-delete:hover{
   color:var(--point);
   opacity:1;
-  transform:scale(1.08)
+  transform:scale(1.08);
 }
 
 .archive-year{color:var(--muted);font-size:10px}
 .archive-row-main{min-width:0}
 .archive-row-type{color:var(--point);font-size:9px;letter-spacing:.08em}
 .archive-row-title{
-  margin-top:2px;font-size:14px;font-weight:600;letter-spacing:-.02em;
-  line-height:1.5;overflow-wrap:anywhere;word-break:break-word
+  margin-top:2px;
+  font-size:14px;
+  font-weight:600;
+  letter-spacing:-.02em;
+  line-height:1.5;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  overflow-wrap:anywhere;
+  word-break:break-word;
 }
 .archive-row-count{margin-top:2px;color:var(--muted);font-size:9px}
 .archive-row-arrow{color:var(--muted);font-size:12px;text-align:right}
@@ -135,7 +157,7 @@ footer{padding:0 0 50px;color:var(--muted);font-size:11px}
   </main>
 
   <footer>
-    <a id="footerBack" href="index.html">♡ back to meaningless</a>
+    <a id="footerBack" href="index.html">← ARCHIVE</a>
   </footer>
 </div>
 
