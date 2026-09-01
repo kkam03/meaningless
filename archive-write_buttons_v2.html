@@ -18,6 +18,8 @@ header{padding:45px 0 48px}
 .field-label{display:block;margin-bottom:8px;color:var(--point);font-size:10px;font-weight:700;letter-spacing:.08em}
 input,textarea{width:100%;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit;font-size:13px;outline:none}
 input{height:42px;padding:0 12px}
+select{width:100%;height:42px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit;font-size:13px;outline:none}
+select:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--soft)}
 textarea{min-height:110px;padding:12px;resize:vertical;line-height:1.8}
 input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--soft)}
 .name input{font-size:16px;font-weight:500}
@@ -55,6 +57,13 @@ header{padding-top:32px;padding-bottom:40px}
 <section class="field">
 <label class="field-label" for="description">DESCRIPTION</label>
 <textarea id="description" placeholder="이 아카이브에 무엇을 기록할지 짧게 적어두기."></textarea>
+</section>
+
+<section class="field">
+<label class="field-label" for="categorySelect">CATEGORY</label>
+<select id="categorySelect">
+  <option value="">카테고리 없음</option>
+</select>
 </section>
 
 <section class="field">
@@ -106,77 +115,136 @@ function applyTheme(name,save=true){
 }
 
 const params=new URLSearchParams(location.search);
-const savedTheme=themes[params.get("theme")]?params.get("theme"):(getThemeFromCookie()||"mint");
-applyTheme(savedTheme,false);
+const initialTheme=themes[params.get("theme")] ? params.get("theme") : (getThemeFromCookie()||"mint");
+applyTheme(initialTheme,false);
 
-const themedIndexUrl="./index.html?theme="+encodeURIComponent(savedTheme);
-document.querySelector(".back").href=themedIndexUrl;
-document.querySelector(".cancel").href=themedIndexUrl;
+const themedIndexUrl="./index.html?theme="+encodeURIComponent(initialTheme);
 
+const backLink=document.querySelector(".back");
+const cancelLink=document.querySelector(".cancel");
+if(backLink)backLink.href=themedIndexUrl;
+if(cancelLink)cancelLink.href=themedIndexUrl;
+
+// This writer page uses class-based theme markup, and some versions have
+// no theme menu at all. Guard these elements so the rest of the script
+// (TYPE toggle and SAVE) still initializes normally.
 const themeWrap=document.querySelector(".theme");
-const themeButton=themeWrap.querySelector("button");
-themeButton.addEventListener("click",e=>{
-  e.stopPropagation();
-  themeWrap.classList.toggle("open");
-});
+const themeButton=themeWrap?.querySelector("button");
+
+if(themeButton && themeWrap){
+  themeButton.addEventListener("click",(event)=>{
+    event.stopPropagation();
+    themeWrap.classList.toggle("open");
+  });
+}
 document.querySelectorAll(".theme-option").forEach(button=>{
   button.addEventListener("click",()=>{
     applyTheme(button.dataset.theme);
-    themeWrap.classList.remove("open");
+    if(themeWrap)themeWrap.classList.remove("open");
   });
 });
-document.addEventListener("click",e=>{
-  if(!themeWrap.contains(e.target))themeWrap.classList.remove("open");
+document.addEventListener("click",event=>{
+  if(themeWrap && !themeWrap.contains(event.target))themeWrap.classList.remove("open");
 });
 
 const typeButtons=document.querySelectorAll(".type");
-let selectedType="basic";
-
+let activeType="basic";
 typeButtons.forEach(button=>{
   button.addEventListener("click",()=>{
     typeButtons.forEach(b=>b.classList.remove("active"));
     button.classList.add("active");
-    selectedType=button.dataset.type;
+    activeType=button.dataset.type;
   });
 });
 
-const saveButton=document.getElementById("save");
-const archiveName=document.getElementById("archiveName");
+const categorySelect=document.getElementById("categorySelect");
 
-saveButton.addEventListener("click",async()=>{
-  const name=archiveName.value.trim();
+async function loadCategories(){
+  const {data,error}=await supabase
+    .from("archive_categories")
+    .select("id,name")
+    .order("created_at",{ascending:true});
 
-  if(!name){
-    alert("아카이브 이름을 입력해주세요.");
-    archiveName.focus();
+  if(error){
+    console.error("CATEGORY LOAD",error);
     return;
   }
 
-  saveButton.disabled=true;
-  saveButton.textContent="SAVING…";
+  categorySelect.innerHTML='<option value="">카테고리 없음</option>'+
+    (data||[]).map(c=>`<option value="${c.id}">${c.name}</option>`).join("");
+
+  const categoryParam=params.get("category");
+  if(categoryParam && (data||[]).some(c=>c.id===categoryParam)){
+    categorySelect.value=categoryParam;
+    categorySelect.disabled=true;
+  }
+}
+
+await loadCategories();
+
+document.getElementById("save").addEventListener("click",async()=>{
+  const name=document.getElementById("archiveName").value.trim();
+  const description=document.getElementById("description").value.trim();
+  const dateInput=document.getElementById("date");
+  const recordTitle=document.getElementById("recordTitle")?.value.trim()||"";
+  const recordContent=document.getElementById("recordContent")?.value.trim()||"";
+  const categoryId=categorySelect.value||null;
+  const save=document.getElementById("save");
+
+  if(!name){
+    alert("아카이브 이름을 입력해주세요.");
+    return;
+  }
+
+  save.disabled=true;
+  save.textContent="SAVING…";
 
   try{
-    const {data:{user},error:userError}=await supabase.auth.getUser();
-    if(userError)throw userError;
+    const {data:{user},error:authError}=await supabase.auth.getUser();
+    if(authError)throw authError;
     if(!user)throw new Error("로그인이 필요합니다.");
 
-    const {error}=await supabase
+    const {data:archive,error:archiveError}=await supabase
       .from("archives")
       .insert({
         user_id:user.id,
-        name:name,
-        type:selectedType
-      });
+        name,
+        description:description||null,
+        type:activeType,
+        category_id:categoryId
+      })
+      .select("id")
+      .single();
 
-    if(error)throw error;
+    if(archiveError)throw archiveError;
 
-    location.href=themedIndexUrl;
+    // Keep the optional first record attached to this archive.
+    if(dateInput?.value || recordTitle || recordContent){
+      const {error:recordError}=await supabase
+        .from("archive_records")
+        .insert({
+          archive_id:archive.id,
+          user_id:user.id,
+          date:dateInput?.value||null,
+          title:recordTitle||null,
+          content:recordContent||null
+        });
+      if(recordError)throw recordError;
+    }
+
+    alert("ARCHIVE가 저장되었습니다.");
+
+    if(categoryId){
+      location.href=`./category-view.html?id=${encodeURIComponent(categoryId)}&theme=${encodeURIComponent(initialTheme)}`;
+    }else{
+      location.href=themedIndexUrl;
+    }
   }catch(error){
-    console.error("ARCHIVE SAVE:",error);
+    console.error("ARCHIVE SAVE",error);
     alert("저장에 실패했습니다.\n"+(error?.message||"알 수 없는 오류"));
   }finally{
-    saveButton.disabled=false;
-    saveButton.textContent="SAVE";
+    save.disabled=false;
+    save.textContent="SAVE";
   }
 });
 </script>
