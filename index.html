@@ -743,9 +743,10 @@
     const archiveCreateRow = document.getElementById("archiveCreateRow");
 
     function updateAuthUI(session) {
+      // Deletion UI stays independent from auth state.
       setDeleteButtonsVisible();
 
-      if (session) {
+      if (session && session.user) {
         loginLink.textContent = "LOGOUT";
         loginLink.href = "#";
         diaryCreateRow.style.display = "flex";
@@ -754,6 +755,7 @@
         loginLink.onclick = async (event) => {
           event.preventDefault();
           await supabase.auth.signOut();
+          updateAuthUI(null);
         };
       } else {
         loginLink.textContent = "LOGIN";
@@ -764,10 +766,17 @@
       }
     }
 
-    setDeleteButtonsVisible();
+    // Use the session directly for the UI. This matches the login page's
+    // Supabase auth flow and avoids a transient getUser() state changing
+    // the page to LOGIN after a successful sign-in.
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-    const { data: { user } } = await supabase.auth.getUser();
-    updateAuthUI(user ? { user } : null);
+    if (sessionError) {
+      console.error("AUTH SESSION:", sessionError);
+    }
+
+    updateAuthUI(session);
+    setDeleteButtonsVisible();
 
     supabase.auth.onAuthStateChange((_event, nextSession) => {
       updateAuthUI(nextSession);
