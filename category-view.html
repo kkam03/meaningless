@@ -63,22 +63,21 @@ main{padding-bottom:65px}
 .archive-list{display:grid;gap:10px}
 
 .archive-row{
-  position:relative;display:grid;grid-template-columns:76px minmax(0,1fr) 20px 24px;
+  position:relative;display:grid;grid-template-columns:76px minmax(0,1fr) 24px;
   gap:14px;align-items:center;padding:16px 14px;
   border:1px solid var(--line);border-radius:11px;background:#fff;
   transition:transform .18s ease,border-color .18s ease
 }
 .archive-row:hover{transform:translateY(-2px);border-color:var(--point)}
 archive-delete{
-  width:24px;height:24px;padding:0;
-  border:1px solid var(--line);border-radius:50%;
-  background:#fff;color:var(--muted);
-  font:inherit;font-size:15px;line-height:1;
+  width:20px;height:20px;padding:0;
+  border:0;background:transparent;color:var(--muted);
+  font:inherit;font-size:13px;line-height:1;
   display:none;align-items:center;justify-content:center;
-  cursor:pointer
+  cursor:pointer;opacity:.7
 }
 .is-authenticated .archive-delete{display:flex}
-.archive-delete:hover{color:var(--point);border-color:var(--point)}
+.archive-delete:hover{color:var(--point);opacity:1}
 
 .archive-year{color:var(--muted);font-size:10px}
 .archive-row-main{min-width:0}
@@ -97,7 +96,7 @@ footer{padding:0 0 50px;color:var(--muted);font-size:11px}
   .container{width:min(100% - 30px,760px)}
   .theme-wrap{top:18px;right:18px}
   .category-title{font-size:28px}
-  .archive-row{grid-template-columns:58px minmax(0,1fr) 18px 24px;gap:10px}
+  .archive-row{grid-template-columns:58px minmax(0,1fr) 20px;gap:10px}
 }
 </style>
 </head>
@@ -115,7 +114,7 @@ footer{padding:0 0 50px;color:var(--muted);font-size:11px}
 
 <div class="container">
   <header>
-    <a class="back" id="backLink" href="index.html">← meaningful</a>
+    <a class="back" id="backLink" href="index.html">← ARCHIVE</a>
     <div class="category-label">♡ CATEGORY</div>
     <h1 class="category-title" id="categoryTitle">불러오는 중…</h1>
     <div class="category-description" id="categoryDescription"></div>
