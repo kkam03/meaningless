@@ -211,6 +211,11 @@ async function syncAuth(){
   currentSession=session||null;
   document.documentElement.classList.toggle("is-authenticated",!!currentSession);
 }
+async function updateViewAuth(){
+  const {data:{session}}=await supabase.auth.getSession();
+  currentSession=session||null;
+  document.documentElement.classList.toggle("is-authenticated",!!currentSession);
+}
 async function loadCategory(){
   if(!categoryId){
     document.getElementById("categoryTitle").textContent="카테고리를 찾을 수 없습니다.";
