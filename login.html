@@ -6,48 +6,25 @@
 <title>meaningless — login</title>
 <style>
 *{box-sizing:border-box}
-:root{--bg:#fff;--text:#29262a;--muted:#8a8588;--line:#e5eeee;--point:#62b9aa;--soft:#dff2ee}
+:root{--bg:#f7fbfa;--text:#29262a;--muted:#8a8588;--line:#e5eeee;--point:#62b9aa;--soft:#dff2ee}
 body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .wrap{width:min(390px,calc(100% - 40px));margin:18vh auto 0}
 .back{display:inline-block;margin-bottom:48px;color:var(--muted);font-size:11px;text-decoration:none}
 .back:hover{color:var(--point)}
-.logo{font-size:28px;font-weight:700;letter-spacing:-.055em;margin-bottom:5px}
+.logo{font-size:28px;font-weight:700;letter-spacing:-.055em;margin-bottom:5px;color:var(--point)}
 .sub{font-size:11px;color:var(--muted);margin-bottom:42px}
-label{display:block;margin:0 0 7px;color:var(--point);font-size:10px;font-weight:700;letter-spacing:.08em}
 .field{margin-bottom:20px}
+label{display:block;margin:0 0 7px;color:var(--point);font-size:10px;font-weight:700;letter-spacing:.08em}
 input{width:100%;height:43px;padding:0 12px;border:1px solid var(--line);border-radius:9px;outline:none;background:#fff;color:var(--text);font:inherit;font-size:13px}
 input:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--soft)}
 button{width:100%;height:42px;margin-top:10px;border:1px solid var(--point);border-radius:9px;background:var(--point);color:#fff;font:inherit;font-size:11px;cursor:pointer}
 button:hover{opacity:.84}
 #message{min-height:20px;margin-top:16px;color:var(--muted);font-size:10px;line-height:1.6}
-.top-nav{position:fixed;top:28px;right:28px;z-index:10;display:flex;align-items:center;gap:18px}
-.login-current{color:var(--point);font-size:10px;letter-spacing:.08em;padding:6px 0}
-.theme-wrap{position:relative;z-index:10}
-.theme-button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:10px;letter-spacing:.08em;cursor:pointer;padding:6px 0}
-.theme-button:hover{color:var(--point)}
-.theme-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;width:145px;padding:8px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.97);box-shadow:0 8px 25px rgba(50,100,95,.08)}
-.theme-wrap.open .theme-menu{display:block}
-.theme-option{display:flex;align-items:center;gap:8px;width:100%;padding:8px 7px;border:0;border-radius:7px;background:transparent;color:var(--text);font:inherit;font-size:11px;text-align:left;cursor:pointer}
-.theme-option:hover{background:var(--soft)}
-.theme-dot{width:9px;height:9px;border-radius:50%;background:var(--theme-color);flex:0 0 auto}
-@media (max-width:600px){.top-nav{top:18px;right:18px;gap:13px}}}
 </style>
 </head>
 <body>
-<div class="top-nav">
-  <div class="login-current">LOGIN</div>
-  <div class="theme-wrap" id="themeWrap">
-    <button class="theme-button" id="themeButton" type="button">THEME</button>
-    <div class="theme-menu">
-      <button class="theme-option" type="button" data-theme="mint"><span class="theme-dot" style="--theme-color:#62b9aa"></span> Mint</button>
-      <button class="theme-option" type="button" data-theme="pink"><span class="theme-dot" style="--theme-color:#d8799a"></span> Pink</button>
-      <button class="theme-option" type="button" data-theme="lavender"><span class="theme-dot" style="--theme-color:#9a8bc2"></span> Lavender</button>
-      <button class="theme-option" type="button" data-theme="blue"><span class="theme-dot" style="--theme-color:#70a9c2"></span> Blue</button>
-    </div>
-  </div>
-</div>
 <div class="wrap">
-<a class="back" id="backLink" href="index.html">← meaningless</a>
+<a class="back" id="backLink" href="./index.html">← meaningless</a>
 <div class="logo">meaningless</div>
 <div class="sub">private archive</div>
 
@@ -73,6 +50,22 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 const form = document.getElementById("loginForm");
 const message = document.getElementById("message");
 
+const themes = {
+  mint:{point:"#62b9aa",soft:"#dff2ee",line:"#e5eeee",bg:"#f7fbfa"},
+  pink:{point:"#d8799a",soft:"#f6dfe8",line:"#eee3e7",bg:"#fff8fa"},
+  lavender:{point:"#9a8bc2",soft:"#e9e4f4",line:"#e8e5ee",bg:"#faf8fd"},
+  blue:{point:"#70a9c2",soft:"#e0eef3",line:"#e3ebee",bg:"#f7fbfd"}
+};
+
+const params = new URLSearchParams(location.search);
+const themeName = themes[params.get("theme")] ? params.get("theme") : "mint";
+const theme = themes[themeName];
+
+document.documentElement.style.setProperty("--point", theme.point);
+document.documentElement.style.setProperty("--soft", theme.soft);
+document.documentElement.style.setProperty("--line", theme.line);
+document.documentElement.style.setProperty("--bg", theme.bg);
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   message.textContent = "로그인 중…";
@@ -87,60 +80,13 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
-  const currentTheme = new URLSearchParams(location.search).get("theme") ||
-    getThemeCookie() || "mint";
-  saveThemeCookie(currentTheme);
-  location.href = "index.html?theme=" + encodeURIComponent(currentTheme);
+  location.href = "./index.html?theme=" + encodeURIComponent(themeName);
 });
 </script>
-
 <script>
-const themes = {
-  mint:{point:"#62b9aa",pointSoft:"#dff2ee",line:"#e5eeee",themeBg:"#f7fbfa"},
-  pink:{point:"#d8799a",pointSoft:"#f6dfe8",line:"#eee3e7",themeBg:"#fff8fa"},
-  lavender:{point:"#9a8bc2",pointSoft:"#e9e4f4",line:"#e8e5ee",themeBg:"#faf8fd"},
-  blue:{point:"#70a9c2",pointSoft:"#e0eef3",line:"#e3ebee",themeBg:"#f7fbfd"}
-};
-
-function saveThemeCookie(name){
-  document.cookie = "meaningless-theme=" + encodeURIComponent(name) +
-    "; path=/; max-age=31536000; SameSite=Lax";
-}
-function getThemeCookie(){
-  const match = document.cookie.match(/(?:^|;\s*)meaningless-theme=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : null;
-}
-function applyTheme(name, save=true){
-  const theme=themes[name]||themes.mint;
-  document.documentElement.style.setProperty("--point",theme.point);
-  document.documentElement.style.setProperty("--soft",theme.pointSoft);
-  document.documentElement.style.setProperty("--line",theme.line);
-  document.documentElement.style.setProperty("--bg",theme.themeBg);
-  if(save) saveThemeCookie(name);
-}
-const params=new URLSearchParams(location.search);
-const initialTheme=themes[params.get("theme")] ? params.get("theme") : (getThemeCookie()||"mint");
-applyTheme(initialTheme);
-document.getElementById("backLink").href="./index.html?theme="+encodeURIComponent(initialTheme);
-
-const themeWrap=document.getElementById("themeWrap");
-document.getElementById("themeButton").addEventListener("click",()=>{
-  themeWrap.classList.toggle("open");
-});
-document.querySelectorAll(".theme-option").forEach(button=>{
-  button.addEventListener("click",()=>{
-    const selectedTheme=button.dataset.theme;
-    applyTheme(selectedTheme);
-    const nextUrl=new URL(location.href);
-    nextUrl.searchParams.set("theme",selectedTheme);
-    history.replaceState(null,"",nextUrl);
-    themeWrap.classList.remove("open");
-  });
-});
-document.addEventListener("click",(event)=>{
-  if(!themeWrap.contains(event.target)) themeWrap.classList.remove("open");
-});
+const theme = new URLSearchParams(location.search).get("theme") || "mint";
+document.getElementById("backLink").href =
+  "./index.html?theme=" + encodeURIComponent(theme);
 </script>
-
 </body>
 </html>
