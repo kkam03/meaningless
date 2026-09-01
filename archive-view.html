@@ -203,7 +203,6 @@ footer{
 
   <main>
     <div id="hero"></div>
-    <div class="meta" id="meta"></div>
     <div class="details" id="details"></div>
 
     <div class="record-divider"></div>
@@ -359,12 +358,7 @@ async function loadArchive(){
 
   const type=archive.type||"basic";
   document.getElementById("archiveTitle").textContent=archive.name;
-  document.getElementById("archiveType").textContent=typeNames[type]||"";
-  document.getElementById("meta").innerHTML=`
-    <span>${esc(typeLabels[type]||"ARCHIVE")}</span>
-    <span>${esc(new Date(archive.created_at).getFullYear())}</span>
-  `;
-
+  document.getElementById("archiveType").textContent = type==="basic" ? "" : (typeNames[type]||"");
   const {data:records,error:recordsError}=await supabase
     .from("archive_records")
     .select("id,date,title,content,image_url,extra_data,created_at")
