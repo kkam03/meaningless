@@ -238,29 +238,6 @@
     .is-authenticated .archive-delete { display:flex; }
     .archive-delete:hover { color:var(--point); border-color:var(--point); }
 
-    .category-delete{
-      position:absolute;
-      top:12px;
-      right:12px;
-      z-index:4;
-      width:24px;
-      height:24px;
-      padding:0;
-      border:1px solid var(--line);
-      border-radius:50%;
-      background:rgba(255,255,255,.96);
-      color:var(--muted);
-      font:inherit;
-      font-size:15px;
-      line-height:1;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      cursor:pointer
-    }
-    .is-authenticated .category-delete{display:flex}
-    .category-delete:hover{color:var(--point);border-color:var(--point)}
-
     .category-card .archive-card-subtitle {
       text-transform:uppercase;
     }
@@ -666,13 +643,13 @@ async function loadLists(){
         <span>${esc(new Date(x.created_at).getFullYear())}</span>
         <span>OPEN</span>
       </div>
-      <button class="category-delete" type="button" data-id="${esc(x.id)}" aria-label="${esc(x.name)} 삭제">×</button>
+      <button class="archive-delete" type="button" data-id="${esc(x.id)}" data-kind="category" aria-label="${esc(x.name)} 삭제">×</button>
     </a>
   `).join("");
 }
 
 document.addEventListener("click",async e=>{
-  const button=e.target.closest(".category-delete");
+  const button=e.target.closest(".archive-delete");
   if(!button)return;
 
   e.preventDefault();
