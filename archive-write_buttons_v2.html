@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>meaningless — new archive</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#fff;--text:#29262a;--muted:#8a8588;--line:#e5eeee;--point:#62b9aa;--soft:#dff2ee}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.container{width:min(680px,calc(100% - 40px));margin:auto}
+header{padding:45px 0 48px}
+.back{display:inline-block;margin-bottom:48px;color:var(--muted);font-size:11px;text-decoration:none}
+.heading{display:flex;align-items:baseline;gap:12px;margin-left:3px}
+.label{color:var(--point);font-size:12px;font-weight:700;letter-spacing:.08em}
+.subtitle{color:var(--muted);font-size:11px}
+.field{margin-bottom:30px}
+.field-label{display:block;margin-bottom:8px;color:var(--point);font-size:10px;font-weight:700;letter-spacing:.08em}
+input,textarea{width:100%;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit;font-size:13px;outline:none}
+input{height:42px;padding:0 12px}
+textarea{min-height:110px;padding:12px;resize:vertical;line-height:1.8}
+input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--soft)}
+.name input{font-size:16px;font-weight:500}
+.types{display:flex;flex-wrap:wrap;gap:8px}
+.type{padding:7px 12px;border:1px solid var(--line);border-radius:20px;background:#fff;color:var(--muted);font-size:10px;letter-spacing:-.01em;cursor:pointer;transition:background .15s ease,border-color .15s ease,color .15s ease}
+.type:hover{border-color:#c9dfdb;color:var(--point)}
+.type.active{border-color:var(--point);background:var(--soft);color:var(--point);font-weight:600}
+.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:48px;padding-top:18px;border-top:1px solid var(--line)}
+.actions a,.actions button{padding:8px 15px;border-radius:8px;font:inherit;font-size:11px;cursor:pointer}
+.cancel{border:1px solid var(--line);background:#fff;color:var(--muted);text-decoration:none}
+.save{border:1px solid var(--point);background:var(--point);color:#fff}
+.theme{position:fixed;top:28px;right:28px}
+.theme button{border:0;background:transparent;color:var(--muted);font-size:10px;letter-spacing:.08em;cursor:pointer}
+@media(max-width:600px){
+.container{width:calc(100% - 30px)}
+header{padding-top:32px;padding-bottom:40px}
+.theme{top:18px;right:18px}
+}
+</style>
+</head>
+<body>
+<div class="theme"><button type="button">THEME</button></div>
+<div class="container">
+<header>
+<a class="back" href="index.html">← ARCHIVE</a>
+<div class="heading"><div class="label">NEW ARCHIVE</div><div class="subtitle">기록해두고 싶은 것들</div></div>
+</header>
+
+<main>
+<section class="field name">
+<label class="field-label" for="archiveName">ARCHIVE NAME</label>
+<input id="archiveName" type="text" placeholder="예: NELL, TRAVEL, MOVIE">
+</section>
+
+<section class="field">
+<label class="field-label" for="description">DESCRIPTION</label>
+<textarea id="description" placeholder="이 아카이브에 무엇을 기록할지 짧게 적어두기."></textarea>
+</section>
+
+<section class="field">
+<label class="field-label">TYPE</label>
+<div class="types" role="group" aria-label="아카이브 종류">
+<button class="type active" type="button" data-type="basic">기본 기록</button>
+<button class="type" type="button" data-type="concert">공연 / 콘서트</button>
+<button class="type" type="button" data-type="travel">여행</button>
+<button class="type" type="button" data-type="movie">영화</button>
+<button class="type" type="button" data-type="custom">직접 설정</button>
+</div>
+</section>
+
+<div class="actions">
+<a class="cancel" href="index.html">CANCEL</a>
+<button class="save" id="save" type="button">SAVE</button>
+</div>
+</main>
+</div>
+
+<script>
+const typeButtons = document.querySelectorAll(".type");
+typeButtons.forEach(button=>{
+  button.addEventListener("click",()=>{
+    typeButtons.forEach(b=>b.classList.remove("active"));
+    button.classList.add("active");
+  });
+});
+document.getElementById("save").addEventListener("click",()=>{
+if(!document.getElementById("archiveName").value.trim()){
+alert("아카이브 이름을 입력해주세요.");
+return;
+}
+alert("디자인 테스트용입니다. 실제 저장은 DB 연결 후 작동합니다.");
+});
+</script>
+</body>
+</html>

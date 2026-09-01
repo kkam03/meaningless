@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>meaningless</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --background: #ffffff;
+      --text: #29262a;
+      --muted: #8a8588;
+      --line: #e5eeee;
+      --point: #62b9aa;
+      --point-soft: #dff2ee;
+      --theme-bg: #f7fbfa;
+    }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(900px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    header {
+      position: relative;
+      padding: 48px 0 62px;
+    }
+
+    .logo {
+      display: inline-block;
+      position: relative;
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: -0.055em;
+      color: var(--point);
+    }
+
+    .intro {
+      margin-top: 11px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.75;
+      letter-spacing: -0.02em;
+    }
+
+    .intro::before {
+      content: "—";
+      margin-right: 7px;
+      color: var(--point);
+    }
+
+    .intro strong {
+      display: block;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .section-mark {
+      margin: 0 0 17px 4px;
+      color: var(--point);
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    .post-list {
+      border-top: 1px solid var(--line);
+    }
+
+    .post {
+      position: relative;
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 12px;
+      align-items: baseline;
+      padding: 12px 4px;
+      border-bottom: 1px solid var(--line);
+      transition: opacity 0.2s ease, padding-left 0.2s ease;
+    }
+
+    .post:hover {
+      opacity: 0.6;
+      padding-left: 9px;
+    }
+
+    .post-date {
+      font-size: 10px;
+      color: var(--point);
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+
+    .post-title {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: -0.025em;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin: 0 0 15px 4px;
+    }
+
+    .section-title {
+      color: var(--point);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      line-height: 1;
+    }
+
+    .section-title .heart {
+      margin-right: 4px;
+      font-size: 13px;
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: -0.02em;
+    }
+
+    .archive-section {
+      margin-top: 74px;
+      padding-top: 0;
+    }
+
+    .archive-heading {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .archive-label {
+      color: var(--point);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .archive-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .archive-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .archive-card {
+      position: relative;
+      min-height: 190px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(145deg, #ffffff 0%, var(--theme-bg) 100%);
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .archive-card::before {
+      content: "";
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      right: -35px;
+      top: -35px;
+      border-radius: 50%;
+      background: var(--point-soft);
+      opacity: 0.55;
+    }
+
+    .archive-card:hover {
+      transform: translateY(-3px);
+      border-color: #b9ddd6;
+    }
+
+    .archive-card-top,
+    .archive-card-bottom {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    .archive-card-title {
+      position: relative;
+      z-index: 1;
+      margin-top: 48px;
+      font-size: 27px;
+      font-weight: 700;
+      letter-spacing: -0.05em;
+      color: var(--text);
+    }
+
+    .archive-card-subtitle {
+      position: relative;
+      z-index: 1;
+      margin-top: -2px;
+      font-size: 11px;
+      color: var(--point);
+      font-weight: 600;
+      letter-spacing: 0.12em;
+    }
+
+    .archive-card-bottom {
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 18px;
+      letter-spacing: 0;
+    }
+
+    footer {
+      padding: 32px 0 52px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .footer-nav {
+      display: flex;
+      gap: 20px;
+    }
+
+    .footer-nav a {
+      transition: color 0.2s ease;
+    }
+
+    .footer-nav a:hover {
+      color: var(--point);
+    }
+
+
+    .theme-wrap {
+      position: fixed;
+      top: 28px;
+      right: 28px;
+      z-index: 10;
+    }
+
+    .theme-button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      padding: 6px 0;
+    }
+
+    .theme-button:hover {
+      color: var(--point);
+    }
+
+    .theme-menu {
+      display: none;
+      width: 145px;
+      margin-top: 6px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.97);
+      box-shadow: 0 8px 25px rgba(50, 100, 95, 0.08);
+    }
+
+    .theme-wrap.open .theme-menu {
+      display: block;
+    }
+
+    .theme-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 7px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: 11px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .theme-option:hover {
+      background: var(--point-soft);
+    }
+
+    .theme-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--theme-color);
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 600px) {
+      .theme-wrap {
+        top: 18px;
+        right: 18px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        width: min(100% - 30px, 900px);
+      }
+
+      header {
+        padding-top: 32px;
+        padding-bottom: 58px;
+      }
+
+      .logo {
+        font-size: 34px;
+      }
+
+      .deco-one {
+        top: 22px;
+        left: 104px;
+      }
+
+      .intro {
+        margin-top: 7px;
+      }
+
+      .section-heading {
+        gap: 10px;
+        margin-bottom: 13px;
+      }
+
+      .section-title {
+        font-size: 11px;
+      }
+
+      .section-subtitle {
+        font-size: 10px;
+      }
+
+      .post {
+        grid-template-columns: 58px 1fr;
+        gap: 9px;
+        padding: 10px 2px;
+      }
+
+      .post-date {
+        font-size: 9px;
+      }
+
+      .post-title {
+        font-size: 12px;
+      }
+
+      .archive-section {
+        margin-top: 62px;
+      }
+
+      .archive-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .archive-card {
+        min-height: 175px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+    <div class="theme-wrap" id="themeWrap">
+      <button class="theme-button" id="themeButton" type="button">THEME</button>
+      <div class="theme-menu">
+        <button class="theme-option" type="button" data-theme="mint">
+          <span class="theme-dot" style="--theme-color:#62b9aa"></span> Mint
+        </button>
+        <button class="theme-option" type="button" data-theme="pink">
+          <span class="theme-dot" style="--theme-color:#d8799a"></span> Pink
+        </button>
+        <button class="theme-option" type="button" data-theme="lavender">
+          <span class="theme-dot" style="--theme-color:#9a8bc2"></span> Lavender
+        </button>
+        <button class="theme-option" type="button" data-theme="blue">
+          <span class="theme-dot" style="--theme-color:#70a9c2"></span> Blue
+        </button>
+      </div>
+    </div>
+
+  <div class="container">
+
+    <header>
+      <a href="#" class="logo">meaningless</a>
+
+      <div class="intro">
+        <strong>things that probably mean nothing.</strong>
+        별거 아닌 것들을 기록합니다. 가끔은 별거인 것도.
+      </div>
+    </header>
+
+    <main>
+      <div class="section-heading">
+        <div class="section-title"><span class="heart">♡</span> DIARY</div>
+        <div class="section-subtitle">하루 한 줄</div>
+      </div>
+
+      <div class="post-list">
+
+        <!-- 임시 기록입니다. 나중에 실제 기록 데이터와 연결합니다. -->
+        <a href="#" class="post">
+          <div class="post-date">2026.08.31</div>
+          <div class="post-title">또 뭔가를 만들었다.</div>
+        </a>
+
+        <a href="#" class="post">
+          <div class="post-date">2026.08.28</div>
+          <div class="post-title">오늘은 아무것도 안 했다.</div>
+        </a>
+
+        <a href="#" class="post">
+          <div class="post-date">2026.08.26</div>
+          <div class="post-title">이 사진이 마음에 든다.</div>
+        </a>
+
+      </div>
+      <section class="archive-section">
+        <div class="archive-heading">
+          <span class="archive-label">ARCHIVE</span>
+          <span class="archive-note">기록해두고 싶은 것들</span>
+        </div>
+
+        <div class="archive-grid">
+          <a href="#" class="archive-card nell-card">
+            <div class="archive-card-top">
+              <span>01</span>
+              <span>LIVE</span>
+            </div>
+            <div class="archive-card-title">NELL</div>
+            <div class="archive-card-subtitle">LIVE ARCHIVE</div>
+            <div class="archive-card-bottom">
+              <span>2011 — 2026</span>
+              <span>↗</span>
+            </div>
+          </a>
+
+          <a href="#" class="archive-card">
+            <div class="archive-card-top">
+              <span>02</span>
+              <span>ETC.</span>
+            </div>
+            <div class="archive-card-title">COMING</div>
+            <div class="archive-card-subtitle">SOON</div>
+            <div class="archive-card-bottom">
+              <span>something else</span>
+              <span>↗</span>
+            </div>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="footer-nav">
+        <a href="#">archive</a>
+        <a href="#">about</a>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    const themes = {
+      mint: {
+        point: "#62b9aa",
+        pointSoft: "#dff2ee",
+        line: "#e5eeee",
+        themeBg: "#f7fbfa"
+      },
+      pink: {
+        point: "#d8799a",
+        pointSoft: "#f6dfe8",
+        line: "#eee3e7",
+        themeBg: "#fff8fa"
+      },
+      lavender: {
+        point: "#9a8bc2",
+        pointSoft: "#e9e4f4",
+        line: "#e8e5ee",
+        themeBg: "#faf8fd"
+      },
+      blue: {
+        point: "#70a9c2",
+        pointSoft: "#e0eef3",
+        line: "#e3ebee",
+        themeBg: "#f7fbfd"
+      }
+    };
+
+    function applyTheme(name) {
+      const theme = themes[name] || themes.mint;
+      document.documentElement.style.setProperty("--point", theme.point);
+      document.documentElement.style.setProperty("--point-soft", theme.pointSoft);
+      document.documentElement.style.setProperty("--line", theme.line);
+      document.documentElement.style.setProperty("--theme-bg", theme.themeBg);
+      localStorage.setItem("meaningless-theme", name);
+    }
+
+    const savedTheme = localStorage.getItem("meaningless-theme") || "mint";
+    applyTheme(savedTheme);
+
+    const themeWrap = document.getElementById("themeWrap");
+    const themeButton = document.getElementById("themeButton");
+
+    themeButton.addEventListener("click", () => {
+      themeWrap.classList.toggle("open");
+    });
+
+    document.querySelectorAll(".theme-option").forEach((button) => {
+      button.addEventListener("click", () => {
+        applyTheme(button.dataset.theme);
+        themeWrap.classList.remove("open");
+      });
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!themeWrap.contains(event.target)) {
+        themeWrap.classList.remove("open");
+      }
+    });
+  </script>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
+
+  const supabase = createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+
+  console.log("Supabase 연결 준비 완료:", supabase);
+</script>
+
+</body>
+</html>
