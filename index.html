@@ -239,11 +239,15 @@
       font: inherit;
       font-size: 16px;
       line-height: 1;
-      display: flex;
+      display: none;
       align-items: center;
       justify-content: center;
       padding: 0;
       cursor: pointer;
+    }
+
+    .is-authenticated .archive-delete {
+      display: flex;
     }
 
     .archive-delete:hover {
@@ -746,6 +750,8 @@
     const archiveCreateRow = document.getElementById("archiveCreateRow");
 
     function updateAuthUI(session) {
+      document.documentElement.classList.toggle("is-authenticated", !!session);
+
       if (session) {
         loginLink.textContent = "LOGOUT";
         loginLink.href = "#";
@@ -764,6 +770,8 @@
         loginLink.onclick = null;
       }
     }
+
+    document.documentElement.classList.remove("is-authenticated");
 
     const { data: { session } } = await supabase.auth.getSession();
     updateAuthUI(session);
