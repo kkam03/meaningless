@@ -636,16 +636,37 @@ async function loadLists(){
 document.addEventListener("click",async e=>{
   const button=e.target.closest(".archive-delete");
   if(!button)return;
+
   e.preventDefault();
   e.stopPropagation();
 
-  if(!currentSession){alert("로그인이 필요합니다.");return}
   if(!confirm("이 아카이브를 삭제할까요?"))return;
 
   button.disabled=true;
+
   try{
-    const {error}=await supabase.from("archives").delete().eq("id",button.dataset.id).eq("user_id",currentSession.id);
+    // Prefer the button's own data-id, then fall back to the card URL.
+    let archiveId=button.dataset.id || "";
+    const card=button.closest(".archive-card");
+
+    if((!archiveId || archiveId==="undefined") && card){
+      const href=card.getAttribute("href") || "";
+      archiveId=new URL(href,location.href).searchParams.get("id") || "";
+    }
+
+    if(!archiveId || archiveId==="undefined"){
+      throw new Error("ARCHIVE ID를 찾을 수 없습니다.");
+    }
+
+    const {data:{user},error:authError}=await supabase.auth.getUser();
+    if(authError)throw authError;
+    if(!user)throw new Error("로그인이 필요합니다.");
+
+    const {error}=await supabase.rpc("delete_archive",{
+      p_archive_id:archiveId
+    });
     if(error)throw error;
+
     await loadLists();
   }catch(error){
     console.error("ARCHIVE DELETE",error);
