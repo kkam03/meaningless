@@ -63,28 +63,34 @@ main{padding-bottom:65px}
 .archive-list{display:grid;gap:10px}
 
 .archive-row{
-  position:relative;display:grid;grid-template-columns:76px minmax(0,1fr) 24px;
+  position:relative;display:grid;grid-template-columns:76px minmax(0,1fr) 20px 20px;
   gap:14px;align-items:center;padding:16px 14px;
   border:1px solid var(--line);border-radius:11px;background:#fff;
   transition:transform .18s ease,border-color .18s ease
 }
 .archive-row:hover{transform:translateY(-2px);border-color:var(--point)}
-archive-delete{
-  width:20px;height:20px;padding:0;
+.archive-delete{
+  width:18px;height:18px;padding:0;
   border:0;background:transparent;color:var(--muted);
-  font:inherit;font-size:13px;line-height:1;
+  font-family:Arial,sans-serif;font-size:12px;font-weight:300;
+  line-height:18px;text-align:center;
   display:none;align-items:center;justify-content:center;
-  cursor:pointer;opacity:.7
+  cursor:pointer;opacity:.45;
+  transition:opacity .15s ease,color .15s ease,transform .15s ease
 }
 .is-authenticated .archive-delete{display:flex}
-.archive-delete:hover{color:var(--point);opacity:1}
+.archive-delete:hover{
+  color:var(--point);
+  opacity:1;
+  transform:scale(1.08)
+}
 
 .archive-year{color:var(--muted);font-size:10px}
 .archive-row-main{min-width:0}
 .archive-row-type{color:var(--point);font-size:9px;letter-spacing:.08em}
 .archive-row-title{
   margin-top:2px;font-size:14px;font-weight:600;letter-spacing:-.02em;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+  line-height:1.5;overflow-wrap:anywhere;word-break:break-word
 }
 .archive-row-count{margin-top:2px;color:var(--muted);font-size:9px}
 .archive-row-arrow{color:var(--muted);font-size:12px;text-align:right}
@@ -96,7 +102,7 @@ footer{padding:0 0 50px;color:var(--muted);font-size:11px}
   .container{width:min(100% - 30px,760px)}
   .theme-wrap{top:18px;right:18px}
   .category-title{font-size:28px}
-  .archive-row{grid-template-columns:58px minmax(0,1fr) 20px;gap:10px}
+  .archive-row{grid-template-columns:58px minmax(0,1fr) 20px 20px;gap:10px}
 }
 </style>
 </head>
@@ -266,13 +272,11 @@ async function loadCategory(){
 
   document.getElementById("archiveList").innerHTML=enriched.map(archive=>`
     <div class="archive-row" data-archive-id="${archive.id}">
+      <div class="archive-year">${esc(new Date(archive.created_at).getFullYear())}</div>
       <a class="archive-row-main" href="./archive-view.html?id=${encodeURIComponent(archive.id)}&theme=${encodeURIComponent(currentTheme)}">
-        <div class="archive-year">${esc(new Date(archive.created_at).getFullYear())}</div>
-        <div class="archive-row-main">
-          <div class="archive-row-type">${esc(typeLabel(archive.type))}</div>
-          <div class="archive-row-title">${esc(archive.name)}</div>
-          <div class="archive-row-count">${archive.recordCount} ${archive.recordCount===1?"RECORD":"RECORDS"}</div>
-        </div>
+        <div class="archive-row-type">${esc(typeLabel(archive.type))}</div>
+        <div class="archive-row-title">${esc(archive.name)}</div>
+        <div class="archive-row-count">${archive.recordCount} ${archive.recordCount===1?"RECORD":"RECORDS"}</div>
       </a>
       <div class="archive-row-arrow">↗</div>
       <button class="archive-delete" type="button" data-id="${archive.id}" aria-label="${esc(archive.name)} 삭제">×</button>
