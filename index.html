@@ -246,10 +246,6 @@
       cursor: pointer;
     }
 
-    .is-authenticated .archive-delete {
-      display: flex;
-    }
-
     .archive-delete:hover {
       color: var(--point);
       border-color: var(--point);
@@ -665,7 +661,7 @@
               <span>VIEW</span>
             </div>
           </a>
-          <button class="archive-delete" type="button" data-id="${esc(item.id)}" aria-label="${esc(item.name)} 삭제">×</button>
+          <button class="archive-delete" type="button" data-id="${esc(item.id)}" aria-label="${esc(item.name)} 삭제" style="display:none">×</button>
         </div>
       `).join("");
     }
@@ -749,8 +745,14 @@
     const diaryCreateRow = document.getElementById("diaryCreateRow");
     const archiveCreateRow = document.getElementById("archiveCreateRow");
 
+    function setDeleteButtonsVisible(visible) {
+      document.querySelectorAll(".archive-delete").forEach((button) => {
+        button.style.display = visible ? "flex" : "none";
+      });
+    }
+
     function updateAuthUI(session) {
-      document.documentElement.classList.toggle("is-authenticated", !!session);
+      setDeleteButtonsVisible(!!session);
 
       if (session) {
         loginLink.textContent = "LOGOUT";
@@ -771,10 +773,9 @@
       }
     }
 
-    document.documentElement.classList.remove("is-authenticated");
-
     const { data: { session } } = await supabase.auth.getSession();
     updateAuthUI(session);
+    setDeleteButtonsVisible(!!session);
 
     supabase.auth.onAuthStateChange((_event, nextSession) => {
       updateAuthUI(nextSession);
