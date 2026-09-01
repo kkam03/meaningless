@@ -238,6 +238,29 @@
     .is-authenticated .archive-delete { display:flex; }
     .archive-delete:hover { color:var(--point); border-color:var(--point); }
 
+    .category-delete{
+      position:absolute;
+      top:12px;
+      right:12px;
+      z-index:4;
+      width:24px;
+      height:24px;
+      padding:0;
+      border:1px solid var(--line);
+      border-radius:50%;
+      background:rgba(255,255,255,.96);
+      color:var(--muted);
+      font:inherit;
+      font-size:15px;
+      line-height:1;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer
+    }
+    .is-authenticated .category-delete{display:flex}
+    .category-delete:hover{color:var(--point);border-color:var(--point)}
+
     .category-card .archive-card-subtitle {
       text-transform:uppercase;
     }
@@ -539,18 +562,22 @@ import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
 
 const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 const $=id=>document.getElementById(id);
+
 const themes={
   mint:{point:"#62b9aa",pointSoft:"#dff2ee",line:"#e5eeee",themeBg:"#f7fbfa"},
   pink:{point:"#d8799a",pointSoft:"#f6dfe8",line:"#eee3e7",themeBg:"#fff8fa"},
   lavender:{point:"#9a8bc2",pointSoft:"#e9e4f4",line:"#e8e5ee",themeBg:"#faf8fd"},
   blue:{point:"#70a9c2",pointSoft:"#e0eef3",line:"#e3ebee",themeBg:"#f7fbfd"}
 };
+
 const diaryList=$("diaryList"), categoryGrid=$("categoryGrid");
 const diaryCreateRow=$("diaryCreateRow"), archiveCreateRow=$("archiveCreateRow");
 const newDiaryLink=$("newDiaryLink"), newCategoryLink=$("newCategoryLink");
 const loginLink=$("loginLink"), themeWrap=$("themeWrap"), themeButton=$("themeButton");
+
 const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 const formatDate=d=>{if(!d)return"";const x=new Date(`${d}T00:00:00`);return Number.isNaN(x.getTime())?String(d):`${String(x.getMonth()+1).padStart(2,"0")}.${String(x.getDate()).padStart(2,"0")}`};
+const typeLabel=t=>({basic:"BASIC",concert:"CONCERT",travel:"TRAVEL",movie:"MOVIE",custom:"ARCHIVE"})[t]||"ARCHIVE";
 
 function getTheme(){
   const p=new URLSearchParams(location.search);
@@ -567,7 +594,8 @@ function applyTheme(n,remember=true){
   document.documentElement.style.setProperty("--theme-bg",t.themeBg);
   if(remember)document.cookie=`meaningless-theme=${encodeURIComponent(n)}; path=/; max-age=31536000; SameSite=Lax`;
 }
-let currentTheme=getTheme(); applyTheme(currentTheme,false);
+let currentTheme=getTheme();
+applyTheme(currentTheme,false);
 
 function updateLinks(){
   const q=`?theme=${encodeURIComponent(currentTheme)}`;
@@ -583,8 +611,12 @@ document.querySelectorAll(".theme-option").forEach(b=>b.addEventListener("click"
 }));
 document.addEventListener("click",e=>{if(themeWrap&&!themeWrap.contains(e.target))themeWrap.classList.remove("open")});
 
+let currentSession=null;
 function updateAuthUI(session){
+  currentSession=session||null;
+  document.documentElement.classList.toggle("is-authenticated",!!currentSession);
   if(!loginLink)return;
+
   if(session){
     loginLink.textContent="LOGOUT";loginLink.href="#";
     if(diaryCreateRow)diaryCreateRow.style.display="flex";
@@ -600,42 +632,86 @@ function updateAuthUI(session){
 
 async function loadLists(){
   const [{data:diaries,error:de},{data:categories,error:ce}]=await Promise.all([
-    supabase.from("diary").select("id,date,title,content,image_url,created_at").order("date",{ascending:false}).order("created_at",{ascending:false}),
-    supabase.from("archive_categories").select("id,name,description,created_at").order("created_at",{ascending:true})
+    supabase.from("diary").select("id,date,title,content,image_url,created_at")
+      .order("date",{ascending:false}).order("created_at",{ascending:false}),
+    supabase.from("archive_categories").select("id,name,description,created_at")
+      .order("created_at",{ascending:true})
   ]);
 
   if(de){console.error("DIARY LOAD",de);diaryList.innerHTML="";}
-  else diaryList.innerHTML=(diaries||[]).map(x=>`
-    <article class="post">
-      <div class="post-date">${esc(formatDate(x.date))}</div>
-      <div><a class="post-title" href="./diary-detail.html?id=${encodeURIComponent(x.id)}">${esc(x.title)}</a></div>
-    </article>`).join("");
+  else{
+    diaryList.innerHTML=(diaries||[]).map(x=>`
+      <article class="post">
+        <div class="post-date">${esc(formatDate(x.date))}</div>
+        <div><a class="post-title" href="./diary-detail.html?id=${encodeURIComponent(x.id)}">${esc(x.title)}</a></div>
+      </article>`).join("");
+  }
 
   if(ce){console.error("CATEGORY LOAD",ce);categoryGrid.innerHTML="";return;}
 
+  if(!categories?.length){
+    categoryGrid.innerHTML="";
+    return;
+  }
+
   categoryGrid.innerHTML=(categories||[]).map(x=>`
-    <a class="archive-card" href="./category-view.html?id=${encodeURIComponent(x.id)}&theme=${encodeURIComponent(currentTheme)}">
-      <div class="archive-card-top"><span>CATEGORY</span><span>↗</span></div>
+    <a class="archive-card category-card" href="./category-view.html?id=${encodeURIComponent(x.id)}&theme=${encodeURIComponent(currentTheme)}">
+      <div class="archive-card-top">
+        <span>CATEGORY</span>
+        <span>↗</span>
+      </div>
       <div class="archive-card-title">${esc(x.name)}</div>
       <div class="archive-card-subtitle">${esc(x.description||"ARCHIVE")}</div>
-      <div class="archive-card-bottom"><span>${esc(new Date(x.created_at).getFullYear())}</span><span>OPEN</span></div>
-    </a>`).join("");
+      <div class="archive-card-bottom">
+        <span>${esc(new Date(x.created_at).getFullYear())}</span>
+        <span>OPEN</span>
+      </div>
+      <button class="category-delete" type="button" data-id="${esc(x.id)}" aria-label="${esc(x.name)} 삭제">×</button>
+    </a>
+  `).join("");
 }
 
+document.addEventListener("click",async e=>{
+  const button=e.target.closest(".category-delete");
+  if(!button)return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  if(!currentSession){alert("로그인이 필요합니다.");return}
+  if(!confirm("이 카테고리를 삭제할까요?\n카테고리 안의 ARCHIVE는 유지됩니다."))return;
+
+  button.disabled=true;
+  try{
+    const {error}=await supabase
+      .from("archive_categories")
+      .delete()
+      .eq("id",button.dataset.id)
+      .eq("user_id",currentSession.id);
+
+    if(error)throw error;
+    await loadLists();
+  }catch(error){
+    console.error("CATEGORY DELETE",error);
+    alert("삭제에 실패했습니다.\n"+(error?.message||"알 수 없는 오류"));
+  }finally{
+    button.disabled=false;
+  }
+});
+
 newCategoryLink?.addEventListener("click",e=>{
-  if(!document.body.dataset.loggedIn){
-    // Auth is checked again below; prevent anonymous category creation.
+  if(!currentSession){
+    e.preventDefault();
+    alert("로그인이 필요합니다.");
   }
 });
 
 const {data:{session}}=await supabase.auth.getSession();
 updateAuthUI(session);
-document.body.dataset.loggedIn=session?"true":"false";
 await loadLists();
 
 supabase.auth.onAuthStateChange((_event,nextSession)=>{
   updateAuthUI(nextSession);
-  document.body.dataset.loggedIn=nextSession?"true":"false";
   loadLists().catch(error=>console.error("INDEX REFRESH",error));
 });
 </script>
