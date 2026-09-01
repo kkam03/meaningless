@@ -30,7 +30,7 @@ input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--
 .cancel{border:1px solid var(--line);background:#fff;color:var(--muted);text-decoration:none}
 .save{border:1px solid var(--point);background:var(--point);color:#fff}
 .theme{position:fixed;top:28px;right:28px}
-.theme button{border:0;background:transparent;color:var(--muted);font-size:10px;letter-spacing:.08em;cursor:pointer}
+.theme>button{border:0;background:transparent;color:var(--muted);font-size:10px;letter-spacing:.08em;cursor:pointer}.theme-menu{display:none;width:145px;margin-top:6px;padding:8px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.97);box-shadow:0 8px 25px rgba(50,100,95,.08)}.theme.open .theme-menu{display:block}.theme-option{display:flex;align-items:center;gap:8px;width:100%;padding:8px 7px;border:0;border-radius:7px;background:transparent;color:var(--text);font-size:11px;text-align:left;cursor:pointer}.theme-option:hover{background:var(--soft)}.theme-dot{width:9px;height:9px;border-radius:50%;background:var(--theme-color)}
 @media(max-width:600px){
 .container{width:calc(100% - 30px)}
 header{padding-top:32px;padding-bottom:40px}
@@ -39,7 +39,15 @@ header{padding-top:32px;padding-bottom:40px}
 </style>
 </head>
 <body>
-<div class="theme"><button type="button">THEME</button></div>
+<div class="theme" id="themeWrap">
+  <button type="button" id="themeButton">THEME</button>
+  <div class="theme-menu">
+    <button class="theme-option" type="button" data-theme="mint"><span class="theme-dot" style="--theme-color:#62b9aa"></span> Mint</button>
+    <button class="theme-option" type="button" data-theme="pink"><span class="theme-dot" style="--theme-color:#d8799a"></span> Pink</button>
+    <button class="theme-option" type="button" data-theme="lavender"><span class="theme-dot" style="--theme-color:#9a8bc2"></span> Lavender</button>
+    <button class="theme-option" type="button" data-theme="blue"><span class="theme-dot" style="--theme-color:#70a9c2"></span> Blue</button>
+  </div>
+</div>
 <div class="container">
 <header>
 <a class="back" href="index.html">← ARCHIVE</a>
@@ -76,7 +84,47 @@ header{padding-top:32px;padding-bottom:40px}
 </div>
 
 <script>
-const typeButtons = document.querySelectorAll(".type");
+const themes = {
+  mint:{point:"#62b9aa",pointSoft:"#dff2ee",line:"#e5eeee",themeBg:"#f7fbfa"},
+  pink:{point:"#d8799a",pointSoft:"#f6dfe8",line:"#eee3e7",themeBg:"#fff8fa"},
+  lavender:{point:"#9a8bc2",pointSoft:"#e9e4f4",line:"#e8e5ee",themeBg:"#faf8fd"},
+  blue:{point:"#70a9c2",pointSoft:"#e0eef3",line:"#e3ebee",themeBg:"#f7fbfd"}
+};
+
+function getThemeFromCookie(){
+  const match=document.cookie.match(/(?:^|;\\s*)meaningless-theme=([^;]+)/);
+  const name=match?decodeURIComponent(match[1]):null;
+  return themes[name]?name:null;
+}
+function saveThemeCookie(name){
+  document.cookie="meaningless-theme="+encodeURIComponent(name)+"; path=/; max-age=31536000; SameSite=Lax";
+}
+function applyTheme(name,save=true){
+  const t=themes[name]||themes.mint;
+  document.documentElement.style.setProperty("--point",t.point);
+  document.documentElement.style.setProperty("--soft",t.pointSoft);
+  document.documentElement.style.setProperty("--line",t.line);
+  document.documentElement.style.setProperty("--theme-bg",t.themeBg);
+  if(save) saveThemeCookie(name);
+}
+
+const params=new URLSearchParams(location.search);
+const savedTheme=themes[params.get("theme")] ? params.get("theme") : (getThemeFromCookie()||"mint");
+applyTheme(savedTheme,false);
+
+const themeWrap=document.getElementById("themeWrap");
+document.getElementById("themeButton").addEventListener("click",()=>themeWrap.classList.toggle("open"));
+document.querySelectorAll(".theme-option").forEach(button=>{
+  button.addEventListener("click",()=>{
+    applyTheme(button.dataset.theme);
+    themeWrap.classList.remove("open");
+  });
+});
+document.addEventListener("click",e=>{
+  if(!themeWrap.contains(e.target)) themeWrap.classList.remove("open");
+});
+
+const typeButtons=document.querySelectorAll(".type");
 typeButtons.forEach(button=>{
   button.addEventListener("click",()=>{
     typeButtons.forEach(b=>b.classList.remove("active"));
@@ -84,11 +132,11 @@ typeButtons.forEach(button=>{
   });
 });
 document.getElementById("save").addEventListener("click",()=>{
-if(!document.getElementById("archiveName").value.trim()){
-alert("아카이브 이름을 입력해주세요.");
-return;
-}
-alert("디자인 테스트용입니다. 실제 저장은 DB 연결 후 작동합니다.");
+  if(!document.getElementById("archiveName").value.trim()){
+    alert("아카이브 이름을 입력해주세요.");
+    return;
+  }
+  alert("디자인 테스트용입니다. 실제 저장은 DB 연결 후 작동합니다.");
 });
 </script>
 </body>
