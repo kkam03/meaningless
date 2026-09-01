@@ -481,7 +481,7 @@
         <a class="create-button" id="newDiaryLink" href="./diary-write.html">+ NEW DIARY</a>
       </div>
 
-      <div class="post-list">
+      <div class="post-list" id="diaryList">
       </div>
       <section class="archive-section">
         <div class="archive-heading">
@@ -492,7 +492,7 @@
           <a class="create-button" id="newArchiveLink" href="./archive-write_buttons_v2.html">+ NEW ARCHIVE</a>
         </div>
 
-        <div class="archive-grid">
+        <div class="archive-grid" id="archiveGrid">
         </div>
       </section>
     </main>
@@ -505,6 +505,97 @@
     </footer>
 
   </div>
+
+  <script src="supabase-config.js"></script>
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    const cfg = window.WINKONG_SUPABASE || {};
+    const supabase = createClient(cfg.url, cfg.publishableKey);
+
+    const diaryList = document.getElementById("diaryList");
+    const archiveGrid = document.getElementById("archiveGrid");
+
+    const esc = (value) => String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+
+    const formatDate = (date) => {
+      if (!date) return "";
+      const d = new Date(`${date}T00:00:00`);
+      if (Number.isNaN(d.getTime())) return String(date);
+      return `${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
+    };
+
+    const typeLabel = (type) => ({
+      basic: "BASIC",
+      concert: "CONCERT",
+      travel: "TRAVEL",
+      movie: "MOVIE",
+      custom: "ARCHIVE"
+    })[type] || "ARCHIVE";
+
+    async function loadPublicData() {
+      const [{ data: diaries, error: diaryError }, { data: archives, error: archiveError }] =
+        await Promise.all([
+          supabase.from("diary")
+            .select("id,date,title,content,image_url,created_at")
+            .order("date", { ascending:false })
+            .order("created_at", { ascending:false }),
+          supabase.from("archives")
+            .select("id,name,type,created_at")
+            .order("created_at", { ascending:true })
+        ]);
+
+      if (diaryError) {
+        console.error("DIARY LOAD:", diaryError);
+        diaryList.innerHTML = "";
+      } else {
+        renderDiary(diaries || []);
+      }
+
+      if (archiveError) {
+        console.error("ARCHIVE LOAD:", archiveError);
+        archiveGrid.innerHTML = "";
+      } else {
+        renderArchives(archives || []);
+      }
+    }
+
+    function renderDiary(items) {
+      diaryList.innerHTML = items.map(item => `
+        <article class="post">
+          <div class="post-date">${esc(formatDate(item.date))}</div>
+          <div>
+            <a class="post-title" href="./diary-view.html?id=${encodeURIComponent(item.id)}">${esc(item.title)}</a>
+            <div class="post-excerpt">${esc(item.content)}</div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderArchives(items) {
+      archiveGrid.innerHTML = items.map(item => `
+        <a class="archive-card" href="./archive-view.html?id=${encodeURIComponent(item.id)}">
+          <div class="archive-card-top">
+            <span>${esc(typeLabel(item.type))}</span>
+            <span>↗</span>
+          </div>
+          <div class="archive-card-title">${esc(item.name)}</div>
+          <div class="archive-card-subtitle">${esc(typeLabel(item.type))}</div>
+          <div class="archive-card-bottom">
+            <span>${esc(new Date(item.created_at).getFullYear())}</span>
+            <span>VIEW</span>
+          </div>
+        </a>
+      `).join("");
+    }
+
+    loadPublicData().catch(error => console.error("PUBLIC DATA ERROR:", error));
+  </script>
 
   <script>
     const themes = {
