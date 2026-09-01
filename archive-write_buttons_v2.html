@@ -35,13 +35,18 @@ input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--
 .custom-row input{flex:1}
 .custom-remove{width:40px;height:40px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--muted);cursor:pointer}
 
-.photo-placeholder{display:flex;align-items:center;justify-content:center;min-height:110px;border:1px dashed #cfe5e1;border-radius:10px;background:var(--theme-bg);color:var(--muted);font-size:11px;cursor:pointer;transition:border-color .15s ease,color .15s ease}
-.photo-placeholder:hover{border-color:var(--point);color:var(--point)}
-.photo-placeholder input{display:none}
-.photo-preview{margin-top:10px;position:relative}
-.photo-preview img{display:block;width:100%;max-height:360px;object-fit:cover;border:1px solid var(--line);border-radius:10px}
-.photo-remove{margin-top:7px;border:0;background:transparent;color:var(--muted);font-size:10px;cursor:pointer;padding:2px 0}
-.photo-remove:hover{color:var(--point)}
+.record-blocks{display:grid;gap:10px}
+.record-block{position:relative;border:1px solid var(--line);border-radius:10px;background:#fff;padding:10px}
+.record-block textarea,.record-block input[type="file"]{width:100%;font:inherit;font-size:12px}
+.record-block textarea{min-height:90px;border:0;outline:0;resize:vertical;line-height:1.8;color:var(--text)}
+.block-photo-preview{display:block;width:100%;max-height:260px;object-fit:cover;border-radius:8px;border:1px solid var(--line);margin-top:6px}
+.block-remove{position:absolute;top:7px;right:7px;border:0;background:transparent;color:var(--muted);font-size:14px;cursor:pointer}
+.block-remove:hover{color:var(--point)}
+.block-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.block-add{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:8px;padding:7px 10px;font:inherit;font-size:10px;cursor:pointer}
+.block-add:hover{border-color:var(--point);color:var(--point)}
+.block-photo-file{display:block;margin-top:4px;font-size:10px;color:var(--muted)}
+.basic-placeholder{color:var(--muted);font-size:10px;padding:4px 0 2px}
 .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:48px;padding-top:18px;border-top:1px solid var(--line)}
 .actions a,.actions button{padding:8px 15px;border-radius:8px;font:inherit;font-size:11px;cursor:pointer}
 .cancel{border:1px solid var(--line);background:#fff;color:var(--muted);text-decoration:none}
@@ -99,7 +104,7 @@ input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--
   <div class="field-label" id="optionLabel">RECORD</div>
 
   <div id="basicOptions" class="option-panel">
-    <textarea placeholder="기록해두기."></textarea>
+    <div class="basic-placeholder">기본 기록을 아래 RECORD에 작성해주세요.</div>
   </div>
 
   <div id="concertOptions" class="option-panel" style="display:none">
@@ -126,15 +131,13 @@ input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--
     <button class="add-custom" id="addCustom" type="button">＋ 항목 추가</button>
   </div>
 </section>
-<section class="field photo-field">
-  <label class="field-label">PHOTO <span style="font-weight:400;letter-spacing:0">(optional)</span></label>
-  <label class="photo-placeholder" for="photo">
-    <input id="photo" type="file" accept="image/*">
-    <span id="photoText">+ 사진 추가</span>
-  </label>
-  <div id="photoPreview" class="photo-preview" hidden>
-    <img id="photoPreviewImage" alt="선택한 사진 미리보기">
-    <button id="removePhoto" class="photo-remove" type="button">사진 제거</button>
+
+<section class="field record-field">
+  <label class="field-label">RECORD</label>
+  <div id="recordBlocks" class="record-blocks"></div>
+  <div class="block-actions">
+    <button class="block-add" type="button" id="addTextBlock">＋ 글 추가</button>
+    <button class="block-add" type="button" id="addPhotoBlock">＋ 사진 추가</button>
   </div>
 </section>
 
@@ -239,40 +242,6 @@ document.getElementById("addCustom").addEventListener("click",()=>{
   customRows.appendChild(row);
 });
 
-const photoInput=document.getElementById("photo");
-const photoPreview=document.getElementById("photoPreview");
-const photoPreviewImage=document.getElementById("photoPreviewImage");
-const photoText=document.getElementById("photoText");
-const removePhoto=document.getElementById("removePhoto");
-let photoObjectUrl=null;
-
-photoInput.addEventListener("change",()=>{
-  const file=photoInput.files?.[0];
-  if(!file){
-    photoPreview.hidden=true;
-    photoText.textContent="+ 사진 추가";
-    return;
-  }
-  if(!file.type.startsWith("image/")){
-    alert("이미지 파일만 첨부할 수 있습니다.");
-    photoInput.value="";
-    return;
-  }
-  if(photoObjectUrl)URL.revokeObjectURL(photoObjectUrl);
-  photoObjectUrl=URL.createObjectURL(file);
-  photoPreviewImage.src=photoObjectUrl;
-  photoText.textContent=file.name;
-  photoPreview.hidden=false;
-});
-removePhoto.addEventListener("click",()=>{
-  photoInput.value="";
-  photoPreview.hidden=true;
-  photoText.textContent="+ 사진 추가";
-  if(photoObjectUrl){
-    URL.revokeObjectURL(photoObjectUrl);
-    photoObjectUrl=null;
-  }
-});
 
 function panelValues(type){
   const panel=optionPanels[type];
@@ -285,16 +254,106 @@ function panelValues(type){
   },{});
 }
 
+const recordBlocks=document.getElementById("recordBlocks");
+const blockFiles=new Map();
+
+function addTextBlock(value=""){
+  const block=document.createElement("div");
+  block.className="record-block";
+  block.dataset.kind="text";
+  block.innerHTML=`
+    <button class="block-remove" type="button" aria-label="삭제">×</button>
+    <textarea placeholder="기록해두기.">${esc(value)}</textarea>
+  `;
+  block.querySelector(".block-remove").addEventListener("click",()=>block.remove());
+  recordBlocks.appendChild(block);
+}
+
+function addPhotoBlock(){
+  const block=document.createElement("div");
+  block.className="record-block";
+  block.dataset.kind="photo";
+  const input=document.createElement("input");
+  input.type="file";
+  input.accept="image/*";
+  input.className="block-photo-input";
+
+  const label=document.createElement("span");
+  label.className="block-photo-file";
+  label.textContent="사진 선택";
+
+  const preview=document.createElement("img");
+  preview.className="block-photo-preview";
+  preview.hidden=true;
+  preview.alt="";
+
+  const remove=document.createElement("button");
+  remove.className="block-remove";
+  remove.type="button";
+  remove.textContent="×";
+  remove.setAttribute("aria-label","삭제");
+
+  block.append(remove,input,label,preview);
+  blockFiles.set(block, null);
+
+  input.addEventListener("change",()=>{
+    const file=input.files?.[0]||null;
+    blockFiles.set(block,file);
+    if(file){
+      label.textContent=file.name;
+      preview.src=URL.createObjectURL(file);
+      preview.hidden=false;
+    }else{
+      label.textContent="사진 선택";
+      preview.hidden=true;
+    }
+  });
+
+  remove.addEventListener("click",()=>{
+    const src=preview.src;
+    if(src && src.startsWith("blob:"))URL.revokeObjectURL(src);
+    blockFiles.delete(block);
+    block.remove();
+  });
+
+  recordBlocks.appendChild(block);
+}
+
+document.getElementById("addTextBlock").addEventListener("click",()=>addTextBlock());
+document.getElementById("addPhotoBlock").addEventListener("click",()=>addPhotoBlock());
+addTextBlock();
+
 async function uploadImage(file,userId){
   const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/gi,"");
   const path=`${userId}/archive/${crypto.randomUUID()}.${ext||"jpg"}`;
+
   const {error}=await supabase.storage.from("archive-images").upload(path,file,{
     cacheControl:"3600",
     upsert:false,
     contentType:file.type
   });
   if(error)throw error;
+
   return supabase.storage.from("archive-images").getPublicUrl(path).data.publicUrl;
+}
+
+async function collectContentBlocks(userId){
+  const blocks=[...recordBlocks.querySelectorAll(".record-block")];
+  const result=[];
+
+  for(const block of blocks){
+    if(block.dataset.kind==="text"){
+      const value=block.querySelector("textarea")?.value.trim()||"";
+      if(value)result.push({type:"text",value});
+    }else{
+      const file=blockFiles.get(block)||block.querySelector(".block-photo-input")?.files?.[0];
+      if(file){
+        const url=await uploadImage(file,userId);
+        result.push({type:"image",url});
+      }
+    }
+  }
+  return result;
 }
 
 document.getElementById("save").addEventListener("click",async()=>{
@@ -314,24 +373,25 @@ document.getElementById("save").addEventListener("click",async()=>{
     const {data:{user},error:userError}=await supabase.auth.getUser();
     if(userError||!user)throw new Error("로그인이 필요합니다.");
 
-    let imageUrl=null;
-    const file=photoInput?.files?.[0];
-    if(file)imageUrl=await uploadImage(file,user.id);
+    const details=panelValues(activeType);
+    const contentBlocks=await collectContentBlocks(user.id);
+
+    const combinedDetails={...details,content_blocks:contentBlocks};
 
     const {data:archive,error:archiveError}=await supabase
       .from("archives")
-      .insert({
-        user_id:user.id,
-        name,
-        type:activeType
-      })
+      .insert({user_id:user.id,name,type:activeType})
       .select()
       .single();
 
     if(archiveError)throw archiveError;
 
-    const details=panelValues(activeType);
-    const detailText=Object.values(details).join("\n");
+    const plainText=contentBlocks
+      .filter(block=>block.type==="text")
+      .map(block=>block.value)
+      .join("\n");
+
+    const firstImage=contentBlocks.find(block=>block.type==="image")?.url||null;
 
     const {error:recordError}=await supabase
       .from("archive_records")
@@ -340,23 +400,22 @@ document.getElementById("save").addEventListener("click",async()=>{
         user_id:user.id,
         date:new Date().toISOString().slice(0,10),
         title:name,
-        content:detailText||"기록해두기.",
-        image_url:imageUrl,
-        extra_data:details
+        content:plainText,
+        image_url:firstImage,
+        extra_data:combinedDetails
       });
 
     if(recordError)throw recordError;
 
     alert("ARCHIVE가 저장되었습니다.");
     location.href="./index.html?theme="+encodeURIComponent(currentTheme);
-  }catch(err){
-    console.error(err);
-    alert("저장에 실패했습니다.\n"+(err?.message||"알 수 없는 오류"));
+  }catch(error){
+    console.error(error);
+    alert("저장에 실패했습니다.\\n"+(error?.message||"알 수 없는 오류"));
   }finally{
     saveButton.disabled=false;
     saveButton.textContent="SAVE";
   }
-});
-</script>
+});</script>
 </body>
 </html>
