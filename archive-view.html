@@ -574,6 +574,10 @@ document.getElementById("editCancel").addEventListener("click",()=>{
 });
 document.getElementById("editButton").addEventListener("click",openEdit);
 
+supabase.auth.onAuthStateChange((_event,session)=>{
+  document.getElementById("editButton").hidden=!session;
+});
+
 document.getElementById("editSave").addEventListener("click",async()=>{
   const user=await getUser();
   if(!user){alert("로그인이 필요합니다.");return;}
@@ -702,10 +706,13 @@ async function loadArchive(){
 
   try{
     const user=await getUser();
-    if(user && user.id===archive.user_id){
-      document.getElementById("editButton").hidden=false;
-    }
-  }catch(error){console.warn("AUTH CHECK:",error);}
+    // VIEW 페이지에서는 로그인한 사용자에게 EDIT를 보여주고,
+    // 실제 저장 시 Supabase RLS가 본인 소유 데이터인지 검사합니다.
+    document.getElementById("editButton").hidden=!user;
+  }catch(error){
+    console.warn("AUTH CHECK:",error);
+    document.getElementById("editButton").hidden=true;
+  }
 }
 
 loadArchive();
