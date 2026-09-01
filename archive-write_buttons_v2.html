@@ -148,12 +148,14 @@ document.addEventListener("click",event=>{
 });
 
 const typeButtons=document.querySelectorAll(".type");
-let activeType="basic";
+let activeType=document.querySelector(".type.active")?.dataset.type || "basic";
+
 typeButtons.forEach(button=>{
-  button.addEventListener("click",()=>{
+  button.addEventListener("click",(event)=>{
+    event.preventDefault();
     typeButtons.forEach(b=>b.classList.remove("active"));
     button.classList.add("active");
-    activeType=button.dataset.type;
+    activeType=button.dataset.type || "basic";
   });
 });
 
