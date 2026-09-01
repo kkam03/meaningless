@@ -578,18 +578,33 @@
 
       if (!confirm("이 아카이브를 삭제할까요?")) return;
 
-      const id = button.dataset.id;
+      const card = button.closest(".archive-card");
+      const href = card?.getAttribute("href") || "";
+      let id = button.dataset.id || "";
+
+      // Never send undefined to a UUID field.
+      if ((!id || id === "undefined") && href) {
+        try {
+          id = new URL(href, location.href).searchParams.get("id") || "";
+        } catch (_) {}
+      }
+
+      if (!id || id === "undefined") {
+        alert("ARCHIVE ID를 찾지 못했습니다. 페이지를 새로고침해주세요.");
+        return;
+      }
+
       button.disabled = true;
 
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
+
         if (!user) {
           alert("로그인이 필요합니다.");
           return;
         }
 
-        // Use the already-created server-side delete function.
-        // This is the only change to deletion; everything else stays as-is.
         const { error } = await supabase.rpc("delete_archive", {
           p_archive_id: id
         });
