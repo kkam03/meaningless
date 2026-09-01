@@ -550,10 +550,13 @@
             .order("created_at", { ascending:true })
         ]);
 
-      if (diaryError) {
-        console.error("DIARY LOAD:", diaryError);
-        diaryList.innerHTML = "";
-      } else {
+if (diaryError) {
+  console.error("DIARY LOAD:", diaryError);
+  diaryList.innerHTML =
+    '<div style="padding:20px 4px;color:#c66;font-size:11px;">DIARY LOAD ERROR: '
+    + esc(diaryError.message)
+    + '</div>';
+} else {
         renderDiary(diaries || []);
       }
 
