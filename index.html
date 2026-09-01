@@ -644,8 +644,25 @@ document.addEventListener("click",async e=>{
 
   button.disabled=true;
   try{
-    const {error}=await supabase.from("archives").delete().eq("id",button.dataset.id).eq("user_id",currentSession.id);
-    if(error)throw error;
+    const archiveId=button.dataset.id;
+
+    // Delete child records first so the archive row is not blocked by the FK.
+    const {error:recordError}=await supabase
+      .from("archive_records")
+      .delete()
+      .eq("archive_id",archiveId)
+      .eq("user_id",currentSession.id);
+
+    if(recordError) throw recordError;
+
+    const {error:archiveError}=await supabase
+      .from("archives")
+      .delete()
+      .eq("id",archiveId)
+      .eq("user_id",currentSession.id);
+
+    if(archiveError) throw archiveError;
+
     await loadLists();
   }catch(error){
     console.error("ARCHIVE DELETE",error);
