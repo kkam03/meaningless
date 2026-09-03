@@ -616,7 +616,7 @@ async function loadLists(){
     diaryList.innerHTML=(diaries||[]).map(x=>`
       <article class="post">
         <div class="post-date">${esc(formatDate(x.date))}</div>
-        <div><a class="post-title" href="./diary-detail.html?id=${encodeURIComponent(x.id)}&theme=${encodeURIComponent(currentTheme)}">${esc(x.title)}</a></div>
+        <div><a class="post-title" href="./diary-detail.html?id=${encodeURIComponent(x.id)}">${esc(x.title)}</a></div>
       </article>`).join("");
   }
 
