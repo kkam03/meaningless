@@ -149,6 +149,30 @@ header{padding:45px 0 38px}
 .edit-save{border:1px solid var(--point);background:var(--point);color:#fff}
 
 
+
+.category-view-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px}
+.category-add{
+  flex:0 0 auto;width:36px;height:36px;border:1px solid var(--line);border-radius:10px;
+  background:#fff;color:var(--point);font:inherit;font-size:22px;line-height:1;cursor:pointer
+}
+.category-add:hover{border-color:var(--point);background:var(--theme-bg)}
+.archive-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.archive-card{
+  position:relative;display:flex;flex-direction:column;min-height:180px;padding:18px;
+  border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden;
+  transition:border-color .15s ease,transform .15s ease
+}
+.archive-card:hover{border-color:var(--point);transform:translateY(-1px)}
+.archive-card-image{width:100%;height:100%;position:absolute;inset:0;object-fit:cover;z-index:0}
+.archive-card.has-image::after{content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(to bottom,rgba(255,255,255,.08),rgba(255,255,255,.84));pointer-events:none}
+.archive-card-content{position:relative;z-index:1;display:flex;flex-direction:column;min-height:144px;height:100%}
+.archive-card-top{display:flex;justify-content:space-between;color:var(--point);font-size:9px;font-weight:700;letter-spacing:.08em}
+.archive-card-title{margin-top:auto;padding-top:18px;font-size:18px;font-weight:600;letter-spacing:-.04em;word-break:break-word}
+.archive-card-subtitle{margin-top:5px;color:var(--muted);font-size:10px;line-height:1.6;min-height:1.6em;white-space:pre-wrap;word-break:break-word}
+.archive-card-bottom{display:flex;justify-content:space-between;gap:8px;margin-top:16px;color:var(--muted);font-size:9px;letter-spacing:.05em}
+.empty{padding:26px 0;color:var(--muted);font-size:11px}
+@media(max-width:600px){.archive-grid{grid-template-columns:1fr}.archive-card{min-height:160px}}
+
 main{padding:0 0 70px}
 .hero-photo{
   width:100%;
@@ -257,36 +281,6 @@ footer{
   .detail-row{grid-template-columns:88px 1fr;gap:12px}
   .hero-photo{max-height:320px}
 }
-
-.child-section{padding:4px 0 70px}
-.child-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-.child-heading .records-label{margin:0}
-.add-button{
-  display:flex;align-items:center;justify-content:center;
-  width:28px;height:28px;border:1px solid var(--line);border-radius:8px;
-  color:var(--point);background:#fff;font-size:17px;line-height:1;
-}
-.add-button:hover{border-color:var(--point);background:var(--point-soft)}
-.child-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.child-card{
-  overflow:hidden;display:flex;flex-direction:column;min-height:170px;
-  border:1px solid var(--line);border-radius:14px;background:#fff;
-  transition:.15s ease;
-}
-.child-card:hover{border-color:var(--point);transform:translateY(-1px)}
-.child-card-image{
-  width:100%;height:150px;object-fit:cover;display:block;
-  border-bottom:1px solid var(--line);background:var(--theme-bg)
-}
-.child-card-body{padding:14px 15px 15px}
-.child-card-type{color:var(--point);font-size:9px;font-weight:700;letter-spacing:.08em}
-.child-card-title{margin-top:6px;font-size:15px;font-weight:600;letter-spacing:-.02em;word-break:break-word}
-.child-card-date{margin-top:7px;color:var(--muted);font-size:9px}
-.child-card.no-image{justify-content:flex-end}
-.child-card.no-image .child-card-body{
-  min-height:170px;display:flex;flex-direction:column;justify-content:flex-end
-}
-@media(max-width:600px){.child-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -307,20 +301,43 @@ footer{
     <div class="archive-label">♡ ARCHIVE</div>
     <div class="title-row">
       <h1 class="archive-title" id="archiveTitle">불러오는 중…</h1>
-      <button class="edit-button" id="editButton" type="button" hidden>EDIT</button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="category-add" id="categoryAddButton" type="button" hidden aria-label="ARCHIVE 추가">＋</button>
+        <button class="edit-button" id="editButton" type="button" hidden>EDIT</button>
+      </div>
     </div>
   </header>
 
-  
+  <section class="edit-panel" id="editPanel" hidden>
+    <div class="edit-field">
+      <label>ARCHIVE NAME</label>
+      <input id="editArchiveName" type="text">
+    </div>
+
+    <div class="edit-field">
+      <label>TYPE DETAILS</label>
+      <div id="editDetails"></div>
+    </div>
+
+    <div class="edit-field">
+      <label>RECORDS</label>
+      <div id="editRecords"></div>
+      <button class="edit-add-record" id="editAddRecord" type="button">＋ 기록 추가</button>
+    </div>
+
+    <div class="edit-actions">
+      <button class="edit-cancel" id="editCancel" type="button">CANCEL</button>
+      <button class="edit-save" id="editSave" type="button">SAVE</button>
+    </div>
+  </section>
 
   <main>
-    <section class="child-section">
-      <div class="child-heading">
-        <div class="records-label">RECORDS</div>
-        <a class="add-button" id="addChildButton" href="#">＋</a>
-      </div>
-      <div class="child-grid" id="childGrid"></div>
-    </section>
+    <div id="hero"></div>
+    <div class="details" id="details"></div>
+
+    <div class="record-divider"></div>
+    <div class="records-label">RECORDS</div>
+    <div id="records"></div>
   </main>
 
   <footer>
@@ -340,15 +357,12 @@ const themes={
   lavender:{point:"#9a8bc2",pointSoft:"#e9e4f4",line:"#e8e5ee",themeBg:"#faf8fd"},
   blue:{point:"#70a9c2",pointSoft:"#e0eef3",line:"#e3ebee",themeBg:"#f7fbfd"}
 };
+const typeNames={concert:"공연 / 콘서트",travel:"여행",movie:"영화",custom:"직접 설정"};
 
-const typeLabel=t=>({
-  basic:"BASIC",concert:"CONCERT",travel:"TRAVEL",movie:"MOVIE",custom:"ARCHIVE"
-})[t]||"ARCHIVE";
-
-const esc=v=>String(v??"")
-  .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-  .replaceAll('"',"&quot;").replaceAll("'","&#039;");
-
+function esc(v){
+  return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
 function getTheme(){
   const p=new URLSearchParams(location.search);
   if(themes[p.get("theme")])return p.get("theme");
@@ -356,14 +370,14 @@ function getTheme(){
   const n=m?decodeURIComponent(m[1]):null;
   return themes[n]?n:"mint";
 }
-
+function saveTheme(n){document.cookie="meaningless-theme="+encodeURIComponent(n)+"; path=/; max-age=31536000; SameSite=Lax"}
 function applyTheme(n,save=true){
   const t=themes[n]||themes.mint;
   document.documentElement.style.setProperty("--point",t.point);
   document.documentElement.style.setProperty("--point-soft",t.pointSoft);
   document.documentElement.style.setProperty("--line",t.line);
   document.documentElement.style.setProperty("--theme-bg",t.themeBg);
-  if(save)document.cookie="meaningless-theme="+encodeURIComponent(n)+"; path=/; max-age=31536000; SameSite=Lax";
+  if(save)saveTheme(n);
 }
 
 let currentTheme=getTheme();
@@ -371,94 +385,473 @@ applyTheme(currentTheme,false);
 
 const themeWrap=document.getElementById("themeWrap");
 document.getElementById("themeButton").addEventListener("click",e=>{
-  e.stopPropagation();
-  themeWrap.classList.toggle("open");
+  e.stopPropagation();themeWrap.classList.toggle("open");
 });
-
+function themedArchiveUrl(theme){
+  const url=new URL(location.href);
+  url.searchParams.set("theme",theme);
+  return url.pathname.split("/").pop()+"?"+url.searchParams.toString();
+}
 document.querySelectorAll(".theme-option").forEach(btn=>{
   btn.addEventListener("click",()=>{
     currentTheme=btn.dataset.theme;
     applyTheme(currentTheme);
+    const url=new URL(location.href);
+    url.searchParams.set("theme",currentTheme);
+    history.replaceState(null,"",url.pathname+"?"+url.searchParams.toString());
     themeWrap.classList.remove("open");
-    updateLinks();
   });
 });
-
-document.addEventListener("click",e=>{
-  if(!themeWrap.contains(e.target))themeWrap.classList.remove("open");
-});
+document.addEventListener("click",e=>{if(!themeWrap.contains(e.target))themeWrap.classList.remove("open")});
 
 const params=new URLSearchParams(location.search);
 const archiveId=params.get("id");
-const archiveTitle=document.getElementById("archiveTitle");
-const childGrid=document.getElementById("childGrid");
-const addChildButton=document.getElementById("addChildButton");
-const backLink=document.getElementById("backLink");
+const categoryId=params.get("category");
+document.getElementById("backLink").href="./index.html?theme="+encodeURIComponent(currentTheme);
 
-function updateLinks(){
-  backLink.href="./index.html?theme="+encodeURIComponent(currentTheme);
-  addChildButton.href="./archive-write_buttons_v2.html?parent="+encodeURIComponent(archiveId||"")
-    +"&theme="+encodeURIComponent(currentTheme);
+let loadedArchive=null;
+let loadedRecords=[];
+
+const semanticLabels={
+  concert:["공연장","회차","셋리스트","앵콜"],
+  travel:["장소","숙소","여행 메모"],
+  movie:["감독","별점","감상 메모"],
+  custom:[]
+};
+
+function formatDate(date){
+  if(!date)return "";
+  const d=new Date(`${date}T00:00:00`);
+  if(Number.isNaN(d.getTime()))return String(date);
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
 }
 
-async function loadArchive(){
-  if(!archiveId){
-    archiveTitle.textContent="ARCHIVE를 찾을 수 없습니다.";
-    childGrid.innerHTML='<div class="empty">ARCHIVE ID가 없습니다.</div>';
-    return;
-  }
+function detailEntries(type,record){
+  if(type==="basic"||!record?.extra_data)return [];
+  return Object.entries(record.extra_data).filter(([key,value])=>
+    key!=="content_blocks" && String(value??"").trim()!==""
+  );
+}
 
-  const {data:archive,error:archiveError}=await supabase
-    .from("archives")
-    .select("id,name,type,created_at,image_url")
-    .eq("id",archiveId)
-    .single();
-
-  if(archiveError){
-    console.error("ARCHIVE LOAD",archiveError);
-    archiveTitle.textContent="ARCHIVE를 불러오지 못했습니다.";
-    childGrid.innerHTML='<div class="empty">ARCHIVE를 불러오지 못했습니다.</div>';
-    return;
-  }
-
-  archiveTitle.textContent=archive.name;
-
-  const {data:children,error:childError}=await supabase
-    .from("archives")
-    .select("id,name,type,created_at,image_url")
-    .eq("parent_id",archiveId)
-    .order("created_at",{ascending:true});
-
-  if(childError){
-    console.error("CHILD ARCHIVE LOAD",childError);
-    childGrid.innerHTML='<div class="empty">RECORD를 불러오지 못했습니다.</div>';
-    return;
-  }
-
-  if(!children?.length){
-    childGrid.innerHTML='<div class="empty">아직 기록이 없습니다.</div>';
-    return;
-  }
-
-  childGrid.innerHTML=children.map(child=>{
-    const image=child.image_url
-      ? '<img class="child-card-image" src="'+esc(child.image_url)+'" alt="">'
-      : "";
-    const cls=child.image_url?"child-card":"child-card no-image";
-
-    return '<a class="'+cls+'" href="./archive-view.html?id='
-      +encodeURIComponent(child.id)+'&theme='+encodeURIComponent(currentTheme)+'">'
-      +image
-      +'<div class="child-card-body">'
-      +'<div class="child-card-type">'+esc(typeLabel(child.type))+'</div>'
-      +'<div class="child-card-title">'+esc(child.name)+'</div>'
-      +'<div class="child-card-date">'+esc(new Date(child.created_at).getFullYear())+'</div>'
-      +'</div></a>';
+function renderDetails(type,record){
+  const box=document.getElementById("details");
+  const entries=detailEntries(type,record);
+  box.innerHTML=entries.map(([key,value],i)=>{
+    const label=semanticLabels[type]?.[i] || key.replaceAll("_"," ").toUpperCase();
+    return `<div class="detail-row"><div class="detail-key">${esc(label)}</div><div class="detail-value">${esc(value)}</div></div>`;
   }).join("");
 }
 
-updateLinks();
-loadArchive().catch(error=>console.error("ARCHIVE VIEW ERROR",error));
+function renderRecordBody(record){
+  const blocks=Array.isArray(record.extra_data?.content_blocks)?record.extra_data.content_blocks:null;
+  if(blocks && blocks.length){
+    return blocks.map(block=>{
+      if(block.type==="image"&&block.url)return `<img class="record-image" src="${esc(block.url)}" alt="">`;
+      if(block.type==="text"&&block.value)return `<div class="record-content">${esc(block.value)}</div>`;
+      return "";
+    }).join("");
+  }
+  return record.content?`<div class="record-content">${esc(record.content)}</div>`:"";
+}
+
+function renderRecords(type){
+  const box=document.getElementById("records");
+  if(!loadedRecords.length){
+    box.innerHTML='<div class="empty">아직 기록이 없습니다.</div>';return;
+  }
+  box.innerHTML=loadedRecords.map(record=>`
+    <article class="record">
+      <div class="record-date">${esc(formatDate(record.date))}</div>
+      ${type==="basic"?"":`<div class="record-title">${esc(record.title||"기록")}</div>`}
+      ${renderRecordBody(record)}
+    </article>
+  `).join("");
+}
+
+function makeEditFields(type,record){
+  const box=document.getElementById("editDetails");
+  if(type==="basic"){box.innerHTML="";return;}
+  const vals=record?.extra_data||{};
+  const labels=semanticLabels[type]||[];
+  const keys=["field_1","field_2","field_3","field_4"];
+  box.innerHTML=labels.map((label,i)=>{
+    const key=keys[i];
+    const multi=label==="셋리스트"||label==="여행 메모"||label==="감상 메모";
+    return `<div class="edit-detail"><label>${esc(label)}</label>
+      ${multi
+        ? `<textarea class="edit-detail-textarea" data-key="${key}">${esc(vals[key]||"")}</textarea>`
+        : `<input class="edit-detail-input" data-key="${key}" value="${esc(vals[key]||"")}" type="text">`}
+    </div>`;
+  }).join("");
+}
+
+function collectDetails(type){
+  const out={};
+  if(type==="basic")return out;
+  document.querySelectorAll("#editDetails [data-key]").forEach(el=>{
+    const value=el.value.trim();if(value)out[el.dataset.key]=value;
+  });
+  return out;
+}
+
+const editRecordsEl=document.getElementById("editRecords");
+const editNewFiles=new Map();
+
+function addEditRecord(record={}){
+  const el=document.createElement("div");
+  el.className="edit-record";
+  el.dataset.recordId=record.id||"";
+  el.innerHTML=`
+    <div class="edit-record-head">
+      <div class="edit-record-label">RECORD</div>
+      <button class="edit-record-delete" type="button">×</button>
+    </div>
+    <input class="edit-record-input edit-record-date" type="date" value="${esc(record.date||new Date().toISOString().slice(0,10))}">
+    <input class="edit-record-input edit-record-title" type="text" value="${esc(record.title||"")}" placeholder="후기 제목">
+    <div class="edit-record-blocks"></div>
+    <div class="edit-add-blocks">
+      <button type="button" class="edit-add-block" data-add="text">＋ 글</button>
+      <button type="button" class="edit-add-block" data-add="image">＋ 사진</button>
+    </div>`;
+
+  const blocksEl=el.querySelector(".edit-record-blocks");
+  const blocks=Array.isArray(record.extra_data?.content_blocks)?record.extra_data.content_blocks:null;
+
+  if(blocks&&blocks.length){
+    blocks.forEach(b=>{
+      if(b.type==="text"&&b.value){
+        const block=document.createElement("div");
+        block.className="edit-block";block.dataset.kind="text";
+        block.innerHTML=`<button class="edit-block-remove" type="button">×</button><textarea>${esc(b.value)}</textarea>`;
+        block.querySelector(".edit-block-remove").onclick=()=>block.remove();
+        blocksEl.appendChild(block);
+      }else if(b.type==="image"&&b.url){
+        const block=document.createElement("div");
+        block.className="edit-block";block.dataset.kind="image";block.dataset.url=b.url;
+        block.innerHTML=`<button class="edit-block-remove" type="button">×</button><img class="edit-existing-image" src="${esc(b.url)}" alt="">`;
+        block.querySelector(".edit-block-remove").onclick=()=>{block.dataset.removed="true";block.style.display="none";};
+        blocksEl.appendChild(block);
+      }
+    });
+  }else if(record.content){
+    const block=document.createElement("div");
+    block.className="edit-block";block.dataset.kind="text";
+    block.innerHTML=`<button class="edit-block-remove" type="button">×</button><textarea>${esc(record.content)}</textarea>`;
+    block.querySelector(".edit-block-remove").onclick=()=>block.remove();
+    blocksEl.appendChild(block);
+  }else{
+    const block=document.createElement("div");
+    block.className="edit-block";block.dataset.kind="text";
+    block.innerHTML=`<button class="edit-block-remove" type="button">×</button><textarea placeholder="후기나 메모를 남겨주세요."></textarea>`;
+    block.querySelector(".edit-block-remove").onclick=()=>block.remove();
+    blocksEl.appendChild(block);
+  }
+
+  el.querySelector(".edit-record-delete").onclick=()=>{
+    el.dataset.removed="true";
+    el.style.display="none";
+  };
+
+  el.querySelector('[data-add="text"]').onclick=()=>{
+    const block=document.createElement("div");
+    block.className="edit-block";block.dataset.kind="text";
+    block.innerHTML=`<button class="edit-block-remove" type="button">×</button><textarea placeholder="후기나 메모를 남겨주세요."></textarea>`;
+    block.querySelector(".edit-block-remove").onclick=()=>block.remove();
+    blocksEl.appendChild(block);
+  };
+
+  el.querySelector('[data-add="image"]').onclick=()=>{
+    const block=document.createElement("div");
+    block.className="edit-block";block.dataset.kind="image-new";
+    block.innerHTML=`<button class="edit-block-remove" type="button">×</button><div class="edit-new-photo">＋ 사진 선택<input type="file" accept="image/*"></div>`;
+    const input=block.querySelector("input");
+    editNewFiles.set(block,null);
+    input.onchange=()=>{
+      const f=input.files?.[0]||null;editNewFiles.set(block,f);
+      block.querySelector(".edit-new-photo").firstChild.textContent=f?f.name:"＋ 사진 선택";
+    };
+    block.querySelector(".edit-block-remove").onclick=()=>{editNewFiles.delete(block);block.remove();};
+    blocksEl.appendChild(block);
+  };
+
+  editRecordsEl.appendChild(el);
+}
+
+async function uploadEditImage(file,userId){
+  const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/gi,"")||"jpg";
+  const path=`${userId}/archive/${crypto.randomUUID()}.${ext}`;
+  const {error}=await supabase.storage.from("archive-images").upload(path,file,{
+    cacheControl:"3600",upsert:false,contentType:file.type
+  });
+  if(error)throw error;
+  return supabase.storage.from("archive-images").getPublicUrl(path).data.publicUrl;
+}
+
+document.getElementById("editAddRecord").addEventListener("click",()=>addEditRecord());
+
+async function getUser(){
+  const {data:{user},error}=await supabase.auth.getUser();
+  if(error)throw error;
+  return user;
+}
+
+function openEdit(){
+  if(!loadedArchive)return;
+  document.getElementById("editArchiveName").value=loadedArchive.name||"";
+  const type=loadedArchive.type||"basic";
+  makeEditFields(type,loadedRecords[0]);
+  editRecordsEl.innerHTML="";
+  loadedRecords.forEach(record=>addEditRecord(record));
+  document.getElementById("editPanel").hidden=false;
+  document.getElementById("editButton").hidden=true;
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+document.getElementById("editCancel").addEventListener("click",()=>{
+  document.getElementById("editPanel").hidden=true;
+  document.getElementById("editButton").hidden=false;
+});
+document.getElementById("editButton").addEventListener("click",openEdit);
+
+supabase.auth.onAuthStateChange((_event,session)=>{
+  document.getElementById("editButton").hidden=!session;
+});
+
+document.getElementById("editSave").addEventListener("click",async()=>{
+  const user=await getUser();
+  if(!user){alert("로그인이 필요합니다.");return;}
+
+  const name=document.getElementById("editArchiveName").value.trim();
+  if(!name){alert("아카이브 이름을 입력해주세요.");return;}
+
+  const type=loadedArchive.type||"basic";
+  const save=document.getElementById("editSave");
+  save.disabled=true;save.textContent="SAVING…";
+
+  try{
+    const {error:archiveError}=await supabase.from("archives")
+      .update({name}).eq("id",loadedArchive.id).eq("user_id",user.id);
+    if(archiveError)throw archiveError;
+
+    const detailSource=loadedRecords[0];
+    if(detailSource){
+      const details=collectDetails(type);
+      const currentExtra=detailSource.extra_data||{};
+      const blocks=currentExtra.content_blocks||[];
+      const {error}=await supabase.from("archive_records")
+        .update({extra_data:{...details,content_blocks:blocks}})
+        .eq("id",detailSource.id).eq("user_id",user.id);
+      if(error)throw error;
+    }
+
+    const editors=[...editRecordsEl.querySelectorAll(".edit-record")];
+
+    for(const editor of editors){
+      const recordId=editor.dataset.recordId||"";
+      const removed=editor.dataset.removed==="true";
+      if(removed){
+        if(recordId){
+          const {error}=await supabase.from("archive_records")
+            .delete().eq("id",recordId).eq("user_id",user.id);
+          if(error)throw error;
+        }
+        continue;
+      }
+
+      const blocks=[];
+      for(const block of [...editor.querySelectorAll(".edit-block")]){
+        if(block.dataset.removed==="true"||block.style.display==="none")continue;
+
+        if(block.dataset.kind==="text"){
+          const value=block.querySelector("textarea")?.value.trim()||"";
+          if(value)blocks.push({type:"text",value});
+        }else if(block.dataset.kind==="image"){
+          if(block.dataset.url)blocks.push({type:"image",url:block.dataset.url});
+        }else if(block.dataset.kind==="image-new"){
+          const file=editNewFiles.get(block);
+          if(file)blocks.push({type:"image",url:await uploadEditImage(file,user.id)});
+        }
+      }
+
+      const content=blocks.filter(b=>b.type==="text").map(b=>b.value).join("\n");
+      const imageUrl=blocks.find(b=>b.type==="image")?.url||null;
+      const date=editor.querySelector(".edit-record-date")?.value||new Date().toISOString().slice(0,10);
+      const title=editor.querySelector(".edit-record-title")?.value.trim()||"후기";
+
+      if(recordId){
+        const existing=loadedRecords.find(r=>r.id===recordId);
+        const extra={...(existing?.extra_data||{}),content_blocks:blocks};
+        const {error}=await supabase.from("archive_records")
+          .update({date,title,content,image_url:imageUrl,extra_data:extra})
+          .eq("id",recordId).eq("user_id",user.id);
+        if(error)throw error;
+      }else{
+        const details={};
+        const {error}=await supabase.from("archive_records")
+          .insert({archive_id:loadedArchive.id,user_id:user.id,date,title,content,image_url:imageUrl,extra_data:{...details,content_blocks:blocks}});
+        if(error)throw error;
+      }
+    }
+
+    alert("수정되었습니다.");
+    location.reload();
+  }catch(error){
+    console.error("ARCHIVE EDIT",error);
+    alert("수정에 실패했습니다.\n"+(error?.message||"알 수 없는 오류"));
+  }finally{
+    save.disabled=false;save.textContent="SAVE";
+  }
+});
+
+function renderCategoryArchives(category, archives){
+  const hero=document.getElementById("hero");
+  const details=document.getElementById("details");
+  const records=document.getElementById("records");
+  const editButton=document.getElementById("editButton");
+  const addButton=document.getElementById("categoryAddButton");
+
+  document.getElementById("archiveTitle").textContent=category.name||"ARCHIVE";
+  document.querySelector(".archive-label").textContent="♡ "+(category.name||"ARCHIVE").toUpperCase();
+  hero.innerHTML="";
+  details.innerHTML=category.description?`<div class="category-description">${esc(category.description)}</div>`:"";
+  editButton.hidden=true;
+  addButton.hidden=false;
+  addButton.onclick=()=>{
+    location.href="./archive-write.html?category="+encodeURIComponent(category.id)+"&theme="+encodeURIComponent(currentTheme);
+  };
+
+  if(!archives.length){
+    records.innerHTML='<div class="empty">아직 ARCHIVE가 없습니다.</div>';
+    return;
+  }
+
+  records.innerHTML=`<div class="archive-grid">${archives.map(archive=>{
+    const image=archive.image_url||archive._image_url||"";
+    return `<a class="archive-card${image?" has-image":""}" href="./archive-view.html?id=${encodeURIComponent(archive.id)}&theme=${encodeURIComponent(currentTheme)}">
+      ${image?`<img class="archive-card-image" src="${esc(image)}" alt="">`:""}
+      <div class="archive-card-content">
+        <div class="archive-card-top"><span>${esc((archive.type||"ARCHIVE").toUpperCase())}</span><span>↗</span></div>
+        <div class="archive-card-title">${esc(archive.name)}</div>
+        <div class="archive-card-subtitle">${esc(archive._dateLabel||"")}</div>
+        <div class="archive-card-bottom"><span>${archive._recordCount||0} RECORDS</span><span>VIEW →</span></div>
+      </div>
+    </a>`;
+  }).join("")}</div>`;
+}
+
+async function loadCategory(){
+  if(!categoryId)return false;
+
+  const {data:category,error:categoryError}=await supabase.from("archive_categories")
+    .select("id,name,description")
+    .eq("id",categoryId).maybeSingle();
+
+  if(categoryError||!category){
+    console.error(categoryError);
+    document.getElementById("archiveTitle").textContent="ARCHIVE를 찾을 수 없습니다.";
+    document.getElementById("records").innerHTML='<div class="empty">CATEGORY를 불러오지 못했습니다.<br><small>'+esc(categoryError?.message||"알 수 없는 오류")+'</small></div>';
+    return true;
+  }
+
+  // category_id가 실제로 연결된 ARCHIVE만 가져옵니다.
+  // 기존 상세 보기 코드는 그대로 두고, CATEGORY 화면에서만 이 분기를 사용합니다.
+  const {data:archives,error:archivesError}=await supabase.from("archives")
+    .select("id,name,type,image_url,category_id,created_at")
+    .eq("category_id",categoryId)
+    .order("created_at",{ascending:false});
+
+  if(archivesError){
+    console.error(archivesError);
+    document.getElementById("archiveTitle").textContent=category.name||"ARCHIVE";
+    document.getElementById("records").innerHTML='<div class="empty">ARCHIVE를 불러오지 못했습니다.<br><small>'+esc(archivesError?.message||"알 수 없는 오류")+'</small></div>';
+    return true;
+  }
+
+  const list=archives||[];
+  if(list.length){
+    const ids=list.map(a=>a.id);
+    const {data:records,error:recordsError}=await supabase.from("archive_records")
+      .select("id,archive_id,date,image_url,extra_data,created_at")
+      .in("archive_id",ids)
+      .order("created_at",{ascending:true});
+    if(!recordsError){
+      const byArchive={};
+      (records||[]).forEach(r=>{
+        if(!byArchive[r.archive_id])byArchive[r.archive_id]=[];
+        byArchive[r.archive_id].push(r);
+      });
+      list.forEach(a=>{
+        const rs=byArchive[a.id]||[];
+        a._recordCount=rs.length;
+        a._image_url=a.image_url||rs.find(r=>r.image_url)?.image_url||rs.flatMap(r=>Array.isArray(r.extra_data?.content_blocks)?r.extra_data.content_blocks:[]).find(b=>b?.type==="image"&&b.url)?.url||"";
+        a._dateLabel=rs.length?formatDate(rs[rs.length-1].date):"";
+      });
+    }else{
+      console.warn("CATEGORY RECORDS:",recordsError);
+      list.forEach(a=>{a._recordCount=0;a._dateLabel="";});
+    }
+  }
+
+  renderCategoryArchives(category,list);
+  return true;
+}
+
+async function loadArchive(){
+  if(categoryId){
+    await loadCategory();
+    return;
+  }
+  if(!archiveId){
+    document.getElementById("archiveTitle").textContent="ARCHIVE를 찾을 수 없습니다.";return;
+  }
+  const {data:archive,error:archiveError}=await supabase.from("archives")
+    .select("id,name,type,created_at,user_id").eq("id",archiveId).single();
+  if(archiveError){
+    console.error(archiveError);
+    document.getElementById("archiveTitle").textContent="ARCHIVE를 불러오지 못했습니다.";return;
+  }
+
+  loadedArchive=archive;
+  const type=archive.type||"basic";
+  document.getElementById("archiveTitle").textContent=archive.name;
+
+  const {data:records,error:recordsError}=await supabase.from("archive_records")
+    .select("id,date,title,content,image_url,extra_data,created_at")
+    .eq("archive_id",archiveId).order("date",{ascending:true}).order("created_at",{ascending:true});
+
+  if(recordsError){
+    console.error(recordsError);
+    document.getElementById("records").innerHTML='<div class="empty">기록을 불러오지 못했습니다.</div>';return;
+  }
+  loadedRecords=records||[];
+
+  const firstWithBlocks=loadedRecords.find(r=>Array.isArray(r.extra_data?.content_blocks));
+  let heroUrl=null;
+  for(const record of loadedRecords){
+    const img=Array.isArray(record.extra_data?.content_blocks)
+      ? record.extra_data.content_blocks.find(b=>b.type==="image"&&b.url)
+      : null;
+    if(img){heroUrl=img.url;break;}
+    if(record.image_url){heroUrl=record.image_url;break;}
+  }
+  if(heroUrl)document.getElementById("hero").innerHTML=`<img class="hero-photo" src="${esc(heroUrl)}" alt="">`;
+
+  const infoRecord=loadedRecords.find(r=>detailEntries(type,r).length);
+  renderDetails(type,infoRecord);
+  renderRecords(type);
+
+  try{
+    const user=await getUser();
+    // VIEW 페이지에서는 로그인한 사용자에게 EDIT를 보여주고,
+    // 실제 저장 시 Supabase RLS가 본인 소유 데이터인지 검사합니다.
+    document.getElementById("editButton").hidden=!user;
+  }catch(error){
+    console.warn("AUTH CHECK:",error);
+    document.getElementById("editButton").hidden=true;
+  }
+}
+
+loadArchive();
 </script>
 </body>
 </html>
