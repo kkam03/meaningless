@@ -456,11 +456,14 @@ function renderDetails(type,record){
   }).join("");
 }
 
-function renderRecordBody(record){
+function renderRecordBody(record, skipImageUrl=""){
   const blocks=Array.isArray(record.extra_data?.content_blocks)?record.extra_data.content_blocks:null;
   if(blocks && blocks.length){
     return blocks.map(block=>{
-      if(block.type==="image"&&block.url)return `<img class="record-image" src="${esc(block.url)}" alt="">`;
+      if(block.type==="image"&&block.url){
+        if(skipImageUrl && block.url===skipImageUrl)return "";
+        return `<img class="record-image" src="${esc(block.url)}" alt="">`;
+      }
       if(block.type==="text"&&block.value)return `<div class="record-content">${esc(block.value)}</div>`;
       return "";
     }).join("");
@@ -468,7 +471,7 @@ function renderRecordBody(record){
   return record.content?`<div class="record-content">${esc(record.content)}</div>`:"";
 }
 
-function renderRecords(type){
+function renderRecords(type, skipImageUrl=""){
   const box=document.getElementById("records");
   if(!loadedRecords.length){
     box.innerHTML='<div class="empty">아직 기록이 없습니다.</div>';return;
@@ -476,8 +479,7 @@ function renderRecords(type){
   box.innerHTML=loadedRecords.map(record=>`
     <article class="record">
       <div class="record-date">${esc(formatDate(record.date))}</div>
-      ${type==="basic"?"":`<div class="record-title">${esc(record.title||"기록")}</div>`}
-      ${renderRecordBody(record)}
+      ${renderRecordBody(record, skipImageUrl)}
     </article>
   `).join("");
 }
@@ -822,7 +824,7 @@ async function loadArchive(){
     document.getElementById("archiveTitle").textContent="ARCHIVE를 찾을 수 없습니다.";return;
   }
   const {data:archive,error:archiveError}=await supabase.from("archives")
-    .select("id,name,type,created_at,user_id").eq("id",archiveId).single();
+    .select("id,name,type,image_url,created_at,user_id").eq("id",archiveId).single();
   if(archiveError){
     console.error(archiveError);
     document.getElementById("archiveTitle").textContent="ARCHIVE를 불러오지 못했습니다.";return;
@@ -845,20 +847,24 @@ async function loadArchive(){
   }
   loadedRecords=records||[];
 
-  const firstWithBlocks=loadedRecords.find(r=>Array.isArray(r.extra_data?.content_blocks));
-  let heroUrl=null;
-  for(const record of loadedRecords){
-    const img=Array.isArray(record.extra_data?.content_blocks)
-      ? record.extra_data.content_blocks.find(b=>b.type==="image"&&b.url)
-      : null;
-    if(img){heroUrl=img.url;break;}
-    if(record.image_url){heroUrl=record.image_url;break;}
+  // 대표사진은 ARCHIVE 자체의 image_url을 우선 사용합니다.
+  // 기존 데이터처럼 대표사진이 없으면 RECORD의 첫 사진을 대표사진으로 사용합니다.
+  let heroUrl=archive.image_url||null;
+  if(!heroUrl){
+    for(const record of loadedRecords){
+      const img=Array.isArray(record.extra_data?.content_blocks)
+        ? record.extra_data.content_blocks.find(b=>b.type==="image"&&b.url)
+        : null;
+      if(img){heroUrl=img.url;break;}
+      if(record.image_url){heroUrl=record.image_url;break;}
+    }
   }
   if(heroUrl)document.getElementById("hero").innerHTML=`<img class="hero-photo" src="${esc(heroUrl)}" alt="">`;
 
   const infoRecord=loadedRecords.find(r=>detailEntries(type,r).length);
   renderDetails(type,infoRecord);
-  renderRecords(type);
+  // 대표사진이 RECORD 본문에도 들어있는 경우에는 한 번 더 보여주지 않습니다.
+  renderRecords(type,heroUrl||"");
 
   try{
     const user=await getUser();
