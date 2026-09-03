@@ -6,291 +6,74 @@
 <title>meaningless — new category</title>
 <style>
 *{box-sizing:border-box}
-:root{
-  --background:#fff;--text:#29262a;--muted:#8a8588;--line:#e5eeee;
-  --point:#62b9aa;--point-soft:#dff2ee;--theme-bg:#f7fbfa
-}
-body{
-  margin:0;background:var(--background);color:var(--text);
-  font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
-}
-a{color:inherit;text-decoration:none}
-.container{width:min(680px,calc(100% - 40px));margin:auto}
-.top-nav{position:fixed;top:28px;right:28px;z-index:10}
-.theme-wrap{position:relative}
-.theme-button{
-  border:0;background:transparent;color:var(--muted);font:inherit;font-size:10px;
-  letter-spacing:.08em;cursor:pointer;padding:6px 0
-}
-.theme-menu{
-  display:none;position:absolute;top:calc(100% + 6px);right:0;width:145px;padding:8px;
-  border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.97);
-  box-shadow:0 8px 25px rgba(50,100,95,.08)
-}
-.theme-wrap.open .theme-menu{display:block}
-.theme-option{
-  display:flex;align-items:center;gap:8px;width:100%;padding:8px 7px;border:0;
-  border-radius:7px;background:transparent;color:var(--text);font:inherit;font-size:11px;
-  text-align:left;cursor:pointer
-}
-.theme-option:hover{background:var(--point-soft)}
-.theme-dot{width:9px;height:9px;border-radius:50%;background:var(--theme-color)}
-header{padding:48px 0 50px}
-.back{display:inline-block;margin-bottom:50px;color:var(--muted);font-size:11px}
-.back:hover{color:var(--point)}
-.label{color:var(--point);font-size:10px;font-weight:700;letter-spacing:.1em}
-h1{margin:10px 0 8px;font-size:30px;letter-spacing:-.05em}
-.description{color:var(--muted);font-size:11px}
-.form{padding-bottom:55px}
-.field{margin-bottom:28px}
-.field-label{
-  display:block;margin:0 0 8px;color:var(--point);font-size:10px;font-weight:700;letter-spacing:.08em
-}
-input,textarea{
-  width:100%;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);
-  font:inherit;font-size:13px;padding:11px 12px;outline:none
-}
-input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--point-soft)}
-textarea{min-height:120px;resize:vertical;line-height:1.8}
-.file-input{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--muted);font:inherit;font-size:11px}
-.file-name{margin-top:7px;color:var(--muted);font-size:9px}
-input[type="file"]{padding:9px 10px;font-size:11px}
-.actions{
-  display:flex;justify-content:space-between;gap:8px;margin-top:50px;padding-top:18px;border-top:1px solid var(--line)
-}
-.actions a,.actions button{
-  border-radius:8px;padding:8px 12px;font:inherit;font-size:10px;cursor:pointer
-}
-.cancel{border:1px solid var(--line);background:#fff;color:var(--muted)}
-.save{border:1px solid var(--point);background:var(--point);color:#fff}
-.save:disabled{opacity:.65;cursor:default}
-.hint{margin-top:7px;color:var(--muted);font-size:9px}
-.photo-picker{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}
-.photo-button{display:inline-block;border:1px solid var(--line);border-radius:8px;padding:8px 11px;background:#fff;color:var(--muted);font:inherit;font-size:10px;cursor:pointer}
-.photo-button:hover{border-color:var(--point);color:var(--point)}
-.photo-preview{display:block;width:100%;max-height:280px;object-fit:cover;border-radius:8px;margin-top:10px}
-.photo-file{display:block;margin-top:7px;color:var(--muted);font-size:9px}
-.photo-remove{display:none;margin-top:7px;padding:4px 0;border:0;background:transparent;color:var(--muted);font:inherit;font-size:9px;cursor:pointer}
-.photo-remove:hover{color:var(--point)}
+:root{--background:#fff;--text:#29262a;--muted:#8a8588;--line:#e5eeee;--point:#62b9aa;--point-soft:#dff2ee;--theme-bg:#f7fbfa}
+body{margin:0;background:var(--background);color:var(--text);font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:inherit;text-decoration:none}.container{width:min(680px,calc(100% - 40px));margin:auto}
+.top-nav{position:fixed;top:28px;right:28px;z-index:10}.theme-wrap{position:relative}
+.theme-button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:10px;letter-spacing:.08em;cursor:pointer;padding:6px 0}
+.theme-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;width:145px;padding:8px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.97);box-shadow:0 8px 25px rgba(50,100,95,.08)}
+.theme-wrap.open .theme-menu{display:block}.theme-option{display:flex;align-items:center;gap:8px;width:100%;padding:8px 7px;border:0;border-radius:7px;background:transparent;color:var(--text);font:inherit;font-size:11px;text-align:left;cursor:pointer}
+.theme-option:hover{background:var(--point-soft)}.theme-dot{width:9px;height:9px;border-radius:50%;background:var(--theme-color)}
+header{padding:48px 0 50px}.back{display:inline-block;margin-bottom:50px;color:var(--muted);font-size:11px}.back:hover{color:var(--point)}
+.label{color:var(--point);font-size:10px;font-weight:700;letter-spacing:.1em}h1{margin:10px 0 8px;font-size:30px;letter-spacing:-.05em}.description{color:var(--muted);font-size:11px}
+.form{padding-bottom:55px}.field{margin-bottom:28px}.field-label{display:block;margin:0 0 8px;color:var(--point);font-size:10px;font-weight:700;letter-spacing:.08em}
+input,textarea{width:100%;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit;font-size:13px;padding:11px 12px;outline:none}
+input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--point-soft)}textarea{min-height:120px;resize:vertical;line-height:1.8}
+.photo-input{padding:8px 10px;font-size:11px}.photo-name{margin-top:7px;color:var(--muted);font-size:9px}.hint{margin-top:7px;color:var(--muted);font-size:9px}
+.actions{display:flex;justify-content:space-between;gap:8px;margin-top:50px;padding-top:18px;border-top:1px solid var(--line)}.actions a,.actions button{border-radius:8px;padding:8px 12px;font:inherit;font-size:10px;cursor:pointer}
+.cancel{border:1px solid var(--line);background:#fff;color:var(--muted)}.save{border:1px solid var(--point);background:var(--point);color:#fff}.save:disabled{opacity:.65;cursor:default}
 </style>
 </head>
 <body>
-
-<div class="top-nav">
-  <div class="theme-wrap" id="themeWrap">
-    <button class="theme-button" id="themeButton" type="button">THEME</button>
-    <div class="theme-menu">
-      <button class="theme-option" type="button" data-theme="mint"><span class="theme-dot" style="--theme-color:#62b9aa"></span> Mint</button>
-      <button class="theme-option" type="button" data-theme="pink"><span class="theme-dot" style="--theme-color:#d8799a"></span> Pink</button>
-      <button class="theme-option" type="button" data-theme="lavender"><span class="theme-dot" style="--theme-color:#9a8bc2"></span> Lavender</button>
-      <button class="theme-option" type="button" data-theme="blue"><span class="theme-dot" style="--theme-color:#70a9c2"></span> Blue</button>
-    </div>
-  </div>
+<div class="top-nav"><div class="theme-wrap" id="themeWrap">
+<button class="theme-button" id="themeButton" type="button">THEME</button>
+<div class="theme-menu">
+<button class="theme-option" type="button" data-theme="mint"><span class="theme-dot" style="--theme-color:#62b9aa"></span> Mint</button>
+<button class="theme-option" type="button" data-theme="pink"><span class="theme-dot" style="--theme-color:#d8799a"></span> Pink</button>
+<button class="theme-option" type="button" data-theme="lavender"><span class="theme-dot" style="--theme-color:#9a8bc2"></span> Lavender</button>
+<button class="theme-option" type="button" data-theme="blue"><span class="theme-dot" style="--theme-color:#70a9c2"></span> Blue</button>
+</div></div></div>
+<div class="container"><header>
+<a href="./index.html" id="backLink" class="back">← ARCHIVE</a>
+<div class="label">NEW CATEGORY</div><h1>새로운 카테고리</h1>
+<div class="description">NELL처럼 여러 ARCHIVE를 하나의 큰 묶음으로 모아둘 수 있어요.</div>
+</header>
+<main class="form">
+<div class="field"><label class="field-label" for="categoryName">CATEGORY NAME</label><input id="categoryName" type="text" placeholder="예: NELL"></div>
+<div class="field"><label class="field-label" for="categoryDescription">DESCRIPTION <span style="font-weight:400;letter-spacing:0">(optional)</span></label><textarea id="categoryDescription" placeholder="예: LIVE ARCHIVE"></textarea><div class="hint">메인 카드 아래에 짧게 보여줄 설명입니다.</div></div>
+<div class="field">
+<label class="field-label" for="categoryPhoto">REPRESENTATIVE PHOTO <span style="font-weight:400;letter-spacing:0">(optional)</span></label>
+<input id="categoryPhoto" class="photo-input" type="file" accept="image/*">
+<div class="photo-name" id="categoryPhotoName">선택한 사진 없음</div>
+<div class="hint">메인 ARCHIVE 카드의 대표 이미지로 사용됩니다.</div>
 </div>
-
-<div class="container">
-  <header>
-    <a href="./index.html" id="backLink" class="back">← ARCHIVE</a>
-    <div class="label">NEW CATEGORY</div>
-    <h1>새로운 카테고리</h1>
-    <div class="description">NELL처럼 여러 ARCHIVE를 하나의 큰 묶음으로 모아둘 수 있어요.</div>
-  </header>
-
-  <main class="form">
-    <div class="field">
-      <label class="field-label" for="categoryName">CATEGORY NAME</label>
-      <input id="categoryName" type="text" placeholder="예: NELL">
-    </div>
-
-    <div class="field">
-      <label class="field-label" for="categoryDescription">DESCRIPTION <span style="font-weight:400;letter-spacing:0">(optional)</span></label>
-      <textarea id="categoryDescription" placeholder="예: LIVE ARCHIVE"></textarea>
-      <div class="hint">메인 카드 아래에 짧게 보여줄 설명입니다.</div>
-    </div>
-
-    <div class="field">
-      <label class="field-label">REPRESENTATIVE PHOTO <span style="font-weight:400;letter-spacing:0">(optional)</span></label>
-      <input id="categoryPhoto" type="file" accept="image/*">
-      <div class="hint">메인 ARCHIVE 카드에 대표 이미지로 보여줄 사진입니다.</div>
-    </div>
-
-    <div class="field">
-      <label class="field-label" for="categoryPhoto">REPRESENTATIVE PHOTO <span style="font-weight:400;letter-spacing:0">(optional)</span></label>
-      <input id="categoryPhoto" class="file-input" type="file" accept="image/*">
-      <div class="file-name" id="categoryPhotoName">선택한 사진 없음</div>
-      <div class="hint">메인 ARCHIVE 카드에 대표 이미지로 보여줄 사진입니다.</div>
-    </div>
-
-    <div class="actions">
-      <a id="cancelLink" class="cancel" href="./index.html">CANCEL</a>
-      <button id="saveButton" class="save" type="button">SAVE</button>
-    </div>
-  </main>
-</div>
-
+<div class="actions"><a id="cancelLink" class="cancel" href="./index.html">CANCEL</a><button id="saveButton" class="save" type="button">SAVE</button></div>
+</main></div>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
-
 const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
-
-const categoryPhoto=document.getElementById("categoryPhoto");
-const photoButton=document.getElementById("photoButton");
-const photoPreview=document.getElementById("photoPreview");
-const photoFile=document.getElementById("photoFile");
-const photoRemove=document.getElementById("photoRemove");
-let selectedPhoto=null;
-
-photoButton.addEventListener("click",()=>categoryPhoto.click());
-categoryPhoto.addEventListener("change",()=>{
-  const file=categoryPhoto.files?.[0]||null;
-  selectedPhoto=file;
-  if(file){
-    photoFile.textContent=file.name;
-    photoPreview.src=URL.createObjectURL(file);
-    photoPreview.hidden=false;
-    photoRemove.style.display="block";
-  }
-});
-photoRemove.addEventListener("click",()=>{
-  if(photoPreview.src?.startsWith("blob:"))URL.revokeObjectURL(photoPreview.src);
-  selectedPhoto=null;
-  categoryPhoto.value="";
-  photoPreview.hidden=true;
-  photoPreview.removeAttribute("src");
-  photoFile.textContent="메인 ARCHIVE 카드에 보여줄 대표 사진입니다.";
-  photoRemove.style.display="none";
-});
-
-async function uploadCategoryImage(file,userId){
-  const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/gi,"");
-  const path=`${userId}/category/${crypto.randomUUID()}.${ext||"jpg"}`;
-  const {error}=await supabase.storage.from("archive-images").upload(path,file,{
-    cacheControl:"3600",upsert:false,contentType:file.type
-  });
-  if(error)throw error;
-  return supabase.storage.from("archive-images").getPublicUrl(path).data.publicUrl;
-}
-
-const themes={
-  mint:{point:"#62b9aa",pointSoft:"#dff2ee",line:"#e5eeee",themeBg:"#f7fbfa"},
-  pink:{point:"#d8799a",pointSoft:"#f6dfe8",line:"#eee3e7",themeBg:"#fff8fa"},
-  lavender:{point:"#9a8bc2",pointSoft:"#e9e4f4",line:"#e8e5ee",themeBg:"#faf8fd"},
-  blue:{point:"#70a9c2",pointSoft:"#e0eef3",line:"#e3ebee",themeBg:"#f7fbfd"}
-};
-
-function getTheme(){
-  const p=new URLSearchParams(location.search);
-  if(themes[p.get("theme")])return p.get("theme");
-  const m=document.cookie.match(/(?:^|;\s*)meaningless-theme=([^;]+)/);
-  const n=m?decodeURIComponent(m[1]):null;
-  return themes[n]?n:"mint";
-}
-function applyTheme(name,remember=true){
-  const t=themes[name]||themes.mint;
-  document.documentElement.style.setProperty("--point",t.point);
-  document.documentElement.style.setProperty("--point-soft",t.pointSoft);
-  document.documentElement.style.setProperty("--line",t.line);
-  document.documentElement.style.setProperty("--theme-bg",t.themeBg);
-  if(remember){
-    document.cookie=`meaningless-theme=${encodeURIComponent(name)}; path=/; max-age=31536000; SameSite=Lax`;
-  }
-}
-let currentTheme=getTheme();
-applyTheme(currentTheme,false);
-
-function updateLinks(){
-  const q=`?theme=${encodeURIComponent(currentTheme)}`;
-  document.getElementById("backLink").href=`./index.html${q}`;
-  document.getElementById("cancelLink").href=`./index.html${q}`;
-}
+const themes={mint:{point:"#62b9aa",pointSoft:"#dff2ee",line:"#e5eeee",themeBg:"#f7fbfa"},pink:{point:"#d8799a",pointSoft:"#f6dfe8",line:"#eee3e7",themeBg:"#fff8fa"},lavender:{point:"#9a8bc2",pointSoft:"#e9e4f4",line:"#e8e5ee",themeBg:"#faf8fd"},blue:{point:"#70a9c2",pointSoft:"#e0eef3",line:"#e3ebee",themeBg:"#f7fbfd"}};
+function getTheme(){const p=new URLSearchParams(location.search);if(themes[p.get("theme")])return p.get("theme");const m=document.cookie.match(/(?:^|;\s*)meaningless-theme=([^;]+)/);const n=m?decodeURIComponent(m[1]):null;return themes[n]?n:"mint"}
+function applyTheme(name,remember=true){const t=themes[name]||themes.mint;document.documentElement.style.setProperty("--point",t.point);document.documentElement.style.setProperty("--point-soft",t.pointSoft);document.documentElement.style.setProperty("--line",t.line);document.documentElement.style.setProperty("--theme-bg",t.themeBg);if(remember)document.cookie=`meaningless-theme=${encodeURIComponent(name)}; path=/; max-age=31536000; SameSite=Lax`}
+let currentTheme=getTheme();applyTheme(currentTheme,false);
+function updateLinks(){const q=`?theme=${encodeURIComponent(currentTheme)}`;document.getElementById("backLink").href=`./index.html${q}`;document.getElementById("cancelLink").href=`./index.html${q}`}
 updateLinks();
-
 const themeWrap=document.getElementById("themeWrap");
-document.getElementById("themeButton").addEventListener("click",e=>{
-  e.stopPropagation();
-  themeWrap.classList.toggle("open");
-});
-document.querySelectorAll(".theme-option").forEach(button=>{
-  button.addEventListener("click",()=>{
-    currentTheme=button.dataset.theme;
-    applyTheme(currentTheme);
-    updateLinks();
-    themeWrap.classList.remove("open");
-  });
-});
-document.addEventListener("click",e=>{
-  if(!themeWrap.contains(e.target))themeWrap.classList.remove("open");
-});
-
-async function uploadImage(file,userId){
-  const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/gi,"");
-  const path=`${userId}/category/${crypto.randomUUID()}.${ext||"jpg"}`;
-  const {error}=await supabase.storage.from("archive-images").upload(path,file,{
-    cacheControl:"3600",upsert:false,contentType:file.type
-  });
-  if(error)throw error;
-  return supabase.storage.from("archive-images").getPublicUrl(path).data.publicUrl;
-}
-
-const categoryPhoto=document.getElementById("categoryPhoto");
-const categoryPhotoName=document.getElementById("categoryPhotoName");
-categoryPhoto.addEventListener("change",()=>{
-  categoryPhotoName.textContent=categoryPhoto.files?.[0]?.name||"선택한 사진 없음";
-});
-
-async function uploadCategoryImage(file,userId){
-  const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/gi,"");
-  const path=`${userId}/category/${crypto.randomUUID()}.${ext||"jpg"}`;
-  const {error}=await supabase.storage.from("archive-images").upload(path,file,{
-    cacheControl:"3600",upsert:false,contentType:file.type
-  });
-  if(error)throw error;
-  return supabase.storage.from("archive-images").getPublicUrl(path).data.publicUrl;
-}
-
+document.getElementById("themeButton").addEventListener("click",e=>{e.stopPropagation();themeWrap.classList.toggle("open")});
+document.querySelectorAll(".theme-option").forEach(b=>b.addEventListener("click",()=>{currentTheme=b.dataset.theme;applyTheme(currentTheme);updateLinks();themeWrap.classList.remove("open")}));
+document.addEventListener("click",e=>{if(!themeWrap.contains(e.target))themeWrap.classList.remove("open")});
+const categoryPhoto=document.getElementById("categoryPhoto"),categoryPhotoName=document.getElementById("categoryPhotoName");
+categoryPhoto.addEventListener("change",()=>{categoryPhotoName.textContent=categoryPhoto.files?.[0]?.name||"선택한 사진 없음"});
+async function uploadCategoryImage(file,userId){const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/gi,"");const path=`${userId}/category/${crypto.randomUUID()}.${ext||"jpg"}`;const {error}=await supabase.storage.from("archive-images").upload(path,file,{cacheControl:"3600",upsert:false,contentType:file.type});if(error)throw error;return supabase.storage.from("archive-images").getPublicUrl(path).data.publicUrl}
 document.getElementById("saveButton").addEventListener("click",async()=>{
-  const name=document.getElementById("categoryName").value.trim();
-  const description=document.getElementById("categoryDescription").value.trim();
-  const save=document.getElementById("saveButton");
-
-  if(!name){
-    alert("CATEGORY NAME을 입력해주세요.");
-    return;
-  }
-
-  save.disabled=true;
-  save.textContent="SAVING…";
-
-  try{
-    const {data:{user},error:authError}=await supabase.auth.getUser();
-    if(authError)throw authError;
-    if(!user)throw new Error("로그인이 필요합니다.");
-
-    let image_url=null;
-    if(selectedPhoto) image_url=await uploadCategoryImage(selectedPhoto,user.id);
-
-    const {error}=await supabase
-      .from("archive_categories")
-      .insert({
-        user_id:user.id,
-        name,
-        description:description||null,
-        image_url
-      });
-
-    if(error)throw error;
-
-    alert("CATEGORY가 저장되었습니다.");
-    location.href=`./index.html?theme=${encodeURIComponent(currentTheme)}`;
-  }catch(error){
-    console.error("CATEGORY SAVE",error);
-    alert("저장에 실패했습니다.\n"+(error?.message||"알 수 없는 오류"));
-  }finally{
-    save.disabled=false;
-    save.textContent="SAVE";
-  }
-});
+const name=document.getElementById("categoryName").value.trim(),description=document.getElementById("categoryDescription").value.trim(),photo=categoryPhoto.files?.[0]||null,save=document.getElementById("saveButton");
+if(!name){alert("CATEGORY NAME을 입력해주세요.");return}save.disabled=true;save.textContent="SAVING…";
+try{const {data:{user},error:authError}=await supabase.auth.getUser();if(authError)throw authError;if(!user)throw new Error("로그인이 필요합니다.");
+const imageUrl=photo?await uploadCategoryImage(photo,user.id):null;
+const {error}=await supabase.from("archive_categories").insert({user_id:user.id,name,description:description||null,image_url:imageUrl});if(error)throw error;
+alert("CATEGORY가 저장되었습니다.");location.href=`./index.html?theme=${encodeURIComponent(currentTheme)}`;
+}catch(error){console.error("CATEGORY SAVE",error);alert("저장에 실패했습니다.\n"+(error?.message||"알 수 없는 오류"))}
+finally{save.disabled=false;save.textContent="SAVE"}});
 </script>
-</body>
-</html>
+</body></html>
