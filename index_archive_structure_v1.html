@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>meaningless</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --background: #ffffff;
+      --text: #29262a;
+      --muted: #8a8588;
+      --line: #e5eeee;
+      --point: #62b9aa;
+      --point-soft: #dff2ee;
+      --theme-bg: #f7fbfa;
+    }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(900px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    header {
+      position: relative;
+      padding: 48px 0 62px;
+    }
+
+    .logo {
+      display: inline-block;
+      position: relative;
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: -0.055em;
+      color: var(--point);
+    }
+
+    .intro {
+      margin-top: 11px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.75;
+      letter-spacing: -0.02em;
+    }
+
+    .intro::before {
+      content: "—";
+      margin-right: 7px;
+      color: var(--point);
+    }
+
+    .intro strong {
+      display: block;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .section-mark {
+      margin: 0 0 17px 4px;
+      color: var(--point);
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    .post-list {
+      border-top: 1px solid var(--line);
+    }
+
+    .post {
+      position: relative;
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 12px;
+      align-items: baseline;
+      padding: 12px 4px;
+      border-bottom: 1px solid var(--line);
+      transition: opacity 0.2s ease, padding-left 0.2s ease;
+    }
+
+    .post:hover {
+      opacity: 0.6;
+      padding-left: 9px;
+    }
+
+    .post-date {
+      font-size: 10px;
+      color: var(--point);
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+
+    .post-title {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: -0.025em;
+    }
+
+    .diary-all-row {
+      display: flex;
+      justify-content: flex-end;
+      margin: 14px 4px 0;
+    }
+
+    .diary-all-link {
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.03em;
+      transition: color 0.2s ease;
+    }
+
+    .diary-all-link:hover {
+      color: var(--point);
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin: 0 0 15px 4px;
+    }
+
+    .section-title {
+      color: var(--point);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      line-height: 1;
+    }
+
+    .section-title .heart {
+      margin-right: 4px;
+      font-size: 13px;
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: -0.02em;
+    }
+
+    .archive-section {
+      margin-top: 74px;
+      padding-top: 0;
+    }
+
+    .archive-heading {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .archive-label {
+      color: var(--point);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .archive-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .archive-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .create-row {
+      display: none;
+      justify-content: flex-end;
+      margin: -2px 4px 12px;
+    }
+
+    .create-button {
+      display: inline-block;
+      color: var(--point);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      transition: opacity 0.2s ease;
+    }
+
+    .create-button:hover {
+      opacity: 0.6;
+    }
+
+    .archive-create-row {
+      margin-top: -10px;
+      margin-bottom: 14px;
+      justify-content: flex-end;
+    }
+
+    .archive-create-row .create-button {
+      font-size: 17px;
+      line-height: 1;
+      letter-spacing: 0;
+      padding: 2px 4px;
+    }
+
+    .archive-card {
+      position: relative;
+      min-height: 190px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(145deg, #ffffff 0%, var(--theme-bg) 100%);
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .archive-card.has-image {
+      min-height: 220px;
+      padding: 0;
+    }
+
+    .archive-card-image {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .archive-card.has-image::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,.02) 25%,
+        rgba(0,0,0,.58) 100%
+      );
+    }
+
+    .archive-card.has-image .archive-card-top,
+    .archive-card.has-image .archive-card-title,
+    .archive-card.has-image .archive-card-subtitle,
+    .archive-card.has-image .archive-card-bottom {
+      color: #fff;
+    }
+
+    .archive-card.has-image .archive-card-subtitle {
+      color: rgba(255,255,255,.82);
+    }
+
+    .archive-card.has-image .archive-card-top,
+    .archive-card.has-image .archive-card-title,
+    .archive-card.has-image .archive-card-subtitle,
+    .archive-card.has-image .archive-card-bottom {
+      z-index: 2;
+    }
+
+    .archive-card.has-image .archive-card-delete {
+      z-index: 20;
+    }
+
+    .archive-card::before {
+      content: "";
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      right: -35px;
+      top: -35px;
+      border-radius: 50%;
+      background: var(--point-soft);
+      opacity: 0.55;
+    }
+
+    .archive-delete {
+      position:absolute;
+      top:12px;
+      right:12px;
+      z-index:20;
+      width:24px;
+      height:24px;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:0;
+      border:1px solid var(--line);
+      border-radius:50%;
+      background:rgba(255,255,255,.96);
+      color:var(--muted);
+      font:inherit;
+      font-size:15px;
+      line-height:1;
+      cursor:pointer;
+    }
+    .is-authenticated .archive-delete { display:flex; }
+    .archive-delete:hover { color:var(--point); border-color:var(--point); }
+    .archive-card.has-image .archive-delete { z-index: 20; }
+
+    .archive-card:hover {
+      transform: translateY(-3px);
+      border-color: #b9ddd6;
+    }
+
+    .archive-card-top,
+    .archive-card-bottom {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    .archive-card-title {
+      position: relative;
+      z-index: 1;
+      margin-top: 48px;
+      font-size: 27px;
+      font-weight: 700;
+      letter-spacing: -0.05em;
+      color: var(--text);
+    }
+
+    .archive-card-subtitle {
+      position: relative;
+      z-index: 1;
+      margin-top: -2px;
+      font-size: 11px;
+      color: var(--point);
+      font-weight: 600;
+      letter-spacing: 0.12em;
+    }
+
+    .archive-card-bottom {
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 18px;
+      letter-spacing: 0;
+    }
+
+    footer {
+      padding: 32px 0 52px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .footer-nav {
+      display: flex;
+      gap: 20px;
+    }
+
+    .footer-nav a {
+      transition: color 0.2s ease;
+    }
+
+    .footer-nav a:hover {
+      color: var(--point);
+    }
+
+
+    .top-nav {
+      position: fixed;
+      top: 28px;
+      right: 28px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .login-button {
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      transition: color 0.2s ease;
+    }
+
+    .login-button:hover {
+      color: var(--point);
+    }
+
+    .theme-wrap {
+      position: relative;
+      z-index: 10;
+    }
+
+    .theme-button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      padding: 6px 0;
+    }
+
+    .theme-button:hover {
+      color: var(--point);
+    }
+
+    .theme-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      width: 145px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.97);
+      box-shadow: 0 8px 25px rgba(50, 100, 95, 0.08);
+    }
+
+    .theme-wrap.open .theme-menu {
+      display: block;
+    }
+
+    .theme-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 7px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: 11px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .theme-option:hover {
+      background: var(--point-soft);
+    }
+
+    .theme-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--theme-color);
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 600px) {
+      .top-nav {
+        top: 18px;
+        right: 18px;
+        gap: 13px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        width: min(100% - 30px, 900px);
+      }
+
+      header {
+        padding-top: 32px;
+        padding-bottom: 58px;
+      }
+
+      .logo {
+        font-size: 34px;
+      }
+
+      .deco-one {
+        top: 22px;
+        left: 104px;
+      }
+
+      .intro {
+        margin-top: 7px;
+      }
+
+      .section-heading {
+        gap: 10px;
+        margin-bottom: 13px;
+      }
+
+      .section-title {
+        font-size: 11px;
+      }
+
+      .section-subtitle {
+        font-size: 10px;
+      }
+
+      .post {
+        grid-template-columns: 58px 1fr;
+        gap: 9px;
+        padding: 10px 2px;
+      }
+
+      .post-date {
+        font-size: 9px;
+      }
+
+      .post-title {
+        font-size: 12px;
+      }
+
+      .archive-section {
+        margin-top: 62px;
+      }
+
+      .archive-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .archive-card {
+        min-height: 175px;
+      }
+
+      .archive-card.has-image {
+        min-height: 195px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+    <div class="top-nav">
+      <a class="login-button" id="loginLink" href="./login.html">LOGIN</a>
+      <div class="theme-wrap" id="themeWrap">
+        <button class="theme-button" id="themeButton" type="button">THEME</button>
+      <div class="theme-menu">
+        <button class="theme-option" type="button" data-theme="mint">
+          <span class="theme-dot" style="--theme-color:#62b9aa"></span> Mint
+        </button>
+        <button class="theme-option" type="button" data-theme="pink">
+          <span class="theme-dot" style="--theme-color:#d8799a"></span> Pink
+        </button>
+        <button class="theme-option" type="button" data-theme="lavender">
+          <span class="theme-dot" style="--theme-color:#9a8bc2"></span> Lavender
+        </button>
+        <button class="theme-option" type="button" data-theme="blue">
+          <span class="theme-dot" style="--theme-color:#70a9c2"></span> Blue
+        </button>
+        </div>
+      </div>
+    </div>
+
+  <div class="container">
+
+    <header>
+      <a href="#" class="logo">meaningless</a>
+
+      <div class="intro">
+        <strong>things that probably mean nothing.</strong>
+        별거 아닌 것들을 기록합니다. 가끔은 별거인 것도.
+      </div>
+    </header>
+
+    <main>
+      <div class="section-heading">
+        <div class="section-title"><span class="heart">♡</span> DIARY</div>
+        <div class="section-subtitle">하루 한 줄</div>
+      </div>
+      <div class="create-row" id="diaryCreateRow">
+        <a class="create-button" id="newDiaryLink" href="./diary-write.html">+ NEW DIARY</a>
+      </div>
+
+      <div class="post-list" id="diaryList">
+      </div>
+      <div class="diary-all-row">
+        <a class="diary-all-link" id="diaryAllLink" href="./diary-archive.html">VIEW ALL DIARY →</a>
+      </div>
+      <section class="archive-section">
+        <div class="archive-heading">
+          <span class="archive-label">ARCHIVE</span>
+          <span class="archive-note">기록해두고 싶은 것들</span>
+        </div>
+        <div class="create-row archive-create-row" id="archiveCreateRow">
+          <a class="create-button" id="newArchiveLink" href="./archive-write_buttons_v2.html" aria-label="ARCHIVE 추가">＋</a>
+        </div>
+
+        <div class="archive-grid" id="archiveGrid">
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="footer-nav">
+        <a href="#">archive</a>
+        <a href="#">about</a>
+      </div>
+    </footer>
+
+  </div>
+
+  <script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
+
+const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const $=id=>document.getElementById(id);
+
+const themes={
+  mint:{point:"#62b9aa",pointSoft:"#dff2ee",line:"#e5eeee",themeBg:"#f7fbfa"},
+  pink:{point:"#d8799a",pointSoft:"#f6dfe8",line:"#eee3e7",themeBg:"#fff8fa"},
+  lavender:{point:"#9a8bc2",pointSoft:"#e9e4f4",line:"#e8e5ee",themeBg:"#faf8fd"},
+  blue:{point:"#70a9c2",pointSoft:"#e0eef3",line:"#e3ebee",themeBg:"#f7fbfd"}
+};
+
+const diaryList=$("diaryList"), archiveGrid=$("archiveGrid");
+const diaryCreateRow=$("diaryCreateRow"), archiveCreateRow=$("archiveCreateRow");
+const newDiaryLink=$("newDiaryLink"), newArchiveLink=$("newArchiveLink");
+const diaryAllLink=$("diaryAllLink");
+const loginLink=$("loginLink"), themeWrap=$("themeWrap"), themeButton=$("themeButton");
+
+const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+const formatDate=d=>{if(!d)return"";const x=new Date(`${d}T00:00:00`);return Number.isNaN(x.getTime())?String(d):`${String(x.getMonth()+1).padStart(2,"0")}.${String(x.getDate()).padStart(2,"0")}`};
+const typeLabel=t=>({basic:"BASIC",concert:"CONCERT",travel:"TRAVEL",movie:"MOVIE",custom:"ARCHIVE"})[t]||"ARCHIVE";
+
+function getTheme(){
+  const p=new URLSearchParams(location.search);
+  if(themes[p.get("theme")])return p.get("theme");
+  const m=document.cookie.match(/(?:^|;\s*)meaningless-theme=([^;]+)/);
+  const n=m?decodeURIComponent(m[1]):null;
+  return themes[n]?n:"mint";
+}
+function applyTheme(n,remember=true){
+  const t=themes[n]||themes.mint;
+  document.documentElement.style.setProperty("--point",t.point);
+  document.documentElement.style.setProperty("--point-soft",t.pointSoft);
+  document.documentElement.style.setProperty("--line",t.line);
+  document.documentElement.style.setProperty("--theme-bg",t.themeBg);
+  if(remember)document.cookie=`meaningless-theme=${encodeURIComponent(n)}; path=/; max-age=31536000; SameSite=Lax`;
+}
+let currentTheme=getTheme();
+applyTheme(currentTheme,false);
+
+function updateLinks(){
+  const q=`?theme=${encodeURIComponent(currentTheme)}`;
+  if(newDiaryLink)newDiaryLink.href=`./diary-write.html${q}`;
+  if(newArchiveLink)newArchiveLink.href=`./archive-write_buttons_v2.html${q}`;
+  if(diaryAllLink)diaryAllLink.href=`./diary-archive.html${q}`;
+  if(loginLink)loginLink.href=`./login.html${q}`;
+}
+updateLinks();
+
+themeButton?.addEventListener("click",e=>{e.stopPropagation();themeWrap?.classList.toggle("open")});
+document.querySelectorAll(".theme-option").forEach(b=>b.addEventListener("click",()=>{
+  currentTheme=b.dataset.theme;applyTheme(currentTheme);updateLinks();themeWrap?.classList.remove("open");
+}));
+document.addEventListener("click",e=>{if(themeWrap&&!themeWrap.contains(e.target))themeWrap.classList.remove("open")});
+
+let currentSession=null;
+
+function updateAuthUI(session){
+  currentSession=session||null;
+  document.documentElement.classList.toggle("is-authenticated",!!currentSession);
+
+  if(currentSession){
+    loginLink.textContent="LOGOUT";
+    loginLink.href="#";
+    if(diaryCreateRow)diaryCreateRow.style.display="flex";
+    if(archiveCreateRow)archiveCreateRow.style.display="flex";
+    loginLink.onclick=async e=>{e.preventDefault();await supabase.auth.signOut()};
+  }else{
+    loginLink.textContent="LOGIN";
+    updateLinks();
+    if(diaryCreateRow)diaryCreateRow.style.display="none";
+    if(archiveCreateRow)archiveCreateRow.style.display="none";
+    loginLink.onclick=null;
+  }
+}
+
+async function loadLists(){
+  const [{data:diaries,error:de},{data:archives,error:ae}]=await Promise.all([
+    supabase.from("diary").select("id,date,title,content,image_url,created_at").order("date",{ascending:false}).order("created_at",{ascending:false}).limit(5),
+    supabase.from("archives").select("id,name,type,created_at,parent_id,image_url").order("created_at",{ascending:true})
+  ]);
+
+  if(de){console.error("DIARY LOAD",de);diaryList.innerHTML="";}
+  else{
+    diaryList.innerHTML=(diaries||[]).map(x=>`
+      <article class="post">
+        <div class="post-date">${esc(formatDate(x.date))}</div>
+        <div><a class="post-title" href="./diary-detail.html?id=${encodeURIComponent(x.id)}&theme=${encodeURIComponent(currentTheme)}">${esc(x.title)}</a></div>
+      </article>`).join("");
+  }
+
+  if(ae){console.error("ARCHIVE LOAD",ae);archiveGrid.innerHTML="";}
+  else{
+    const allArchives = archives || [];
+    const rootArchives = allArchives.filter(x => !x.parent_id);
+
+    archiveGrid.innerHTML = rootArchives.map(x => {
+      const childCount = allArchives.filter(child => child.parent_id === x.id).length;
+      const image = x.image_url ? `<img class="archive-card-image" src="${esc(x.image_url)}" alt="">` : "";
+      const cardClass = x.image_url ? "archive-card has-image" : "archive-card";
+      const countLabel = childCount === 1 ? "1 RECORD" : `${childCount} RECORDS`;
+
+      return `
+        <a class="${cardClass}" href="./archive-view.html?id=${encodeURIComponent(x.id)}&theme=${encodeURIComponent(currentTheme)}">
+          ${image}
+          <div class="archive-card-top"><span>${esc(typeLabel(x.type))}</span><span>↗</span></div>
+          <div class="archive-card-title">${esc(x.name)}</div>
+          <div class="archive-card-subtitle">${esc(countLabel)}</div>
+          <div class="archive-card-bottom"><span>${esc(new Date(x.created_at).getFullYear())}</span><span>VIEW</span></div>
+          <button class="archive-delete" type="button" data-id="${x.id}" aria-label="${esc(x.name)} 삭제">×</button>
+        </a>`;
+    }).join("");
+  }
+}
+
+document.addEventListener("click",async e=>{
+  const button=e.target.closest(".archive-delete");
+  if(!button)return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  if(!confirm("이 아카이브를 삭제할까요?"))return;
+
+  const archiveId=button.dataset.id;
+
+  if(!archiveId || archiveId==="undefined" || archiveId==="null"){
+    alert("ARCHIVE ID를 찾을 수 없습니다. 페이지를 새로고침해주세요.");
+    return;
+  }
+
+  button.disabled=true;
+
+  try{
+    const {data:{user},error:authError}=await supabase.auth.getUser();
+
+    if(authError)throw authError;
+    if(!user)throw new Error("로그인이 필요합니다.");
+
+    const {error}=await supabase.rpc("delete_archive",{
+      p_archive_id:archiveId
+    });
+
+    if(error)throw error;
+
+    await loadLists();
+  }catch(error){
+    console.error("ARCHIVE DELETE",error);
+    alert("삭제에 실패했습니다.\n"+(error?.message||"알 수 없는 오류"));
+  }finally{
+    button.disabled=false;
+  }
+});
+
+const {data:{session}}=await supabase.auth.getSession();
+updateAuthUI(session);
+await loadLists();
+
+supabase.auth.onAuthStateChange((_event,nextSession)=>{
+  updateAuthUI(nextSession);
+  loadLists().catch(error=>console.error("INDEX REFRESH",error));
+});
+</script>
+
+</body>
+</html>
