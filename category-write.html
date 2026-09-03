@@ -52,6 +52,8 @@ input,textarea{
 }
 input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--point-soft)}
 textarea{min-height:120px;resize:vertical;line-height:1.8}
+.file-input{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--muted);font:inherit;font-size:11px}
+.file-name{margin-top:7px;color:var(--muted);font-size:9px}
 input[type="file"]{padding:9px 10px;font-size:11px}
 .actions{
   display:flex;justify-content:space-between;gap:8px;margin-top:50px;padding-top:18px;border-top:1px solid var(--line)
@@ -109,6 +111,13 @@ input[type="file"]{padding:9px 10px;font-size:11px}
     <div class="field">
       <label class="field-label">REPRESENTATIVE PHOTO <span style="font-weight:400;letter-spacing:0">(optional)</span></label>
       <input id="categoryPhoto" type="file" accept="image/*">
+      <div class="hint">메인 ARCHIVE 카드에 대표 이미지로 보여줄 사진입니다.</div>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="categoryPhoto">REPRESENTATIVE PHOTO <span style="font-weight:400;letter-spacing:0">(optional)</span></label>
+      <input id="categoryPhoto" class="file-input" type="file" accept="image/*">
+      <div class="file-name" id="categoryPhotoName">선택한 사진 없음</div>
       <div class="hint">메인 ARCHIVE 카드에 대표 이미지로 보여줄 사진입니다.</div>
     </div>
 
@@ -215,6 +224,22 @@ document.addEventListener("click",e=>{
 });
 
 async function uploadImage(file,userId){
+  const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/gi,"");
+  const path=`${userId}/category/${crypto.randomUUID()}.${ext||"jpg"}`;
+  const {error}=await supabase.storage.from("archive-images").upload(path,file,{
+    cacheControl:"3600",upsert:false,contentType:file.type
+  });
+  if(error)throw error;
+  return supabase.storage.from("archive-images").getPublicUrl(path).data.publicUrl;
+}
+
+const categoryPhoto=document.getElementById("categoryPhoto");
+const categoryPhotoName=document.getElementById("categoryPhotoName");
+categoryPhoto.addEventListener("change",()=>{
+  categoryPhotoName.textContent=categoryPhoto.files?.[0]?.name||"선택한 사진 없음";
+});
+
+async function uploadCategoryImage(file,userId){
   const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/gi,"");
   const path=`${userId}/category/${crypto.randomUUID()}.${ext||"jpg"}`;
   const {error}=await supabase.storage.from("archive-images").upload(path,file,{
