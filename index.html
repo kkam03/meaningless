@@ -254,6 +254,29 @@
       opacity: 0.55;
     }
 
+    .archive-edit {
+      position:absolute;
+      top:12px;
+      right:42px;
+      z-index:20;
+      width:24px;
+      height:24px;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:0;
+      border:1px solid var(--line);
+      border-radius:50%;
+      background:rgba(255,255,255,.96);
+      color:var(--muted);
+      font:inherit;
+      font-size:13px;
+      line-height:1;
+      cursor:pointer;
+    }
+    .is-authenticated .archive-edit { display:flex; }
+    .archive-edit:hover { color:var(--point); border-color:var(--point); }
+
     .archive-delete {
       position:absolute;
       top:12px;
@@ -707,6 +730,7 @@ async function loadLists(){
         <div class="archive-card-title">${esc(x.name)}</div>
         <div class="archive-card-subtitle">${esc(x.description||"")}</div>
         <div class="archive-card-bottom"><span>${count} RECORDS</span><span>VIEW →</span></div>
+        <button class="archive-edit category-edit" type="button" data-category-id="${x.id}" aria-label="${esc(x.name)} 수정">✎</button>
         <button class="archive-delete category-delete" type="button" data-category-id="${x.id}" aria-label="${esc(x.name)} 삭제">×</button>
       </a>`;
   };
@@ -721,6 +745,19 @@ async function loadLists(){
     archiveGrid.innerHTML=(categories||[]).map(x=>renderCategoryCard(x,(archives||[]).filter(a=>a.category_id===x.id).length)).join("");
   }
 }
+
+document.addEventListener("click",e=>{
+  const button=e.target.closest(".category-edit");
+  if(!button)return;
+  e.preventDefault();
+  e.stopPropagation();
+  const categoryId=button.dataset.categoryId;
+  if(!categoryId || categoryId==="undefined" || categoryId==="null"){
+    alert("CATEGORY ID를 찾을 수 없습니다. 페이지를 새로고침해주세요.");
+    return;
+  }
+  location.href=`./category-write.html?edit=${encodeURIComponent(categoryId)}&theme=${encodeURIComponent(currentTheme)}`;
+});
 
 document.addEventListener("click",async e=>{
   const button=e.target.closest(".category-delete");
