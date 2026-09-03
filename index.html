@@ -612,7 +612,13 @@ updateLinks();
 
 themeButton?.addEventListener("click",e=>{e.stopPropagation();themeWrap?.classList.toggle("open")});
 document.querySelectorAll(".theme-option").forEach(b=>b.addEventListener("click",()=>{
-  currentTheme=b.dataset.theme;applyTheme(currentTheme);updateLinks();themeWrap?.classList.remove("open");
+  currentTheme=b.dataset.theme;
+  applyTheme(currentTheme);
+  const url=new URL(location.href);
+  url.searchParams.set("theme",currentTheme);
+  history.replaceState(null,"",url);
+  updateLinks();
+  themeWrap?.classList.remove("open");
 }));
 document.addEventListener("click",e=>{if(themeWrap&&!themeWrap.contains(e.target))themeWrap.classList.remove("open")});
 
