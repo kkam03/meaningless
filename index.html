@@ -321,6 +321,14 @@
       letter-spacing: 0;
     }
 
+    .archive-card.text-white .archive-card-top,
+    .archive-card.text-white .archive-card-title,
+    .archive-card.text-white .archive-card-subtitle,
+    .archive-card.text-white .archive-card-bottom { color:#fff; }
+
+    .archive-card.text-white .archive-card-subtitle { color:#fff; opacity:.88; }
+    .archive-card.text-white.has-image::after { background:linear-gradient(to bottom,rgba(0,0,0,.08),rgba(0,0,0,.48)); }
+
     footer {
       padding: 32px 0 52px;
       font-size: 12px;
@@ -673,7 +681,7 @@ async function loadLists(){
       .order("created_at",{ascending:false})
       .limit(5),
     supabase.from("archive_categories")
-      .select("id,name,description,image_url,created_at")
+      .select("id,name,description,image_url,text_color,created_at")
       .order("created_at",{ascending:true}),
     supabase.from("archives")
       .select("id,category_id")
@@ -693,7 +701,7 @@ async function loadLists(){
   const renderCategoryCard=(x,count)=>{
     const hasImage=!!x.image_url;
     return `
-      <a class="archive-card${hasImage?" has-image":""}" href="./archive-view.html?category=${encodeURIComponent(x.id)}&theme=${encodeURIComponent(currentTheme)}">
+      <a class="archive-card${hasImage?" has-image":""} ${x.text_color==="white"?"text-white":""}" href="./archive-view.html?category=${encodeURIComponent(x.id)}&theme=${encodeURIComponent(currentTheme)}">
         ${hasImage?`<img class="archive-card-image" src="${esc(x.image_url)}" alt="">`:""}
         <div class="archive-card-top"><span>ARCHIVE</span><span>↗</span></div>
         <div class="archive-card-title">${esc(x.name)}</div>
