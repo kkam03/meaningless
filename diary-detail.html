@@ -342,9 +342,6 @@
     document.addEventListener("click", e => { if (!themeWrap.contains(e.target)) themeWrap.classList.remove("open"); });
 
     const params = new URLSearchParams(window.location.search);
-const diaryId = params.get("id");
-const theme = params.get("theme");
-    const params = new URLSearchParams(window.location.search);
     const diaryId = params.get("id");
     const theme = params.get("theme");
 
@@ -368,6 +365,14 @@ const theme = params.get("theme");
     }
 
     updateBackLinks();
+
+    // DIARY로 돌아갈 때는 기존 목록 페이지로 돌아가 로그인 상태를 유지합니다.
+    $("backDiary").addEventListener("click", e => {
+      if (document.referrer.includes("/index.html")) {
+        e.preventDefault();
+        history.back();
+      }
+    });
 
     async function loadPost() {
       if (!diaryId) throw new Error("DIARY ID가 없습니다.");
