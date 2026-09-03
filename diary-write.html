@@ -430,6 +430,18 @@
         : `./index.html?theme=${encodeURIComponent(getThemeFromCookie() || "mint")}`;
     });
 
+    function updateSaveButtonState() {
+      const date = document.getElementById("date").value;
+      const title = document.getElementById("title").value.trim();
+      const content = document.getElementById("content").value.trim();
+      saveButton.disabled = !(date && title && content);
+    }
+
+    ["date", "title", "content"].forEach(id => {
+      document.getElementById(id).addEventListener("input", updateSaveButtonState);
+      document.getElementById(id).addEventListener("change", updateSaveButtonState);
+    });
+
     saveButton.addEventListener("click", async () => {
       const date = document.getElementById("date").value;
       const title = document.getElementById("title").value.trim();
@@ -441,27 +453,38 @@
       }
 
       saveButton.disabled = true;
+      saveButton.textContent = editId ? "UPDATING..." : "SAVING...";
 
-      if (editId) {
-        const { error } = await supabase
-          .from("diary")
-          .update({ date, title, content })
-          .eq("id", editId);
+      try {
+        if (editId) {
+          const { error } = await supabase
+            .from("diary")
+            .update({ date, title, content })
+            .eq("id", editId);
 
-        if (error) {
-          console.error("DIARY UPDATE", error);
-          alert("수정에 실패했습니다.\n" + error.message);
-          saveButton.disabled = false;
-          return;
+          if (error) throw error;
+
+          location.href = `./diary-detail.html?id=${encodeURIComponent(editId)}&theme=${encodeURIComponent(getThemeFromCookie() || "mint")}`;
+        } else {
+          const { data, error } = await supabase
+            .from("diary")
+            .insert([{ date, title, content }])
+            .select("id")
+            .single();
+
+          if (error) throw error;
+
+          location.href = `./diary-detail.html?id=${encodeURIComponent(data.id)}&theme=${encodeURIComponent(getThemeFromCookie() || "mint")}`;
         }
-
-        location.href = `./diary-detail.html?id=${encodeURIComponent(editId)}&theme=${encodeURIComponent(getThemeFromCookie() || "mint")}`;
-      } else {
-        // 기존 작성 기능은 아직 테스트 상태로 유지합니다.
-        alert("새 DIARY 저장 기능은 다음 단계에서 연결합니다.");
-        saveButton.disabled = false;
+      } catch (error) {
+        console.error("DIARY SAVE", error);
+        alert("저장에 실패했습니다.\n" + error.message);
+        saveButton.textContent = editId ? "UPDATE" : "SAVE";
+        updateSaveButtonState();
       }
     });
+
+    updateSaveButtonState();
   </script>
 </body>
 </html>
