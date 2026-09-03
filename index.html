@@ -628,13 +628,21 @@ function updateAuthUI(session){
 }
 
 async function loadLists(){
-  const [{data:diaries,error:de},{data:archives,error:ae}]=await Promise.all([
-    supabase.from("diary").select("id,date,title,content,image_url,created_at").order("date",{ascending:false}).order("created_at",{ascending:false}).limit(5),
-    supabase.from("archives").select("id,name,type,created_at").order("created_at",{ascending:true})
+  const [{data:diaries,error:de},{data:categories,error:ce}]=await Promise.all([
+    supabase.from("diary")
+      .select("id,date,title,content,image_url,created_at")
+      .order("date",{ascending:false})
+      .order("created_at",{ascending:false})
+      .limit(5),
+    supabase.from("archive_categories")
+      .select("id,name,description,created_at")
+      .order("created_at",{ascending:true})
   ]);
 
-  if(de){console.error("DIARY LOAD",de);diaryList.innerHTML="";}
-  else{
+  if(de){
+    console.error("DIARY LOAD",de);
+    diaryList.innerHTML="";
+  }else{
     diaryList.innerHTML=(diaries||[]).map(x=>`
       <article class="post">
         <div class="post-date">${esc(formatDate(x.date))}</div>
@@ -642,15 +650,16 @@ async function loadLists(){
       </article>`).join("");
   }
 
-  if(ae){console.error("ARCHIVE LOAD",ae);archiveGrid.innerHTML="";}
-  else{
-    archiveGrid.innerHTML=(archives||[]).map(x=>`
-      <a class="archive-card" href="./archive-view.html?id=${encodeURIComponent(x.id)}">
-        <div class="archive-card-top"><span>${esc(typeLabel(x.type))}</span><span>↗</span></div>
+  if(ce){
+    console.error("CATEGORY LOAD",ce);
+    archiveGrid.innerHTML="";
+  }else{
+    archiveGrid.innerHTML=(categories||[]).map(x=>`
+      <a class="archive-card" href="./archive-view.html?category=${encodeURIComponent(x.id)}&theme=${encodeURIComponent(currentTheme)}">
+        <div class="archive-card-top"><span>CATEGORY</span><span>↗</span></div>
         <div class="archive-card-title">${esc(x.name)}</div>
-        <div class="archive-card-subtitle">${esc(typeLabel(x.type))}</div>
+        <div class="archive-card-subtitle">${esc(x.description||"")}</div>
         <div class="archive-card-bottom"><span>${esc(new Date(x.created_at).getFullYear())}</span><span>VIEW</span></div>
-        <button class="archive-delete" type="button" data-id="${x.id}" aria-label="${esc(x.name)} 삭제">×</button>
       </a>`).join("");
   }
 }
