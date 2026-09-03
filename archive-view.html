@@ -257,6 +257,36 @@ footer{
   .detail-row{grid-template-columns:88px 1fr;gap:12px}
   .hero-photo{max-height:320px}
 }
+
+.child-section{padding:4px 0 70px}
+.child-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.child-heading .records-label{margin:0}
+.add-button{
+  display:flex;align-items:center;justify-content:center;
+  width:28px;height:28px;border:1px solid var(--line);border-radius:8px;
+  color:var(--point);background:#fff;font-size:17px;line-height:1;
+}
+.add-button:hover{border-color:var(--point);background:var(--point-soft)}
+.child-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.child-card{
+  overflow:hidden;display:flex;flex-direction:column;min-height:170px;
+  border:1px solid var(--line);border-radius:14px;background:#fff;
+  transition:.15s ease;
+}
+.child-card:hover{border-color:var(--point);transform:translateY(-1px)}
+.child-card-image{
+  width:100%;height:150px;object-fit:cover;display:block;
+  border-bottom:1px solid var(--line);background:var(--theme-bg)
+}
+.child-card-body{padding:14px 15px 15px}
+.child-card-type{color:var(--point);font-size:9px;font-weight:700;letter-spacing:.08em}
+.child-card-title{margin-top:6px;font-size:15px;font-weight:600;letter-spacing:-.02em;word-break:break-word}
+.child-card-date{margin-top:7px;color:var(--muted);font-size:9px}
+.child-card.no-image{justify-content:flex-end}
+.child-card.no-image .child-card-body{
+  min-height:170px;display:flex;flex-direction:column;justify-content:flex-end
+}
+@media(max-width:600px){.child-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -281,36 +311,16 @@ footer{
     </div>
   </header>
 
-  <section class="edit-panel" id="editPanel" hidden>
-    <div class="edit-field">
-      <label>ARCHIVE NAME</label>
-      <input id="editArchiveName" type="text">
-    </div>
-
-    <div class="edit-field">
-      <label>TYPE DETAILS</label>
-      <div id="editDetails"></div>
-    </div>
-
-    <div class="edit-field">
-      <label>RECORDS</label>
-      <div id="editRecords"></div>
-      <button class="edit-add-record" id="editAddRecord" type="button">＋ 기록 추가</button>
-    </div>
-
-    <div class="edit-actions">
-      <button class="edit-cancel" id="editCancel" type="button">CANCEL</button>
-      <button class="edit-save" id="editSave" type="button">SAVE</button>
-    </div>
-  </section>
+  
 
   <main>
-    <div id="hero"></div>
-    <div class="details" id="details"></div>
-
-    <div class="record-divider"></div>
-    <div class="records-label">RECORDS</div>
-    <div id="records"></div>
+    <section class="child-section">
+      <div class="child-heading">
+        <div class="records-label">RECORDS</div>
+        <a class="add-button" id="addChildButton" href="#">＋</a>
+      </div>
+      <div class="child-grid" id="childGrid"></div>
+    </section>
   </main>
 
   <footer>
@@ -330,12 +340,15 @@ const themes={
   lavender:{point:"#9a8bc2",pointSoft:"#e9e4f4",line:"#e8e5ee",themeBg:"#faf8fd"},
   blue:{point:"#70a9c2",pointSoft:"#e0eef3",line:"#e3ebee",themeBg:"#f7fbfd"}
 };
-const typeNames={concert:"공연 / 콘서트",travel:"여행",movie:"영화",custom:"직접 설정"};
 
-function esc(v){
-  return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;")
-    .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
-}
+const typeLabel=t=>({
+  basic:"BASIC",concert:"CONCERT",travel:"TRAVEL",movie:"MOVIE",custom:"ARCHIVE"
+})[t]||"ARCHIVE";
+
+const esc=v=>String(v??"")
+  .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+  .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+
 function getTheme(){
   const p=new URLSearchParams(location.search);
   if(themes[p.get("theme")])return p.get("theme");
@@ -343,14 +356,14 @@ function getTheme(){
   const n=m?decodeURIComponent(m[1]):null;
   return themes[n]?n:"mint";
 }
-function saveTheme(n){document.cookie="meaningless-theme="+encodeURIComponent(n)+"; path=/; max-age=31536000; SameSite=Lax"}
+
 function applyTheme(n,save=true){
   const t=themes[n]||themes.mint;
   document.documentElement.style.setProperty("--point",t.point);
   document.documentElement.style.setProperty("--point-soft",t.pointSoft);
   document.documentElement.style.setProperty("--line",t.line);
   document.documentElement.style.setProperty("--theme-bg",t.themeBg);
-  if(save)saveTheme(n);
+  if(save)document.cookie="meaningless-theme="+encodeURIComponent(n)+"; path=/; max-age=31536000; SameSite=Lax";
 }
 
 let currentTheme=getTheme();
@@ -358,364 +371,94 @@ applyTheme(currentTheme,false);
 
 const themeWrap=document.getElementById("themeWrap");
 document.getElementById("themeButton").addEventListener("click",e=>{
-  e.stopPropagation();themeWrap.classList.toggle("open");
+  e.stopPropagation();
+  themeWrap.classList.toggle("open");
 });
+
 document.querySelectorAll(".theme-option").forEach(btn=>{
   btn.addEventListener("click",()=>{
-    currentTheme=btn.dataset.theme;applyTheme(currentTheme);themeWrap.classList.remove("open");
+    currentTheme=btn.dataset.theme;
+    applyTheme(currentTheme);
+    themeWrap.classList.remove("open");
+    updateLinks();
   });
 });
-document.addEventListener("click",e=>{if(!themeWrap.contains(e.target))themeWrap.classList.remove("open")});
 
-const archiveId=new URLSearchParams(location.search).get("id");
-document.getElementById("backLink").href="./index.html?theme="+encodeURIComponent(currentTheme);
-
-let loadedArchive=null;
-let loadedRecords=[];
-
-const semanticLabels={
-  concert:["공연장","회차","셋리스트","앵콜"],
-  travel:["장소","숙소","여행 메모"],
-  movie:["감독","별점","감상 메모"],
-  custom:[]
-};
-
-function formatDate(date){
-  if(!date)return "";
-  const d=new Date(`${date}T00:00:00`);
-  if(Number.isNaN(d.getTime()))return String(date);
-  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
-}
-
-function detailEntries(type,record){
-  if(type==="basic"||!record?.extra_data)return [];
-  return Object.entries(record.extra_data).filter(([key,value])=>
-    key!=="content_blocks" && String(value??"").trim()!==""
-  );
-}
-
-function renderDetails(type,record){
-  const box=document.getElementById("details");
-  const entries=detailEntries(type,record);
-  box.innerHTML=entries.map(([key,value],i)=>{
-    const label=semanticLabels[type]?.[i] || key.replaceAll("_"," ").toUpperCase();
-    return `<div class="detail-row"><div class="detail-key">${esc(label)}</div><div class="detail-value">${esc(value)}</div></div>`;
-  }).join("");
-}
-
-function renderRecordBody(record){
-  const blocks=Array.isArray(record.extra_data?.content_blocks)?record.extra_data.content_blocks:null;
-  if(blocks && blocks.length){
-    return blocks.map(block=>{
-      if(block.type==="image"&&block.url)return `<img class="record-image" src="${esc(block.url)}" alt="">`;
-      if(block.type==="text"&&block.value)return `<div class="record-content">${esc(block.value)}</div>`;
-      return "";
-    }).join("");
-  }
-  return record.content?`<div class="record-content">${esc(record.content)}</div>`:"";
-}
-
-function renderRecords(type){
-  const box=document.getElementById("records");
-  if(!loadedRecords.length){
-    box.innerHTML='<div class="empty">아직 기록이 없습니다.</div>';return;
-  }
-  box.innerHTML=loadedRecords.map(record=>`
-    <article class="record">
-      <div class="record-date">${esc(formatDate(record.date))}</div>
-      ${type==="basic"?"":`<div class="record-title">${esc(record.title||"기록")}</div>`}
-      ${renderRecordBody(record)}
-    </article>
-  `).join("");
-}
-
-function makeEditFields(type,record){
-  const box=document.getElementById("editDetails");
-  if(type==="basic"){box.innerHTML="";return;}
-  const vals=record?.extra_data||{};
-  const labels=semanticLabels[type]||[];
-  const keys=["field_1","field_2","field_3","field_4"];
-  box.innerHTML=labels.map((label,i)=>{
-    const key=keys[i];
-    const multi=label==="셋리스트"||label==="여행 메모"||label==="감상 메모";
-    return `<div class="edit-detail"><label>${esc(label)}</label>
-      ${multi
-        ? `<textarea class="edit-detail-textarea" data-key="${key}">${esc(vals[key]||"")}</textarea>`
-        : `<input class="edit-detail-input" data-key="${key}" value="${esc(vals[key]||"")}" type="text">`}
-    </div>`;
-  }).join("");
-}
-
-function collectDetails(type){
-  const out={};
-  if(type==="basic")return out;
-  document.querySelectorAll("#editDetails [data-key]").forEach(el=>{
-    const value=el.value.trim();if(value)out[el.dataset.key]=value;
-  });
-  return out;
-}
-
-const editRecordsEl=document.getElementById("editRecords");
-const editNewFiles=new Map();
-
-function addEditRecord(record={}){
-  const el=document.createElement("div");
-  el.className="edit-record";
-  el.dataset.recordId=record.id||"";
-  el.innerHTML=`
-    <div class="edit-record-head">
-      <div class="edit-record-label">RECORD</div>
-      <button class="edit-record-delete" type="button">×</button>
-    </div>
-    <input class="edit-record-input edit-record-date" type="date" value="${esc(record.date||new Date().toISOString().slice(0,10))}">
-    <input class="edit-record-input edit-record-title" type="text" value="${esc(record.title||"")}" placeholder="후기 제목">
-    <div class="edit-record-blocks"></div>
-    <div class="edit-add-blocks">
-      <button type="button" class="edit-add-block" data-add="text">＋ 글</button>
-      <button type="button" class="edit-add-block" data-add="image">＋ 사진</button>
-    </div>`;
-
-  const blocksEl=el.querySelector(".edit-record-blocks");
-  const blocks=Array.isArray(record.extra_data?.content_blocks)?record.extra_data.content_blocks:null;
-
-  if(blocks&&blocks.length){
-    blocks.forEach(b=>{
-      if(b.type==="text"&&b.value){
-        const block=document.createElement("div");
-        block.className="edit-block";block.dataset.kind="text";
-        block.innerHTML=`<button class="edit-block-remove" type="button">×</button><textarea>${esc(b.value)}</textarea>`;
-        block.querySelector(".edit-block-remove").onclick=()=>block.remove();
-        blocksEl.appendChild(block);
-      }else if(b.type==="image"&&b.url){
-        const block=document.createElement("div");
-        block.className="edit-block";block.dataset.kind="image";block.dataset.url=b.url;
-        block.innerHTML=`<button class="edit-block-remove" type="button">×</button><img class="edit-existing-image" src="${esc(b.url)}" alt="">`;
-        block.querySelector(".edit-block-remove").onclick=()=>{block.dataset.removed="true";block.style.display="none";};
-        blocksEl.appendChild(block);
-      }
-    });
-  }else if(record.content){
-    const block=document.createElement("div");
-    block.className="edit-block";block.dataset.kind="text";
-    block.innerHTML=`<button class="edit-block-remove" type="button">×</button><textarea>${esc(record.content)}</textarea>`;
-    block.querySelector(".edit-block-remove").onclick=()=>block.remove();
-    blocksEl.appendChild(block);
-  }else{
-    const block=document.createElement("div");
-    block.className="edit-block";block.dataset.kind="text";
-    block.innerHTML=`<button class="edit-block-remove" type="button">×</button><textarea placeholder="후기나 메모를 남겨주세요."></textarea>`;
-    block.querySelector(".edit-block-remove").onclick=()=>block.remove();
-    blocksEl.appendChild(block);
-  }
-
-  el.querySelector(".edit-record-delete").onclick=()=>{
-    el.dataset.removed="true";
-    el.style.display="none";
-  };
-
-  el.querySelector('[data-add="text"]').onclick=()=>{
-    const block=document.createElement("div");
-    block.className="edit-block";block.dataset.kind="text";
-    block.innerHTML=`<button class="edit-block-remove" type="button">×</button><textarea placeholder="후기나 메모를 남겨주세요."></textarea>`;
-    block.querySelector(".edit-block-remove").onclick=()=>block.remove();
-    blocksEl.appendChild(block);
-  };
-
-  el.querySelector('[data-add="image"]').onclick=()=>{
-    const block=document.createElement("div");
-    block.className="edit-block";block.dataset.kind="image-new";
-    block.innerHTML=`<button class="edit-block-remove" type="button">×</button><div class="edit-new-photo">＋ 사진 선택<input type="file" accept="image/*"></div>`;
-    const input=block.querySelector("input");
-    editNewFiles.set(block,null);
-    input.onchange=()=>{
-      const f=input.files?.[0]||null;editNewFiles.set(block,f);
-      block.querySelector(".edit-new-photo").firstChild.textContent=f?f.name:"＋ 사진 선택";
-    };
-    block.querySelector(".edit-block-remove").onclick=()=>{editNewFiles.delete(block);block.remove();};
-    blocksEl.appendChild(block);
-  };
-
-  editRecordsEl.appendChild(el);
-}
-
-async function uploadEditImage(file,userId){
-  const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/gi,"")||"jpg";
-  const path=`${userId}/archive/${crypto.randomUUID()}.${ext}`;
-  const {error}=await supabase.storage.from("archive-images").upload(path,file,{
-    cacheControl:"3600",upsert:false,contentType:file.type
-  });
-  if(error)throw error;
-  return supabase.storage.from("archive-images").getPublicUrl(path).data.publicUrl;
-}
-
-document.getElementById("editAddRecord").addEventListener("click",()=>addEditRecord());
-
-async function getUser(){
-  const {data:{user},error}=await supabase.auth.getUser();
-  if(error)throw error;
-  return user;
-}
-
-function openEdit(){
-  if(!loadedArchive)return;
-  document.getElementById("editArchiveName").value=loadedArchive.name||"";
-  const type=loadedArchive.type||"basic";
-  makeEditFields(type,loadedRecords[0]);
-  editRecordsEl.innerHTML="";
-  loadedRecords.forEach(record=>addEditRecord(record));
-  document.getElementById("editPanel").hidden=false;
-  document.getElementById("editButton").hidden=true;
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-
-document.getElementById("editCancel").addEventListener("click",()=>{
-  document.getElementById("editPanel").hidden=true;
-  document.getElementById("editButton").hidden=false;
-});
-document.getElementById("editButton").addEventListener("click",openEdit);
-
-supabase.auth.onAuthStateChange((_event,session)=>{
-  document.getElementById("editButton").hidden=!session;
+document.addEventListener("click",e=>{
+  if(!themeWrap.contains(e.target))themeWrap.classList.remove("open");
 });
 
-document.getElementById("editSave").addEventListener("click",async()=>{
-  const user=await getUser();
-  if(!user){alert("로그인이 필요합니다.");return;}
+const params=new URLSearchParams(location.search);
+const archiveId=params.get("id");
+const archiveTitle=document.getElementById("archiveTitle");
+const childGrid=document.getElementById("childGrid");
+const addChildButton=document.getElementById("addChildButton");
+const backLink=document.getElementById("backLink");
 
-  const name=document.getElementById("editArchiveName").value.trim();
-  if(!name){alert("아카이브 이름을 입력해주세요.");return;}
-
-  const type=loadedArchive.type||"basic";
-  const save=document.getElementById("editSave");
-  save.disabled=true;save.textContent="SAVING…";
-
-  try{
-    const {error:archiveError}=await supabase.from("archives")
-      .update({name}).eq("id",loadedArchive.id).eq("user_id",user.id);
-    if(archiveError)throw archiveError;
-
-    const detailSource=loadedRecords[0];
-    if(detailSource){
-      const details=collectDetails(type);
-      const currentExtra=detailSource.extra_data||{};
-      const blocks=currentExtra.content_blocks||[];
-      const {error}=await supabase.from("archive_records")
-        .update({extra_data:{...details,content_blocks:blocks}})
-        .eq("id",detailSource.id).eq("user_id",user.id);
-      if(error)throw error;
-    }
-
-    const editors=[...editRecordsEl.querySelectorAll(".edit-record")];
-
-    for(const editor of editors){
-      const recordId=editor.dataset.recordId||"";
-      const removed=editor.dataset.removed==="true";
-      if(removed){
-        if(recordId){
-          const {error}=await supabase.from("archive_records")
-            .delete().eq("id",recordId).eq("user_id",user.id);
-          if(error)throw error;
-        }
-        continue;
-      }
-
-      const blocks=[];
-      for(const block of [...editor.querySelectorAll(".edit-block")]){
-        if(block.dataset.removed==="true"||block.style.display==="none")continue;
-
-        if(block.dataset.kind==="text"){
-          const value=block.querySelector("textarea")?.value.trim()||"";
-          if(value)blocks.push({type:"text",value});
-        }else if(block.dataset.kind==="image"){
-          if(block.dataset.url)blocks.push({type:"image",url:block.dataset.url});
-        }else if(block.dataset.kind==="image-new"){
-          const file=editNewFiles.get(block);
-          if(file)blocks.push({type:"image",url:await uploadEditImage(file,user.id)});
-        }
-      }
-
-      const content=blocks.filter(b=>b.type==="text").map(b=>b.value).join("\n");
-      const imageUrl=blocks.find(b=>b.type==="image")?.url||null;
-      const date=editor.querySelector(".edit-record-date")?.value||new Date().toISOString().slice(0,10);
-      const title=editor.querySelector(".edit-record-title")?.value.trim()||"후기";
-
-      if(recordId){
-        const existing=loadedRecords.find(r=>r.id===recordId);
-        const extra={...(existing?.extra_data||{}),content_blocks:blocks};
-        const {error}=await supabase.from("archive_records")
-          .update({date,title,content,image_url:imageUrl,extra_data:extra})
-          .eq("id",recordId).eq("user_id",user.id);
-        if(error)throw error;
-      }else{
-        const details={};
-        const {error}=await supabase.from("archive_records")
-          .insert({archive_id:loadedArchive.id,user_id:user.id,date,title,content,image_url:imageUrl,extra_data:{...details,content_blocks:blocks}});
-        if(error)throw error;
-      }
-    }
-
-    alert("수정되었습니다.");
-    location.reload();
-  }catch(error){
-    console.error("ARCHIVE EDIT",error);
-    alert("수정에 실패했습니다.\n"+(error?.message||"알 수 없는 오류"));
-  }finally{
-    save.disabled=false;save.textContent="SAVE";
-  }
-});
+function updateLinks(){
+  backLink.href="./index.html?theme="+encodeURIComponent(currentTheme);
+  addChildButton.href="./archive-write_buttons_v2.html?parent="+encodeURIComponent(archiveId||"")
+    +"&theme="+encodeURIComponent(currentTheme);
+}
 
 async function loadArchive(){
   if(!archiveId){
-    document.getElementById("archiveTitle").textContent="ARCHIVE를 찾을 수 없습니다.";return;
+    archiveTitle.textContent="ARCHIVE를 찾을 수 없습니다.";
+    childGrid.innerHTML='<div class="empty">ARCHIVE ID가 없습니다.</div>';
+    return;
   }
-  const {data:archive,error:archiveError}=await supabase.from("archives")
-    .select("id,name,type,created_at,user_id").eq("id",archiveId).single();
+
+  const {data:archive,error:archiveError}=await supabase
+    .from("archives")
+    .select("id,name,type,created_at,image_url")
+    .eq("id",archiveId)
+    .single();
+
   if(archiveError){
-    console.error(archiveError);
-    document.getElementById("archiveTitle").textContent="ARCHIVE를 불러오지 못했습니다.";return;
+    console.error("ARCHIVE LOAD",archiveError);
+    archiveTitle.textContent="ARCHIVE를 불러오지 못했습니다.";
+    childGrid.innerHTML='<div class="empty">ARCHIVE를 불러오지 못했습니다.</div>';
+    return;
   }
 
-  loadedArchive=archive;
-  const type=archive.type||"basic";
-  document.getElementById("archiveTitle").textContent=archive.name;
+  archiveTitle.textContent=archive.name;
 
-  const {data:records,error:recordsError}=await supabase.from("archive_records")
-    .select("id,date,title,content,image_url,extra_data,created_at")
-    .eq("archive_id",archiveId).order("date",{ascending:true}).order("created_at",{ascending:true});
+  const {data:children,error:childError}=await supabase
+    .from("archives")
+    .select("id,name,type,created_at,image_url")
+    .eq("parent_id",archiveId)
+    .order("created_at",{ascending:true});
 
-  if(recordsError){
-    console.error(recordsError);
-    document.getElementById("records").innerHTML='<div class="empty">기록을 불러오지 못했습니다.</div>';return;
+  if(childError){
+    console.error("CHILD ARCHIVE LOAD",childError);
+    childGrid.innerHTML='<div class="empty">RECORD를 불러오지 못했습니다.</div>';
+    return;
   }
-  loadedRecords=records||[];
 
-  const firstWithBlocks=loadedRecords.find(r=>Array.isArray(r.extra_data?.content_blocks));
-  let heroUrl=null;
-  for(const record of loadedRecords){
-    const img=Array.isArray(record.extra_data?.content_blocks)
-      ? record.extra_data.content_blocks.find(b=>b.type==="image"&&b.url)
-      : null;
-    if(img){heroUrl=img.url;break;}
-    if(record.image_url){heroUrl=record.image_url;break;}
+  if(!children?.length){
+    childGrid.innerHTML='<div class="empty">아직 기록이 없습니다.</div>';
+    return;
   }
-  if(heroUrl)document.getElementById("hero").innerHTML=`<img class="hero-photo" src="${esc(heroUrl)}" alt="">`;
 
-  const infoRecord=loadedRecords.find(r=>detailEntries(type,r).length);
-  renderDetails(type,infoRecord);
-  renderRecords(type);
+  childGrid.innerHTML=children.map(child=>{
+    const image=child.image_url
+      ? '<img class="child-card-image" src="'+esc(child.image_url)+'" alt="">'
+      : "";
+    const cls=child.image_url?"child-card":"child-card no-image";
 
-  try{
-    const user=await getUser();
-    // VIEW 페이지에서는 로그인한 사용자에게 EDIT를 보여주고,
-    // 실제 저장 시 Supabase RLS가 본인 소유 데이터인지 검사합니다.
-    document.getElementById("editButton").hidden=!user;
-  }catch(error){
-    console.warn("AUTH CHECK:",error);
-    document.getElementById("editButton").hidden=true;
-  }
+    return '<a class="'+cls+'" href="./archive-view.html?id='
+      +encodeURIComponent(child.id)+'&theme='+encodeURIComponent(currentTheme)+'">'
+      +image
+      +'<div class="child-card-body">'
+      +'<div class="child-card-type">'+esc(typeLabel(child.type))+'</div>'
+      +'<div class="child-card-title">'+esc(child.name)+'</div>'
+      +'<div class="child-card-date">'+esc(new Date(child.created_at).getFullYear())+'</div>'
+      +'</div></a>';
+  }).join("");
 }
 
-loadArchive();
+updateLinks();
+loadArchive().catch(error=>console.error("ARCHIVE VIEW ERROR",error));
 </script>
 </body>
 </html>
