@@ -341,13 +341,25 @@
     }));
     document.addEventListener("click", e => { if (!themeWrap.contains(e.target)) themeWrap.classList.remove("open"); });
 
+    const params = new URLSearchParams(window.location.search);
     const diaryId = params.get("id");
-    if (themes[theme]) applyTheme(theme);
+    const theme = params.get("theme");
 
+    function getCurrentTheme() {
+      return theme && themes[theme]
+        ? theme
+        : (localStorage.getItem("meaningless-theme") || "mint");
+    }
+
+    function addTheme(url) {
+      const separator = url.includes("?") ? "&" : "?";
+      return `${url}${separator}theme=${encodeURIComponent(getCurrentTheme())}`;
+    }
+
+    if (theme && themes[theme]) applyTheme(theme);
 
     function updateBackLinks() {
-      const currentTheme = getThemeFromCookie() || "mint";
-      const href = `./index.html?theme=${encodeURIComponent(currentTheme)}`;
+      const href = addTheme("./index.html");
       $("backDiary").href = href;
       $("backHome").href = href;
     }
@@ -373,7 +385,9 @@
         img.style.display = "block";
       }
 
-      $("editButton").onclick = () => { location.href = addTheme(`./diary-edit.html?id=${encodeURIComponent(post.id)}`); };
+      $("editButton").onclick = () => {
+        location.href = addTheme(`./diary-write.html?edit=${encodeURIComponent(post.id)}`);
+      };
       $("deleteButton").onclick = async () => {
         if (!confirm("이 DIARY를 삭제할까요?")) return;
         const { data: { user }, error: authError } = await supabase.auth.getUser();
