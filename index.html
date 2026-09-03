@@ -532,7 +532,7 @@
           <span class="archive-note">기록해두고 싶은 것들</span>
         </div>
         <div class="create-row archive-create-row" id="archiveCreateRow">
-          <a class="create-button" id="newArchiveLink" href="./archive-write_buttons_v2.html">+ NEW ARCHIVE</a>
+          <a class="create-button" id="newArchiveLink" href="./category-write.html">＋</a>
         </div>
 
         <div class="archive-grid" id="archiveGrid">
@@ -594,7 +594,7 @@ applyTheme(currentTheme,false);
 function updateLinks(){
   const q=`?theme=${encodeURIComponent(currentTheme)}`;
   if(newDiaryLink)newDiaryLink.href=`./diary-write.html${q}`;
-  if(newArchiveLink)newArchiveLink.href=`./archive-write_buttons_v2.html${q}`;
+  if(newArchiveLink)newArchiveLink.href=`./category-write.html${q}`;
   if(diaryAllLink)diaryAllLink.href=`./diary-archive.html${q}`;
   if(loginLink)loginLink.href=`./login.html${q}`;
 }
