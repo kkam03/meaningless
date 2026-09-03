@@ -339,12 +339,6 @@
     const theme = params.get("theme");
     if (themes[theme]) applyTheme(theme);
 
-    function addTheme(url) {
-      if (!url) return "#";
-      const join = url.includes("?") ? "&" : "?";
-      return `${url}${join}theme=${encodeURIComponent(localStorage.getItem("meaningless-theme") || "mint")}`;
-    }
-
     async function loadPost() {
       if (!diaryId) throw new Error("DIARY ID가 없습니다.");
 
@@ -364,7 +358,7 @@
         img.style.display = "block";
       }
 
-      $("editButton").onclick = () => { location.href = addTheme(`./diary-edit.html?id=${encodeURIComponent(post.id)}`); };
+      $("editButton").onclick = () => { location.href = `./diary-edit.html?id=${encodeURIComponent(post.id)}`; };
       $("deleteButton").onclick = async () => {
         if (!confirm("이 DIARY를 삭제할까요?")) return;
         const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -379,7 +373,7 @@
           button.disabled = false;
           return;
         }
-        location.href = addTheme("./index.html");
+        location.href = "./index.html";
       };
 
       const { data: allPosts, error: listError } = await supabase.from("diary")
@@ -392,13 +386,13 @@
 
       if (prev) {
         const a = $("prevPost");
-        a.href = addTheme(`./diary-detail.html?id=${encodeURIComponent(prev.id)}`);
+        a.href = `./diary-detail.html?id=${encodeURIComponent(prev.id)}`;
         a.innerHTML = `← ${esc(formatDate(prev.date))}<br>${esc(prev.title || "")}`;
         a.style.visibility = "visible";
       }
       if (next) {
         const a = $("nextPost");
-        a.href = addTheme(`./diary-detail.html?id=${encodeURIComponent(next.id)}`);
+        a.href = `./diary-detail.html?id=${encodeURIComponent(next.id)}`;
         a.innerHTML = `${esc(formatDate(next.date))} →<br>${esc(next.title || "")}`;
         a.style.visibility = "visible";
       }
