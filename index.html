@@ -576,6 +576,12 @@ const typeLabel=t=>({basic:"BASIC",concert:"CONCERT",travel:"TRAVEL",movie:"MOVI
 function getTheme(){
   const p=new URLSearchParams(location.search);
   if(themes[p.get("theme")])return p.get("theme");
+
+  try{
+    const saved=localStorage.getItem("meaningless-theme");
+    if(themes[saved])return saved;
+  }catch(error){}
+
   const m=document.cookie.match(/(?:^|;\s*)meaningless-theme=([^;]+)/);
   const n=m?decodeURIComponent(m[1]):null;
   return themes[n]?n:"mint";
@@ -586,10 +592,14 @@ function applyTheme(n,remember=true){
   document.documentElement.style.setProperty("--point-soft",t.pointSoft);
   document.documentElement.style.setProperty("--line",t.line);
   document.documentElement.style.setProperty("--theme-bg",t.themeBg);
-  if(remember)document.cookie=`meaningless-theme=${encodeURIComponent(n)}; path=/; max-age=31536000; SameSite=Lax`;
+
+  if(remember){
+    document.cookie=`meaningless-theme=${encodeURIComponent(n)}; path=/; max-age=31536000; SameSite=Lax`;
+    try{localStorage.setItem("meaningless-theme",n);}catch(error){}
+  }
 }
 let currentTheme=getTheme();
-applyTheme(currentTheme,false);
+applyTheme(currentTheme,true);
 
 function updateLinks(){
   const q=`?theme=${encodeURIComponent(currentTheme)}`;
