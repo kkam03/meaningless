@@ -272,7 +272,7 @@
 
   <div class="container">
     <header>
-      <a id="backDiary" href="index.html" class="back">← DIARY</a>
+      <a href="index.html" class="back">← DIARY</a>
       <div class="label">♡ DIARY</div>
     </header>
 
@@ -297,7 +297,7 @@
     </main>
 
     <footer>
-      <a id="backHome" href="index.html">♡ back to meaningless</a>
+      <a href="index.html">♡ back to meaningless</a>
     </footer>
   </div>
 
@@ -331,28 +331,19 @@
     applyTheme(localStorage.getItem("meaningless-theme") || "mint");
     const themeWrap = $("themeWrap");
     $("themeButton").addEventListener("click", e => { e.stopPropagation(); themeWrap.classList.toggle("open"); });
-    document.querySelectorAll(".theme-option").forEach(button => button.addEventListener("click", () => {
-      const selectedTheme = button.dataset.theme;
-      applyTheme(selectedTheme);
-      const url = new URL(window.location.href);
-      url.searchParams.set("theme", selectedTheme);
-      history.replaceState(null, "", url.pathname + "?" + url.searchParams.toString());
-      themeWrap.classList.remove("open");
-    }));
+    document.querySelectorAll(".theme-option").forEach(button => button.addEventListener("click", () => { applyTheme(button.dataset.theme); themeWrap.classList.remove("open"); }));
     document.addEventListener("click", e => { if (!themeWrap.contains(e.target)) themeWrap.classList.remove("open"); });
 
+    const params = new URLSearchParams(location.search);
     const diaryId = params.get("id");
+    const theme = params.get("theme");
     if (themes[theme]) applyTheme(theme);
 
-
-    function updateBackLinks() {
-      const currentTheme = getThemeFromCookie() || "mint";
-      const href = `./index.html?theme=${encodeURIComponent(currentTheme)}`;
-      $("backDiary").href = href;
-      $("backHome").href = href;
+    function addTheme(url) {
+      if (!url) return "#";
+      const join = url.includes("?") ? "&" : "?";
+      return `${url}${join}theme=${encodeURIComponent(localStorage.getItem("meaningless-theme") || "mint")}`;
     }
-
-    updateBackLinks();
 
     async function loadPost() {
       if (!diaryId) throw new Error("DIARY ID가 없습니다.");
@@ -373,7 +364,7 @@
         img.style.display = "block";
       }
 
-      $("editButton").onclick = () => { location.href = addTheme(`./diary-edit.html?id=${encodeURIComponent(post.id)}`); };
+      $("editButton").onclick = () => { location.href = `./diary-write.html?edit=${encodeURIComponent(post.id)}&theme=${encodeURIComponent(getThemeFromCookie() || "mint")}`; };
       $("deleteButton").onclick = async () => {
         if (!confirm("이 DIARY를 삭제할까요?")) return;
         const { data: { user }, error: authError } = await supabase.auth.getUser();
