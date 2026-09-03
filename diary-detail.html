@@ -342,6 +342,9 @@
     document.addEventListener("click", e => { if (!themeWrap.contains(e.target)) themeWrap.classList.remove("open"); });
 
     const params = new URLSearchParams(window.location.search);
+const diaryId = params.get("id");
+const theme = params.get("theme");
+    const params = new URLSearchParams(window.location.search);
     const diaryId = params.get("id");
     const theme = params.get("theme");
 
