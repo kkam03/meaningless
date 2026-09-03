@@ -364,7 +364,7 @@
         img.style.display = "block";
       }
 
-      $("editButton").onclick = () => { location.href = addTheme(`./diary-edit.html?id=${encodeURIComponent(post.id)}`); };
+      $("editButton").onclick = () => { location.href = addTheme(`./diary-write.html?id=${encodeURIComponent(post.id)}`); };
       $("deleteButton").onclick = async () => {
         if (!confirm("이 DIARY를 삭제할까요?")) return;
         const { data: { user }, error: authError } = await supabase.auth.getUser();
