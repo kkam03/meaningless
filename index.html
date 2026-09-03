@@ -257,7 +257,7 @@
 
     .archive-card:hover {
       transform: translateY(-3px);
-      border-color: #b9ddd6;
+      border-color:var(--point);
     }
 
     .archive-card-top,
@@ -628,7 +628,7 @@ function updateAuthUI(session){
 }
 
 async function loadLists(){
-  const [{data:diaries,error:de},{data:categories,error:ce}]=await Promise.all([
+  const [{data:diaries,error:de},{data:categories,error:ce},{data:archives,error:ae}]=await Promise.all([
     supabase.from("diary")
       .select("id,date,title,content,image_url,created_at")
       .order("date",{ascending:false})
@@ -636,7 +636,9 @@ async function loadLists(){
       .limit(5),
     supabase.from("archive_categories")
       .select("id,name,description,created_at")
-      .order("created_at",{ascending:true})
+      .order("created_at",{ascending:true}),
+    supabase.from("archives")
+      .select("id,category_id")
   ]);
 
   if(de){
@@ -653,13 +655,23 @@ async function loadLists(){
   if(ce){
     console.error("CATEGORY LOAD",ce);
     archiveGrid.innerHTML="";
+  }else if(ae){
+    console.error("ARCHIVE RECORD COUNT LOAD",ae);
+    archiveGrid.innerHTML=(categories||[]).map(x=>`
+      <a class="archive-card" href="./archive-view.html?category=${encodeURIComponent(x.id)}&theme=${encodeURIComponent(currentTheme)}">
+        <div class="archive-card-top"><span>ARCHIVE</span><span>↗</span></div>
+        <div class="archive-card-title">${esc(x.name)}</div>
+        <div class="archive-card-subtitle">${esc(x.description||"")}</div>
+        <div class="archive-card-bottom"><span>0 RECORDS</span><span>VIEW →</span></div>
+        <button class="archive-delete category-delete" type="button" data-category-id="${x.id}" aria-label="${esc(x.name)} 삭제">×</button>
+      </a>`).join("");
   }else{
     archiveGrid.innerHTML=(categories||[]).map(x=>`
       <a class="archive-card" href="./archive-view.html?category=${encodeURIComponent(x.id)}&theme=${encodeURIComponent(currentTheme)}">
-        <div class="archive-card-top"><span>CATEGORY</span><span>↗</span></div>
+        <div class="archive-card-top"><span>ARCHIVE</span><span>↗</span></div>
         <div class="archive-card-title">${esc(x.name)}</div>
         <div class="archive-card-subtitle">${esc(x.description||"")}</div>
-        <div class="archive-card-bottom"><span>${esc(new Date(x.created_at).getFullYear())}</span><span>VIEW</span></div>
+        <div class="archive-card-bottom"><span>${(archives||[]).filter(a=>a.category_id===x.id).length} RECORDS</span><span>VIEW →</span></div>
         <button class="archive-delete category-delete" type="button" data-category-id="${x.id}" aria-label="${esc(x.name)} 삭제">×</button>
       </a>`).join("");
   }
