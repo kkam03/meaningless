@@ -135,7 +135,7 @@
       background: var(--line);
     }
 
-    .post-content {
+    .content p {
       margin: 0;
       font-size: 14px;
       line-height: 2;
@@ -143,24 +143,12 @@
       white-space: pre-line;
     }
 
-    .post-content img {
-      display: block;
-      width: 100%;
-      max-width: 100%;
-      height: auto;
-      margin: 28px 0;
-      border-radius: 8px;
-      object-fit: contain;
-    }
-
     .diary-image {
       display: block;
       width: 100%;
-      max-width: 100%;
       max-height: 680px;
       margin: 36px 0 0;
       object-fit: contain;
-      border-radius: 8px;
       background: var(--theme-bg);
     }
 
@@ -294,7 +282,7 @@
         <h1 id="postTitle"></h1>
         <div class="date" id="postDate"></div>
         <div class="title-grid" aria-hidden="true"></div>
-        <div id="postContent" class="post-content"></div>
+        <p id="postContent"></p>
         <img id="postImage" class="diary-image" alt="" style="display:none">
         <div class="post-actions" id="postActions">
           <button class="action-button" id="editButton" type="button">EDIT</button>
@@ -332,15 +320,29 @@
       return Number.isNaN(x.getTime()) ? String(d) : `${x.getFullYear()}.${String(x.getMonth()+1).padStart(2,"0")}.${String(x.getDate()).padStart(2,"0")}`;
     };
 
-    function applyTheme(name) {
+    function saveThemeCookie(name) {
+      document.cookie = "meaningless-theme=" + encodeURIComponent(name) +
+        "; path=/; max-age=31536000; SameSite=Lax";
+    }
+
+    function getThemeFromCookie() {
+      const prefix = "meaningless-theme=";
+      for (const cookie of (document.cookie || "").split(";")) {
+        const value = cookie.trim();
+        if (value.startsWith(prefix)) return decodeURIComponent(value.slice(prefix.length));
+      }
+      return null;
+    }
+
+    function applyTheme(name, remember = true) {
       const t = themes[name] || themes.mint;
       document.documentElement.style.setProperty("--point",t.point);
       document.documentElement.style.setProperty("--point-soft",t.pointSoft);
       document.documentElement.style.setProperty("--line",t.line);
       document.documentElement.style.setProperty("--theme-bg",t.themeBg);
-      localStorage.setItem("meaningless-theme", name);
+      if (remember) saveThemeCookie(name);
     }
-    applyTheme(localStorage.getItem("meaningless-theme") || "mint");
+    applyTheme(getThemeFromCookie() || "mint", false);
     const themeWrap = $("themeWrap");
     $("themeButton").addEventListener("click", e => { e.stopPropagation(); themeWrap.classList.toggle("open"); });
     document.querySelectorAll(".theme-option").forEach(button => button.addEventListener("click", () => {
@@ -360,7 +362,7 @@
     function getCurrentTheme() {
       return theme && themes[theme]
         ? theme
-        : (localStorage.getItem("meaningless-theme") || "mint");
+        : (getThemeFromCookie() || "mint");
     }
 
     function addTheme(url) {
@@ -388,33 +390,7 @@
 
       $("postTitle").textContent = post.title || "";
       $("postDate").textContent = formatDate(post.date);
-      const postContent = $("postContent");
-      const savedContent = post.content || "";
-
-      // 기존 DIARY(일반 텍스트)와 새 DIARY(사진 포함 HTML)를 모두 표시합니다.
-      if (/<img\b/i.test(savedContent)) {
-        const doc = new DOMParser().parseFromString(savedContent, "text/html");
-        const allowedTags = new Set(["IMG", "BR", "DIV", "P", "STRONG", "EM", "B", "I", "U"]);
-
-        doc.body.querySelectorAll("*").forEach(node => {
-          if (!allowedTags.has(node.tagName)) {
-            node.replaceWith(...Array.from(node.childNodes));
-            return;
-          }
-
-          [...node.attributes].forEach(attr => {
-            if (node.tagName === "IMG" && attr.name === "src" &&
-                attr.value.startsWith("https://wtadsjkexnqyzrlogmou.supabase.co/storage/v1/object/public/diary-images/")) {
-              return;
-            }
-            node.removeAttribute(attr.name);
-          });
-        });
-
-        postContent.innerHTML = doc.body.innerHTML;
-      } else {
-        postContent.textContent = savedContent;
-      }
+      $("postContent").textContent = post.content || "";
 
       if (post.image_url) {
         const img = $("postImage");
