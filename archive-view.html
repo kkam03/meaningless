@@ -48,7 +48,7 @@ a{color:inherit;text-decoration:none}
 .theme-option:hover{background:var(--point-soft)}
 .theme-dot{width:9px;height:9px;border-radius:50%;background:var(--theme-color)}
 
-header{padding:28px 0 30px}
+header{padding:28px 0 18px}
 .back{display:inline-block;margin-bottom:30px;color:var(--muted);font-size:11px}
 .back:hover{color:var(--point)}
 
@@ -171,13 +171,16 @@ header{padding:28px 0 30px}
 .archive-card-subtitle{margin-top:5px;color:var(--muted);font-size:10px;line-height:1.6;min-height:1.6em;white-space:pre-wrap;word-break:break-word}
 .archive-card-bottom{display:flex;justify-content:space-between;gap:8px;margin-top:18px;color:var(--muted);font-size:9px;letter-spacing:.05em}
 .category-description{
-  margin:18px 0 0;
-  padding:0 0 24px;
+  margin:8px 0 0;
+  padding:0;
   color:var(--muted);
   font-size:11px;
-  line-height:1.8;
+  line-height:1.7;
   white-space:pre-wrap;
-  border-bottom:1px solid var(--line);
+}
+.category-divider{
+  margin:28px 0 22px;
+  border-top:1px solid var(--line);
 }
 .empty{padding:24px 0;color:var(--muted);font-size:11px}
 @media(max-width:600px){.archive-grid{grid-template-columns:1fr}.archive-card{min-height:175px}.archive-card-content{min-height:139px}}
@@ -346,6 +349,7 @@ footer{
     <div class="details" id="details"></div>
 
     <div class="record-divider"></div>
+    <div class="category-divider" id="categoryDivider" hidden></div>
     <div class="records-label">RECORDS</div>
     <div id="records"></div>
   </main>
@@ -724,10 +728,13 @@ function renderCategoryArchives(category, archives){
   document.querySelector(".archive-label").textContent="♡ "+(category.name||"ARCHIVE").toUpperCase();
   hero.innerHTML="";
   details.innerHTML=category.description?`<div class="category-description">${esc(category.description)}</div>`:"";
+  document.querySelector(".record-divider").style.display="none";
+  document.getElementById("categoryDivider").hidden=false;
+  document.querySelector(".records-label").style.marginTop="0";
   editButton.hidden=true;
   addButton.hidden=false;
   addButton.onclick=()=>{
-    location.href="./archive-write.html?category="+encodeURIComponent(category.id)+"&theme="+encodeURIComponent(currentTheme);
+    location.href="./archive-write_buttons_v2.html?category="+encodeURIComponent(category.id)+"&theme="+encodeURIComponent(currentTheme);
   };
 
   if(!archives.length){
@@ -743,7 +750,7 @@ function renderCategoryArchives(category, archives){
         <div class="archive-card-top"><span>${esc((archive.type||"ARCHIVE").toUpperCase())}</span><span>↗</span></div>
         <div class="archive-card-title">${esc(archive.name)}</div>
         <div class="archive-card-subtitle">${esc(archive._dateLabel||"")}</div>
-        <div class="archive-card-bottom"><span>${archive._recordCount||0} RECORDS</span><span>VIEW →</span></div>
+        <div class="archive-card-bottom"><span>${archive._recordCount||0} ${archive._recordCount===1?"RECORD":"RECORDS"}</span><span>VIEW →</span></div>
       </div>
     </a>`;
   }).join("")}</div>`;
@@ -822,6 +829,9 @@ async function loadArchive(){
   }
 
   loadedArchive=archive;
+  document.querySelector(".record-divider").style.display="block";
+  document.getElementById("categoryDivider").hidden=true;
+  document.querySelector(".records-label").style.marginTop="0";
   const type=archive.type||"basic";
   document.getElementById("archiveTitle").textContent=archive.name;
 
