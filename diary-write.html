@@ -466,9 +466,24 @@
 
           location.href = `./diary-detail.html?id=${encodeURIComponent(editId)}&theme=${encodeURIComponent(getThemeFromCookie() || "mint")}`;
         } else {
+          // 새 DIARY는 현재 로그인한 사용자의 user_id를 함께 저장합니다.
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+          if (userError) throw userError;
+          if (!user) {
+            alert("로그인이 필요합니다.");
+            saveButton.disabled = false;
+            saveButton.textContent = "SAVE";
+            return;
+          }
+
           const { data, error } = await supabase
             .from("diary")
-            .insert([{ date, title, content }])
+            .insert([{
+              user_id: user.id,
+              date,
+              title,
+              content
+            }])
             .select("id")
             .single();
 
