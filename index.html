@@ -220,6 +220,28 @@
       transition: transform 0.2s ease, border-color 0.2s ease;
     }
 
+    .archive-card.has-image::before {
+      display:none;
+    }
+
+    .archive-card-image {
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      z-index:0;
+    }
+
+    .archive-card.has-image::after {
+      content:"";
+      position:absolute;
+      inset:0;
+      z-index:0;
+      background:linear-gradient(to bottom,rgba(255,255,255,.10),rgba(255,255,255,.82));
+      pointer-events:none;
+    }
+
     .archive-card::before {
       content: "";
       position: absolute;
@@ -651,7 +673,7 @@ async function loadLists(){
       .order("created_at",{ascending:false})
       .limit(5),
     supabase.from("archive_categories")
-      .select("id,name,description,created_at")
+      .select("id,name,description,image_url,created_at")
       .order("created_at",{ascending:true}),
     supabase.from("archives")
       .select("id,category_id")
@@ -668,28 +690,27 @@ async function loadLists(){
       </article>`).join("");
   }
 
+  const renderCategoryCard=(x,count)=>{
+    const hasImage=!!x.image_url;
+    return `
+      <a class="archive-card${hasImage?" has-image":""}" href="./archive-view.html?category=${encodeURIComponent(x.id)}&theme=${encodeURIComponent(currentTheme)}">
+        ${hasImage?`<img class="archive-card-image" src="${esc(x.image_url)}" alt="">`:""}
+        <div class="archive-card-top"><span>ARCHIVE</span><span>↗</span></div>
+        <div class="archive-card-title">${esc(x.name)}</div>
+        <div class="archive-card-subtitle">${esc(x.description||"")}</div>
+        <div class="archive-card-bottom"><span>${count} RECORDS</span><span>VIEW →</span></div>
+        <button class="archive-delete category-delete" type="button" data-category-id="${x.id}" aria-label="${esc(x.name)} 삭제">×</button>
+      </a>`;
+  };
+
   if(ce){
     console.error("CATEGORY LOAD",ce);
     archiveGrid.innerHTML="";
   }else if(ae){
     console.error("ARCHIVE RECORD COUNT LOAD",ae);
-    archiveGrid.innerHTML=(categories||[]).map(x=>`
-      <a class="archive-card" href="./archive-view.html?category=${encodeURIComponent(x.id)}&theme=${encodeURIComponent(currentTheme)}">
-        <div class="archive-card-top"><span>ARCHIVE</span><span>↗</span></div>
-        <div class="archive-card-title">${esc(x.name)}</div>
-        <div class="archive-card-subtitle">${esc(x.description||"")}</div>
-        <div class="archive-card-bottom"><span>0 RECORDS</span><span>VIEW →</span></div>
-        <button class="archive-delete category-delete" type="button" data-category-id="${x.id}" aria-label="${esc(x.name)} 삭제">×</button>
-      </a>`).join("");
+    archiveGrid.innerHTML=(categories||[]).map(x=>renderCategoryCard(x,0)).join("");
   }else{
-    archiveGrid.innerHTML=(categories||[]).map(x=>`
-      <a class="archive-card" href="./archive-view.html?category=${encodeURIComponent(x.id)}&theme=${encodeURIComponent(currentTheme)}">
-        <div class="archive-card-top"><span>ARCHIVE</span><span>↗</span></div>
-        <div class="archive-card-title">${esc(x.name)}</div>
-        <div class="archive-card-subtitle">${esc(x.description||"")}</div>
-        <div class="archive-card-bottom"><span>${(archives||[]).filter(a=>a.category_id===x.id).length} RECORDS</span><span>VIEW →</span></div>
-        <button class="archive-delete category-delete" type="button" data-category-id="${x.id}" aria-label="${esc(x.name)} 삭제">×</button>
-      </a>`).join("");
+    archiveGrid.innerHTML=(categories||[]).map(x=>renderCategoryCard(x,(archives||[]).filter(a=>a.category_id===x.id).length)).join("");
   }
 }
 
