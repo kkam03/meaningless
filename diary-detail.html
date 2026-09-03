@@ -135,7 +135,7 @@
       background: var(--line);
     }
 
-    .content p {
+    .post-content {
       margin: 0;
       font-size: 14px;
       line-height: 2;
@@ -143,12 +143,24 @@
       white-space: pre-line;
     }
 
+    .post-content img {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      margin: 28px 0;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+
     .diary-image {
       display: block;
       width: 100%;
+      max-width: 100%;
       max-height: 680px;
       margin: 36px 0 0;
       object-fit: contain;
+      border-radius: 8px;
       background: var(--theme-bg);
     }
 
@@ -282,7 +294,7 @@
         <h1 id="postTitle"></h1>
         <div class="date" id="postDate"></div>
         <div class="title-grid" aria-hidden="true"></div>
-        <p id="postContent"></p>
+        <div id="postContent" class="post-content"></div>
         <img id="postImage" class="diary-image" alt="" style="display:none">
         <div class="post-actions" id="postActions">
           <button class="action-button" id="editButton" type="button">EDIT</button>
