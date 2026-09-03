@@ -320,15 +320,35 @@
       return Number.isNaN(x.getTime()) ? String(d) : `${x.getFullYear()}.${String(x.getMonth()+1).padStart(2,"0")}.${String(x.getDate()).padStart(2,"0")}`;
     };
 
-    function applyTheme(name) {
-      const t = themes[name] || themes.mint;
-      document.documentElement.style.setProperty("--point",t.point);
-      document.documentElement.style.setProperty("--point-soft",t.pointSoft);
-      document.documentElement.style.setProperty("--line",t.line);
-      document.documentElement.style.setProperty("--theme-bg",t.themeBg);
-      localStorage.setItem("meaningless-theme", name);
+    function saveThemeCookie(name) {
+      document.cookie = "meaningless-theme=" + encodeURIComponent(name) +
+        "; path=/; max-age=31536000; SameSite=Lax";
     }
-    applyTheme(localStorage.getItem("meaningless-theme") || "mint");
+
+    function getThemeFromCookie() {
+      const prefix = "meaningless-theme=";
+      const cookies = document.cookie ? document.cookie.split(";") : [];
+      for (const cookie of cookies) {
+        const value = cookie.trim();
+        if (value.startsWith(prefix)) {
+          return decodeURIComponent(value.slice(prefix.length));
+        }
+      }
+      return null;
+    }
+
+    function applyTheme(name, save = true) {
+      const t = themes[name] || themes.mint;
+      document.documentElement.style.setProperty("--point", t.point);
+      document.documentElement.style.setProperty("--point-soft", t.pointSoft);
+      document.documentElement.style.setProperty("--line", t.line);
+      document.documentElement.style.setProperty("--theme-bg", t.themeBg);
+      if (save) saveThemeCookie(name);
+    }
+
+    // index.html과 같은 쿠키를 사용합니다.
+    applyTheme(getThemeFromCookie() || "mint", false);
+
     const themeWrap = $("themeWrap");
     $("themeButton").addEventListener("click", e => { e.stopPropagation(); themeWrap.classList.toggle("open"); });
     document.querySelectorAll(".theme-option").forEach(button => button.addEventListener("click", () => { applyTheme(button.dataset.theme); themeWrap.classList.remove("open"); }));
@@ -336,8 +356,6 @@
 
     const params = new URLSearchParams(location.search);
     const diaryId = params.get("id");
-    const theme = params.get("theme");
-    if (themes[theme]) applyTheme(theme);
 
     async function loadPost() {
       if (!diaryId) throw new Error("DIARY ID가 없습니다.");
