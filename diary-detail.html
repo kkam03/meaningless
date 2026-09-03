@@ -282,7 +282,7 @@
         <h1 id="postTitle"></h1>
         <div class="date" id="postDate"></div>
         <div class="title-grid" aria-hidden="true"></div>
-        <p id="postContent"></p>
+        <div id="postContent" class="post-content"></div>
         <img id="postImage" class="diary-image" alt="" style="display:none">
         <div class="post-actions" id="postActions">
           <button class="action-button" id="editButton" type="button">EDIT</button>
@@ -390,7 +390,33 @@
 
       $("postTitle").textContent = post.title || "";
       $("postDate").textContent = formatDate(post.date);
-      $("postContent").textContent = post.content || "";
+      const postContent = $("postContent");
+      const savedContent = post.content || "";
+
+      // 기존 일반 텍스트와 사진이 포함된 HTML DIARY를 모두 표시합니다.
+      if (/<img\b/i.test(savedContent)) {
+        const doc = new DOMParser().parseFromString(savedContent, "text/html");
+        const allowedTags = new Set(["IMG", "BR", "DIV", "P", "STRONG", "EM", "B", "I", "U"]);
+
+        doc.body.querySelectorAll("*").forEach(node => {
+          if (!allowedTags.has(node.tagName)) {
+            node.replaceWith(...Array.from(node.childNodes));
+            return;
+          }
+
+          [...node.attributes].forEach(attr => {
+            if (node.tagName === "IMG" && attr.name === "src" &&
+                attr.value.startsWith("https://wtadsjkexnqyzrlogmou.supabase.co/storage/v1/object/public/diary-images/")) {
+              return;
+            }
+            node.removeAttribute(attr.name);
+          });
+        });
+
+        postContent.innerHTML = doc.body.innerHTML;
+      } else {
+        postContent.textContent = savedContent;
+      }
 
       if (post.image_url) {
         const img = $("postImage");
