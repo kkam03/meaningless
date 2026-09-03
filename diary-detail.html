@@ -366,13 +366,10 @@
 
     updateBackLinks();
 
-    // DIARY로 돌아갈 때는 기존 목록 페이지로 돌아가 로그인 상태를 유지합니다.
-    $("backDiary").addEventListener("click", e => {
-      if (document.referrer.includes("/index.html")) {
-        e.preventDefault();
-        history.back();
-      }
-    });
+    // DIARY 목록으로 이동할 때 현재 테마를 유지합니다.
+    $("backDiary").onclick = () => {
+      location.href = addTheme("./index.html");
+    };
 
     async function loadPost() {
       if (!diaryId) throw new Error("DIARY ID가 없습니다.");
