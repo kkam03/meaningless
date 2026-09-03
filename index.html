@@ -113,6 +113,23 @@
       letter-spacing: -0.025em;
     }
 
+    .diary-all-row {
+      display: flex;
+      justify-content: flex-end;
+      margin: 14px 4px 0;
+    }
+
+    .diary-all-link {
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.03em;
+      transition: color 0.2s ease;
+    }
+
+    .diary-all-link:hover {
+      color: var(--point);
+    }
+
     .section-heading {
       display: flex;
       align-items: baseline;
@@ -506,6 +523,9 @@
 
       <div class="post-list" id="diaryList">
       </div>
+      <div class="diary-all-row">
+        <a class="diary-all-link" id="diaryAllLink" href="./diary-archive.html">VIEW ALL DIARY →</a>
+      </div>
       <section class="archive-section">
         <div class="archive-heading">
           <span class="archive-label">ARCHIVE</span>
@@ -546,6 +566,7 @@ const themes={
 const diaryList=$("diaryList"), archiveGrid=$("archiveGrid");
 const diaryCreateRow=$("diaryCreateRow"), archiveCreateRow=$("archiveCreateRow");
 const newDiaryLink=$("newDiaryLink"), newArchiveLink=$("newArchiveLink");
+const diaryAllLink=$("diaryAllLink");
 const loginLink=$("loginLink"), themeWrap=$("themeWrap"), themeButton=$("themeButton");
 
 const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
@@ -574,6 +595,7 @@ function updateLinks(){
   const q=`?theme=${encodeURIComponent(currentTheme)}`;
   if(newDiaryLink)newDiaryLink.href=`./diary-write.html${q}`;
   if(newArchiveLink)newArchiveLink.href=`./archive-write_buttons_v2.html${q}`;
+  if(diaryAllLink)diaryAllLink.href=`./diary-archive.html${q}`;
   if(loginLink)loginLink.href=`./login.html${q}`;
 }
 updateLinks();
@@ -607,7 +629,7 @@ function updateAuthUI(session){
 
 async function loadLists(){
   const [{data:diaries,error:de},{data:archives,error:ae}]=await Promise.all([
-    supabase.from("diary").select("id,date,title,content,image_url,created_at").order("date",{ascending:false}).order("created_at",{ascending:false}),
+    supabase.from("diary").select("id,date,title,content,image_url,created_at").order("date",{ascending:false}).order("created_at",{ascending:false}).limit(5),
     supabase.from("archives").select("id,name,type,created_at").order("created_at",{ascending:true})
   ]);
 
