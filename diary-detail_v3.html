@@ -143,6 +143,44 @@
       white-space: pre-line;
     }
 
+    .diary-image {
+      display: block;
+      width: 100%;
+      max-height: 680px;
+      margin: 36px 0 0;
+      object-fit: contain;
+      background: var(--theme-bg);
+    }
+
+    .post-actions {
+      display: none;
+      gap: 8px;
+      margin-top: 26px;
+    }
+
+    .is-authenticated .post-actions { display: flex; }
+
+    .action-button {
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      padding: 6px 10px;
+      border-radius: 7px;
+      font: inherit;
+      font-size: 9px;
+      letter-spacing: .08em;
+      cursor: pointer;
+    }
+
+    .action-button:hover {
+      color: var(--point);
+      border-color: var(--point);
+    }
+
+    .action-button.delete:hover { color: #c96f7e; border-color: #c96f7e; }
+
+    .status { color: var(--muted); font-size: 12px; }
+
     .post-divider {
       margin-top: 78px;
       border-top: 1px solid var(--line);
@@ -239,27 +277,23 @@
     </header>
 
     <main class="content">
-      <h1>또 뭔가를 만들었다.</h1>
-      <div class="date">2026.08.31</div>
-
-      <div class="title-grid" aria-hidden="true"></div>
-
-      <p>오늘도 뭔가를 만들었다.
-별거 아닌 것 같은데
-이런 게 은근 재미있다.</p>
-
-      <div class="post-divider"></div>
-
-      <nav class="post-nav">
-        <a href="#">
-          ← 08.28<br>
-          오늘은 아무것도 안 했다.
-        </a>
-        <a href="#" class="next">
-          09.01 →<br>
-          다음 기록
-        </a>
-      </nav>
+      <div id="loading" class="status">LOADING...</div>
+      <div id="post" style="display:none">
+        <h1 id="postTitle"></h1>
+        <div class="date" id="postDate"></div>
+        <div class="title-grid" aria-hidden="true"></div>
+        <p id="postContent"></p>
+        <img id="postImage" class="diary-image" alt="" style="display:none">
+        <div class="post-actions" id="postActions">
+          <button class="action-button" id="editButton" type="button">EDIT</button>
+          <button class="action-button delete" id="deleteButton" type="button">DELETE</button>
+        </div>
+        <div class="post-divider"></div>
+        <nav class="post-nav">
+          <a id="prevPost" href="#" style="visibility:hidden"></a>
+          <a id="nextPost" class="next" href="#" style="visibility:hidden"></a>
+        </nav>
+      </div>
     </main>
 
     <footer>
@@ -267,40 +301,122 @@
     </footer>
   </div>
 
-  <script>
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+    import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
     const themes = {
       mint: { point:"#62b9aa", pointSoft:"#dff2ee", line:"#e5eeee", themeBg:"#f7fbfa" },
       pink: { point:"#d8799a", pointSoft:"#f6dfe8", line:"#eee3e7", themeBg:"#fff8fa" },
       lavender: { point:"#9a8bc2", pointSoft:"#e9e4f4", line:"#e8e5ee", themeBg:"#faf8fd" },
       blue: { point:"#70a9c2", pointSoft:"#e0eef3", line:"#e3ebee", themeBg:"#f7fbfd" }
     };
+    const $ = id => document.getElementById(id);
+    const esc = v => String(v ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    const formatDate = d => {
+      if (!d) return "";
+      const x = new Date(`${d}T00:00:00`);
+      return Number.isNaN(x.getTime()) ? String(d) : `${x.getFullYear()}.${String(x.getMonth()+1).padStart(2,"0")}.${String(x.getDate()).padStart(2,"0")}`;
+    };
 
     function applyTheme(name) {
-      const theme = themes[name] || themes.mint;
-      document.documentElement.style.setProperty("--point", theme.point);
-      document.documentElement.style.setProperty("--point-soft", theme.pointSoft);
-      document.documentElement.style.setProperty("--line", theme.line);
-      document.documentElement.style.setProperty("--theme-bg", theme.themeBg);
+      const t = themes[name] || themes.mint;
+      document.documentElement.style.setProperty("--point",t.point);
+      document.documentElement.style.setProperty("--point-soft",t.pointSoft);
+      document.documentElement.style.setProperty("--line",t.line);
+      document.documentElement.style.setProperty("--theme-bg",t.themeBg);
       localStorage.setItem("meaningless-theme", name);
     }
-
     applyTheme(localStorage.getItem("meaningless-theme") || "mint");
+    const themeWrap = $("themeWrap");
+    $("themeButton").addEventListener("click", e => { e.stopPropagation(); themeWrap.classList.toggle("open"); });
+    document.querySelectorAll(".theme-option").forEach(button => button.addEventListener("click", () => { applyTheme(button.dataset.theme); themeWrap.classList.remove("open"); }));
+    document.addEventListener("click", e => { if (!themeWrap.contains(e.target)) themeWrap.classList.remove("open"); });
 
-    const themeWrap = document.getElementById("themeWrap");
+    const params = new URLSearchParams(location.search);
+    const diaryId = params.get("id");
+    const theme = params.get("theme");
+    if (themes[theme]) applyTheme(theme);
 
-    document.getElementById("themeButton").addEventListener("click", () => {
-      themeWrap.classList.toggle("open");
-    });
+    function addTheme(url) {
+      if (!url) return "#";
+      const join = url.includes("?") ? "&" : "?";
+      return `${url}${join}theme=${encodeURIComponent(localStorage.getItem("meaningless-theme") || "mint")}`;
+    }
 
-    document.querySelectorAll(".theme-option").forEach(button => {
-      button.addEventListener("click", () => {
-        applyTheme(button.dataset.theme);
-        themeWrap.classList.remove("open");
-      });
-    });
+    async function loadPost() {
+      if (!diaryId) throw new Error("DIARY ID가 없습니다.");
 
-    document.addEventListener("click", event => {
-      if (!themeWrap.contains(event.target)) themeWrap.classList.remove("open");
+      const { data: post, error } = await supabase.from("diary")
+        .select("id,date,title,content,image_url,created_at")
+        .eq("id", diaryId).single();
+      if (error) throw error;
+
+      $("postTitle").textContent = post.title || "";
+      $("postDate").textContent = formatDate(post.date);
+      $("postContent").textContent = post.content || "";
+
+      if (post.image_url) {
+        const img = $("postImage");
+        img.src = post.image_url;
+        img.alt = post.title || "DIARY PHOTO";
+        img.style.display = "block";
+      }
+
+      $("editButton").onclick = () => { location.href = addTheme(`./diary-edit.html?id=${encodeURIComponent(post.id)}`); };
+      $("deleteButton").onclick = async () => {
+        if (!confirm("이 DIARY를 삭제할까요?")) return;
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError) { alert(authError.message); return; }
+        if (!user) { alert("로그인이 필요합니다."); return; }
+        const button = $("deleteButton");
+        button.disabled = true;
+        const { error: deleteError } = await supabase.from("diary").delete().eq("id", post.id);
+        if (deleteError) {
+          console.error("DIARY DELETE", deleteError);
+          alert("삭제에 실패했습니다.\n" + deleteError.message);
+          button.disabled = false;
+          return;
+        }
+        location.href = addTheme("./index.html");
+      };
+
+      const { data: allPosts, error: listError } = await supabase.from("diary")
+        .select("id,date,title,created_at")
+        .order("date", { ascending:false }).order("created_at", { ascending:false });
+      if (listError) throw listError;
+      const index = (allPosts || []).findIndex(x => String(x.id) === String(post.id));
+      const prev = index >= 0 ? allPosts[index + 1] : null;
+      const next = index > 0 ? allPosts[index - 1] : null;
+
+      if (prev) {
+        const a = $("prevPost");
+        a.href = addTheme(`./diary-detail.html?id=${encodeURIComponent(prev.id)}`);
+        a.innerHTML = `← ${esc(formatDate(prev.date))}<br>${esc(prev.title || "")}`;
+        a.style.visibility = "visible";
+      }
+      if (next) {
+        const a = $("nextPost");
+        a.href = addTheme(`./diary-detail.html?id=${encodeURIComponent(next.id)}`);
+        a.innerHTML = `${esc(formatDate(next.date))} →<br>${esc(next.title || "")}`;
+        a.style.visibility = "visible";
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      document.documentElement.classList.toggle("is-authenticated", !!session);
+      $("loading").style.display = "none";
+      $("post").style.display = "block";
+    }
+
+    try { await loadPost(); }
+    catch (error) {
+      console.error("DIARY DETAIL", error);
+      $("loading").textContent = "DIARY를 불러오지 못했습니다.";
+    }
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      document.documentElement.classList.toggle("is-authenticated", !!session);
     });
   </script>
 </body>
