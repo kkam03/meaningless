@@ -96,6 +96,13 @@ header{padding:28px 0 18px}
 .edit-field:last-of-type{margin-bottom:0}
 .edit-archive-date{margin-top:0}
 .edit-archive-date input{height:40px;box-sizing:border-box}
+.edit-image-fields{display:grid;gap:10px}
+.edit-image-field{border:1px solid var(--line);border-radius:8px;padding:10px;background:#fff}
+.edit-image-picker{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.edit-image-button{border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--point);font:inherit;font-size:9px;font-weight:600;padding:7px 10px;cursor:pointer;white-space:nowrap}
+.edit-image-button:hover{border-color:var(--point)}
+.edit-image-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:9px}
+.edit-image-input{display:none}
 .edit-record-date-label{display:block;margin-top:0;margin-bottom:5px;color:var(--point);font-size:9px;font-weight:700;letter-spacing:.08em}
 .edit-field label{
   display:block;margin-bottom:6px;
@@ -369,6 +376,28 @@ footer{
     </div>
 
     <div class="edit-field">
+      <label>IMAGES</label>
+      <div class="edit-image-fields">
+        <div class="edit-image-field">
+          <label>CARD IMAGE</label>
+          <div class="edit-image-picker">
+            <span class="edit-image-name" id="editCardImageName">카드에 표시할 사진</span>
+            <button class="edit-image-button" id="editCardImageButton" type="button">＋ PHOTO</button>
+            <input class="edit-image-input" id="editCardImageInput" type="file" accept="image/*">
+          </div>
+        </div>
+        <div class="edit-image-field">
+          <label>COVER IMAGE</label>
+          <div class="edit-image-picker">
+            <span class="edit-image-name" id="editCoverImageName">VIEW 맨 위에 표시할 사진</span>
+            <button class="edit-image-button" id="editCoverImageButton" type="button">＋ PHOTO</button>
+            <input class="edit-image-input" id="editCoverImageInput" type="file" accept="image/*">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="edit-field">
       <label>TYPE DETAILS</label>
       <div id="editDetails"></div>
     </div>
@@ -573,6 +602,26 @@ const editRecordsEl=document.getElementById("editRecords");
 const editNewFiles=new Map();
 const editRanges=new Map();
 let editTextColor="black";
+let editNewCardImage=null;
+let editNewCoverImage=null;
+
+const editCardImageInput=document.getElementById("editCardImageInput");
+const editCardImageButton=document.getElementById("editCardImageButton");
+const editCardImageName=document.getElementById("editCardImageName");
+const editCoverImageInput=document.getElementById("editCoverImageInput");
+const editCoverImageButton=document.getElementById("editCoverImageButton");
+const editCoverImageName=document.getElementById("editCoverImageName");
+
+function setupEditImagePicker(button,input,label,setter,placeholder){
+  button.addEventListener("click",()=>input.click());
+  input.addEventListener("change",()=>{
+    const file=input.files?.[0]||null;
+    setter(file);
+    label.textContent=file?.name||placeholder;
+  });
+}
+setupEditImagePicker(editCardImageButton,editCardImageInput,editCardImageName,file=>{editNewCardImage=file},"카드에 표시할 사진");
+setupEditImagePicker(editCoverImageButton,editCoverImageInput,editCoverImageName,file=>{editNewCoverImage=file},"VIEW 맨 위에 표시할 사진");
 
 document.querySelectorAll(".edit-text-color-option").forEach(btn=>btn.addEventListener("click",()=>{
   editTextColor=btn.dataset.editTextColor||"black";
@@ -688,6 +737,12 @@ function openEdit(){
   if(editDateField)editDateField.style.display=type==="travel"?"none":"block";
   if(editArchiveDate)editArchiveDate.value=loadedRecords[0]?.date||new Date().toISOString().slice(0,10);
   editTextColor=loadedArchive.text_color||"black";
+  editNewCardImage=null;
+  editNewCoverImage=null;
+  if(editCardImageInput)editCardImageInput.value="";
+  if(editCoverImageInput)editCoverImageInput.value="";
+  if(editCardImageName)editCardImageName.textContent=loadedArchive.image_url?"기존 CARD IMAGE 사용 중":"카드에 표시할 사진";
+  if(editCoverImageName)editCoverImageName.textContent=loadedArchive.cover_image_url?"기존 COVER IMAGE 사용 중":"VIEW 맨 위에 표시할 사진";
   document.querySelectorAll(".edit-text-color-option").forEach(b=>b.classList.toggle("active",b.dataset.editTextColor===editTextColor));
   editRecordsEl.innerHTML="";
   loadedRecords.forEach(record=>addEditRecord(record));
@@ -726,8 +781,11 @@ document.getElementById("editSave").addEventListener("click",async()=>{
   save.disabled=true;save.textContent="SAVING…";
 
   try{
+    const newCardImageUrl=editNewCardImage?await uploadEditImage(editNewCardImage,user.id):loadedArchive.image_url||null;
+    const newCoverImageUrl=editNewCoverImage?await uploadEditImage(editNewCoverImage,user.id):loadedArchive.cover_image_url||null;
+
     const {error:archiveError}=await supabase.from("archives")
-      .update({name,text_color:editTextColor}).eq("id",loadedArchive.id).eq("user_id",user.id);
+      .update({name,text_color:editTextColor,image_url:newCardImageUrl,cover_image_url:newCoverImageUrl}).eq("id",loadedArchive.id).eq("user_id",user.id);
     if(archiveError)throw archiveError;
 
     const details=collectDetails(type);
@@ -889,7 +947,7 @@ async function loadArchive(){
     document.getElementById("archiveTitle").textContent="ARCHIVE를 찾을 수 없습니다.";return;
   }
   const {data:archive,error:archiveError}=await supabase.from("archives")
-    .select("id,name,type,image_url,created_at,user_id").eq("id",archiveId).single();
+    .select("id,name,type,image_url,cover_image_url,created_at,user_id").eq("id",archiveId).single();
   if(archiveError){
     console.error(archiveError);
     document.getElementById("archiveTitle").textContent="ARCHIVE를 불러오지 못했습니다.";return;
@@ -912,16 +970,19 @@ async function loadArchive(){
   }
   loadedRecords=records||[];
 
-  // 대표사진은 ARCHIVE 자체의 image_url을 우선 사용합니다.
-  // 기존 데이터처럼 대표사진이 없으면 RECORD의 첫 사진을 대표사진으로 사용합니다.
-  let heroUrl=archive.image_url||null;
+  // 새 구조에서는 COVER IMAGE를 VIEW 상단에 사용합니다.
+  // 기존 ARCHIVE는 cover_image_url이 없으므로 기존 image_url/RECORD 사진으로 안전하게 대체합니다.
+  let heroUrl=archive.cover_image_url||null;
   if(!heroUrl){
-    for(const record of loadedRecords){
-      const img=Array.isArray(record.extra_data?.content_blocks)
-        ? record.extra_data.content_blocks.find(b=>b.type==="image"&&b.url)
-        : null;
-      if(img){heroUrl=img.url;break;}
-      if(record.image_url){heroUrl=record.image_url;break;}
+    heroUrl=archive.image_url||null;
+    if(!heroUrl){
+      for(const record of loadedRecords){
+        const img=Array.isArray(record.extra_data?.content_blocks)
+          ? record.extra_data.content_blocks.find(b=>b.type==="image"&&b.url)
+          : null;
+        if(img){heroUrl=img.url;break;}
+        if(record.image_url){heroUrl=record.image_url;break;}
+      }
     }
   }
   if(heroUrl)document.getElementById("hero").innerHTML=`<img class="hero-photo" src="${esc(heroUrl)}" alt="">`;
