@@ -725,6 +725,37 @@ async function uploadEditImage(file,userId){
   return supabase.storage.from("archive-images").getPublicUrl(path).data.publicUrl;
 }
 
+function getArchiveStoragePath(url){
+  if(!url)return null;
+  try{
+    const u=new URL(url);
+    const marker="/storage/v1/object/public/archive-images/";
+    const i=u.pathname.indexOf(marker);
+    if(i===-1)return null;
+    return decodeURIComponent(u.pathname.slice(i+marker.length));
+  }catch{
+    return null;
+  }
+}
+
+function collectArchiveStoragePaths(record){
+  const urls=[];
+  if(record?.image_url)urls.push(record.image_url);
+  const blocks=Array.isArray(record?.extra_data?.content_blocks)
+    ? record.extra_data.content_blocks : [];
+  for(const block of blocks){
+    if(block?.type==="image"&&block.url)urls.push(block.url);
+  }
+  return urls.map(getArchiveStoragePath).filter(Boolean);
+}
+
+async function removeArchiveStorageUrls(urls){
+  const paths=[...new Set((urls||[]).map(getArchiveStoragePath).filter(Boolean))];
+  if(!paths.length)return;
+  const {error}=await supabase.storage.from("archive-images").remove(paths);
+  if(error)throw error;
+}
+
 async function uploadResizedArchiveImage(file,userId){
   let resizedFile=file;
 
@@ -840,6 +871,8 @@ document.getElementById("editSave").addEventListener("click",async()=>{
       const removed=editor.dataset.removed==="true";
       if(removed){
         if(recordId){
+          const existingRecord=loadedRecords.find(r=>r.id===recordId);
+          await removeArchiveStorageUrls(collectArchiveStoragePaths(existingRecord));
           const {error}=await supabase.from("archive_records").delete().eq("id",recordId).eq("user_id",user.id);
           if(error)throw error;
         }
@@ -994,6 +1027,15 @@ document.getElementById("archiveDeleteButton").addEventListener("click",async()=
     const {data:{user},error:authError}=await supabase.auth.getUser();
     if(authError)throw authError;
     if(!user)throw new Error("로그인이 필요합니다.");
+
+    const storageUrls=[];
+    if(loadedArchive.image_url)storageUrls.push(loadedArchive.image_url);
+    if(loadedArchive.cover_image_url)storageUrls.push(loadedArchive.cover_image_url);
+    for(const record of loadedRecords)storageUrls.push(...collectArchiveStoragePaths(record).map(path=>
+      "https://wtadsjkexnqyzrlogmou.supabase.co/storage/v1/object/public/archive-images/"+path
+    ));
+
+    await removeArchiveStorageUrls(storageUrls);
 
     const {error}=await supabase.rpc("delete_archive",{
       p_archive_id:loadedArchive.id
