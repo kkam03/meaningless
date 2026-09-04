@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>meaningless — new diary</title>
+  <title>meaningless — photo </title>
   <style>
     * { box-sizing: border-box; }
 
@@ -11,9 +11,9 @@
       --background: #fff;
       --text: #29262a;
       --muted: #8a8588;
-      --line: #e0ecea;
-      --point: #4fae9f;
-      --point-soft: #d6efea;
+      --line: #e5eeee;
+      --point: #62b9aa;
+      --point-soft: #dff2ee;
       --theme-bg: #f7fbfa;
     }
 
@@ -178,6 +178,64 @@
       color: var(--text);
     }
 
+    .editor-wrap {
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .editor {
+      min-height: 260px;
+      padding: 13px 12px;
+      outline: none;
+      font-size: 13px;
+      line-height: 1.9;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .editor:empty::before {
+      content: attr(data-placeholder);
+      color: #aaa;
+      pointer-events: none;
+    }
+
+    .editor:focus {
+      box-shadow: inset 0 0 0 1px var(--point);
+    }
+
+    .editor img {
+      display: block;
+      max-width: 100%;
+      width: auto;
+      height: auto;
+      margin: 14px 0;
+      border-radius: 8px;
+    }
+
+    .editor-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      padding: 8px 10px;
+      border-top: 1px solid var(--line);
+      background: var(--theme-bg);
+    }
+
+    .editor-toolbar button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: .06em;
+      cursor: pointer;
+      padding: 4px 2px;
+    }
+
+    .editor-toolbar button:hover {
+      color: var(--point);
+    }
+
     .photo-placeholder {
       display: flex;
       align-items: center;
@@ -276,10 +334,10 @@
   <div class="theme-wrap" id="themeWrap">
     <button class="theme-button" id="themeButton" type="button">THEME</button>
     <div class="theme-menu">
-      <button class="theme-option" type="button" data-theme="mint"><span class="theme-dot" style="--theme-color:#4fae9f"></span> Mint</button>
-      <button class="theme-option" type="button" data-theme="pink"><span class="theme-dot" style="--theme-color:#d3638b"></span> Pink</button>
-      <button class="theme-option" type="button" data-theme="lavender"><span class="theme-dot" style="--theme-color:#8d78bb"></span> Lavender</button>
-      <button class="theme-option" type="button" data-theme="blue"><span class="theme-dot" style="--theme-color:#5f9fbc"></span> Blue</button>
+      <button class="theme-option" type="button" data-theme="mint"><span class="theme-dot" style="--theme-color:#62b9aa"></span> Mint</button>
+      <button class="theme-option" type="button" data-theme="pink"><span class="theme-dot" style="--theme-color:#d8799a"></span> Pink</button>
+      <button class="theme-option" type="button" data-theme="lavender"><span class="theme-dot" style="--theme-color:#9a8bc2"></span> Lavender</button>
+      <button class="theme-option" type="button" data-theme="blue"><span class="theme-dot" style="--theme-color:#70a9c2"></span> Blue</button>
     </div>
   </div>
 
@@ -305,17 +363,20 @@
       </section>
 
       <section class="field">
-        <label class="field-label" for="content">CONTENT</label>
-        <textarea id="content" placeholder="오늘을 기록해두기."></textarea>
-      </section>
-
-      <section class="field">
-        <label class="field-label">PHOTO <span style="font-weight:400; letter-spacing:0">(optional)</span></label>
-        <label class="photo-placeholder">
-          <input id="photo" type="file" accept="image/*">
-          + 사진 추가
-        </label>
-        <div class="photo-note">사진 기능은 다음 단계에서 실제 저장과 연결합니다.</div>
+        <label class="field-label">CONTENT</label>
+        <div class="editor-wrap">
+          <div
+            id="content"
+            class="editor"
+            contenteditable="true"
+            data-placeholder="오늘을 기록해두기."
+          ></div>
+          <div class="editor-toolbar">
+            <button id="insertPhoto" type="button">＋ PHOTO</button>
+            <input id="photo" type="file" accept="image/*" hidden>
+          </div>
+        </div>
+        <div class="photo-note">사진은 저장할 때 Supabase Storage에 업로드됩니다.</div>
       </section>
 
       <div class="actions">
@@ -336,10 +397,10 @@
     const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
     const themes = {
-      mint: { point:"#4fae9f", pointSoft:"#d6efea", line:"#e0ecea", themeBg:"#f7fbfa" },
-      pink: { point:"#d3638b", pointSoft:"#f3d6e1", line:"#eadde2", themeBg:"#fff8fa" },
-      lavender: { point:"#8d78bb", pointSoft:"#e5dff2", line:"#e4e1ea", themeBg:"#faf8fd" },
-      blue: { point:"#5f9fbc", pointSoft:"#dbeaf0", line:"#dfe8eb", themeBg:"#f7fbfd" }
+      mint: { point:"#62b9aa", pointSoft:"#dff2ee", line:"#e5eeee", themeBg:"#f7fbfa" },
+      pink: { point:"#d8799a", pointSoft:"#f6dfe8", line:"#eee3e7", themeBg:"#fff8fa" },
+      lavender: { point:"#9a8bc2", pointSoft:"#e9e4f4", line:"#e8e5ee", themeBg:"#faf8fd" },
+      blue: { point:"#70a9c2", pointSoft:"#e0eef3", line:"#e3ebee", themeBg:"#f7fbfd" }
     };
 
     function saveThemeCookie(name) {
@@ -412,7 +473,11 @@
       } else {
         document.getElementById("date").value = post.date || "";
         document.getElementById("title").value = post.title || "";
-        document.getElementById("content").value = post.content || "";
+        const loadedContent = post.content || "";
+        document.getElementById("content").innerHTML =
+          /<\/?(img|p|div|br|strong|em|ul|ol|li)[\s>]/i.test(loadedContent)
+            ? loadedContent
+            : loadedContent.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
       }
     } else {
       const dateInput = document.getElementById("date");
@@ -430,10 +495,117 @@
         : `./index.html?theme=${encodeURIComponent(getThemeFromCookie() || "mint")}`;
     });
 
+    const editor = document.getElementById("content");
+    const insertPhotoButton = document.getElementById("insertPhoto");
+    const photoInput = document.getElementById("photo");
+
+    let savedSelection = null;
+    const pendingImages = new Map();
+
+    function saveEditorSelection() {
+      const selection = window.getSelection();
+      if (!selection || !selection.rangeCount) return;
+      const range = selection.getRangeAt(0);
+      if (editor.contains(range.commonAncestorContainer)) {
+        savedSelection = range.cloneRange();
+      }
+    }
+
+    editor.addEventListener("keyup", saveEditorSelection);
+    editor.addEventListener("mouseup", saveEditorSelection);
+    editor.addEventListener("input", saveEditorSelection);
+    editor.addEventListener("blur", saveEditorSelection);
+
+    insertPhotoButton.addEventListener("mousedown", event => {
+      event.preventDefault();
+      saveEditorSelection();
+      photoInput.click();
+    });
+
+    photoInput.addEventListener("change", () => {
+      const file = photoInput.files && photoInput.files[0];
+      if (!file) return;
+
+      const localUrl = URL.createObjectURL(file);
+      const imageId = crypto.randomUUID();
+      pendingImages.set(imageId, { file, localUrl });
+
+      editor.focus();
+
+      const selection = window.getSelection();
+      if (savedSelection) {
+        selection.removeAllRanges();
+        selection.addRange(savedSelection);
+      } else {
+        const range = document.createRange();
+        range.selectNodeContents(editor);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+
+      const img = document.createElement("img");
+      img.src = localUrl;
+      img.alt = "첨부 사진";
+      img.contentEditable = "false";
+      img.dataset.pendingImageId = imageId;
+
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(img);
+
+      const spacer = document.createTextNode("\n");
+      img.after(spacer);
+
+      const nextRange = document.createRange();
+      nextRange.setStartAfter(spacer);
+      nextRange.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(nextRange);
+
+      saveEditorSelection();
+      photoInput.value = "";
+      updateSaveButtonState();
+    });
+
+    const STORAGE_BUCKET = "diary-images";
+
+    async function uploadPendingImages() {
+      const images = [...editor.querySelectorAll("img[data-pending-image-id]")];
+
+      for (const img of images) {
+        const imageId = img.dataset.pendingImageId;
+        const item = pendingImages.get(imageId);
+        if (!item) continue;
+
+        const extension = (item.file.name.split(".").pop() || "jpg").toLowerCase();
+        const filePath = `${crypto.randomUUID()}.${extension}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from(STORAGE_BUCKET)
+          .upload(filePath, item.file, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: item.file.type || undefined
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicData } = supabase.storage
+          .from(STORAGE_BUCKET)
+          .getPublicUrl(filePath);
+
+        img.src = publicData.publicUrl;
+        img.removeAttribute("data-pending-image-id");
+        pendingImages.delete(imageId);
+        URL.revokeObjectURL(item.localUrl);
+      }
+    }
+
     function updateSaveButtonState() {
       const date = document.getElementById("date").value;
       const title = document.getElementById("title").value.trim();
-      const content = document.getElementById("content").value.trim();
+      const content = document.getElementById("content").innerText.trim();
       saveButton.disabled = !(date && title && content);
     }
 
@@ -445,9 +617,10 @@
     saveButton.addEventListener("click", async () => {
       const date = document.getElementById("date").value;
       const title = document.getElementById("title").value.trim();
-      const content = document.getElementById("content").value.trim();
+      const contentText = document.getElementById("content").innerText.trim();
+      const contentHtml = document.getElementById("content").innerHTML.trim();
 
-      if (!date || !title || !content) {
+      if (!date || !title || !contentText) {
         alert("날짜, 제목, 내용을 입력해주세요.");
         return;
       }
@@ -456,6 +629,11 @@
       saveButton.textContent = editId ? "UPDATING..." : "SAVING...";
 
       try {
+        saveButton.textContent = editId ? "UPLOADING..." : "UPLOADING...";
+        await uploadPendingImages();
+
+        const content = document.getElementById("content").innerHTML.trim();
+
         if (editId) {
           const { error } = await supabase
             .from("diary")
@@ -466,9 +644,24 @@
 
           location.href = `./diary-detail.html?id=${encodeURIComponent(editId)}&theme=${encodeURIComponent(getThemeFromCookie() || "mint")}`;
         } else {
+          // 새 DIARY는 현재 로그인한 사용자의 user_id를 함께 저장합니다.
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+          if (userError) throw userError;
+          if (!user) {
+            alert("로그인이 필요합니다.");
+            saveButton.disabled = false;
+            saveButton.textContent = "SAVE";
+            return;
+          }
+
           const { data, error } = await supabase
             .from("diary")
-            .insert([{ date, title, content }])
+            .insert([{
+              user_id: user.id,
+              date,
+              title,
+              content
+            }])
             .select("id")
             .single();
 
