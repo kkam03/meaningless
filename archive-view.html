@@ -1089,27 +1089,12 @@ async function loadArchive(){
   }
   loadedRecords=records||[];
 
-  // 새 구조에서는 COVER IMAGE를 VIEW 상단에 사용합니다.
-  // 기존 ARCHIVE는 cover_image_url이 없으므로 기존 image_url/RECORD 사진으로 안전하게 대체합니다.
-  let heroUrl=archive.cover_image_url||null;
-  if(!heroUrl){
-    heroUrl=archive.image_url||null;
-    if(!heroUrl){
-      for(const record of loadedRecords){
-        const img=Array.isArray(record.extra_data?.content_blocks)
-          ? record.extra_data.content_blocks.find(b=>b.type==="image"&&b.url)
-          : null;
-        if(img){heroUrl=img.url;break;}
-        if(record.image_url){heroUrl=record.image_url;break;}
-      }
-    }
-  }
-  if(heroUrl)document.getElementById("hero").innerHTML=`<img class="hero-photo" src="${esc(heroUrl)}" alt="">`;
+  // VIEW 상단에는 대표 이미지를 표시하지 않고 제목/세부 데이터만 보여줍니다.
+  document.getElementById("hero").innerHTML="";
 
   const infoRecord=loadedRecords[0]||null;
   renderDetails(type,infoRecord);
-  // 대표사진이 RECORD 본문에도 들어있는 경우에는 한 번 더 보여주지 않습니다.
-  renderRecords(type,heroUrl||"");
+  renderRecords(type);
 
   try{
     const user=await getUser();
