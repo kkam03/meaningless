@@ -117,6 +117,24 @@ header{padding:28px 0 18px}
 .edit-detail{margin-top:9px}
 .edit-detail label{display:block;color:var(--muted);font-size:9px;margin-bottom:5px}
 .edit-detail-textarea{min-height:90px;resize:vertical}
+
+.edit-record-list{display:grid;gap:7px;margin-top:8px}
+.edit-record-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fff}
+.edit-record-row.is-new{background:var(--theme-bg)}
+.edit-record-row-main{min-width:0;display:flex;align-items:center;gap:12px}
+.edit-record-row-date{color:var(--muted);font-size:10px;white-space:nowrap}
+.edit-record-row-text{min-width:0;color:var(--text);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.edit-record-row-actions{display:flex;gap:5px;flex:0 0 auto}
+.edit-record-row-edit,.edit-record-row-delete{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:6px;padding:5px 7px;font:inherit;font-size:9px;cursor:pointer}
+.edit-record-row-edit:hover,.edit-record-row-delete:hover{color:var(--point);border-color:var(--point)}
+.edit-record-editor-panel{margin-top:12px;padding:13px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.edit-record-editor-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.edit-record-close{border:0;background:transparent;color:var(--muted);font-size:13px;cursor:pointer}
+.edit-record-editor-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:9px}
+.edit-record-editor-cancel,.edit-record-editor-apply{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:7px;padding:6px 9px;font:inherit;font-size:9px;cursor:pointer}
+.edit-record-editor-apply{border-color:var(--point);color:var(--point)}
+.edit-record-row.removed{display:none}
+
 .edit-record{
   padding:14px;
   margin-top:12px;
@@ -344,7 +362,7 @@ footer{
       <input id="editArchiveName" type="text">
     </div>
 
-    <div class="edit-field">
+    <div class="edit-field" id="editDetailsField">
       <label>TYPE DETAILS</label>
       <div id="editDetails"></div>
     </div>
@@ -359,8 +377,28 @@ footer{
 
     <div class="edit-field">
       <label>RECORDS</label>
-      <div id="editRecords"></div>
-      <button class="edit-add-record" id="editAddRecord" type="button">＋ 기록 추가</button>
+      <div id="editRecords" class="edit-record-list"></div>
+      <button class="edit-add-record" id="editAddRecord" type="button">＋ RECORD</button>
+    </div>
+
+    <div class="edit-record-editor-panel" id="editRecordEditorPanel" hidden>
+      <div class="edit-record-editor-head">
+        <span class="edit-record-label" id="editRecordEditorLabel">RECORD</span>
+        <button class="edit-record-close" id="editRecordEditorClose" type="button">×</button>
+      </div>
+      <label class="edit-record-date-label">DATE</label>
+      <input class="edit-record-input" id="editRecordDate" type="date">
+      <div class="edit-record-editor-wrap">
+        <div class="edit-record-editor" id="editRecordEditor" contenteditable="true" data-placeholder="기록해두기."></div>
+        <div class="edit-record-toolbar">
+          <button class="edit-record-photo" id="editRecordPhoto" type="button">＋ PHOTO</button>
+          <input class="edit-record-photo-input" id="editRecordPhotoInput" type="file" accept="image/*">
+        </div>
+      </div>
+      <div class="edit-record-editor-actions">
+        <button class="edit-record-editor-cancel" id="editRecordEditorCancel" type="button">CANCEL</button>
+        <button class="edit-record-editor-apply" id="editRecordEditorApply" type="button">DONE</button>
+      </div>
     </div>
 
     <div class="edit-actions">
@@ -536,39 +574,18 @@ function collectDetails(type){
 }
 
 const editRecordsEl=document.getElementById("editRecords");
+const editRecordEditorPanel=document.getElementById("editRecordEditorPanel");
+const editRecordEditor=document.getElementById("editRecordEditor");
+const editRecordDate=document.getElementById("editRecordDate");
 const editNewFiles=new Map();
-const editRanges=new Map();
 let editTextColor="black";
+let editActiveKey=null;
+const editDrafts=new Map();
+const editRemoved=new Set();
 
-document.querySelectorAll(".edit-text-color-option").forEach(btn=>btn.addEventListener("click",()=>{
-  editTextColor=btn.dataset.editTextColor||"black";
-  document.querySelectorAll(".edit-text-color-option").forEach(b=>b.classList.toggle("active",b===btn));
-}));
+function draftKey(record){ return record?.id ? `record:${record.id}` : `new:${crypto.randomUUID()}`; }
 
-function rememberEditSelection(editor){
-  const sel=window.getSelection();
-  if(!sel||!sel.rangeCount)return;
-  const range=sel.getRangeAt(0);
-  if(editor.contains(range.commonAncestorContainer))editRanges.set(editor,range.cloneRange());
-}
-
-function insertEditImage(editor,file){
-  const url=URL.createObjectURL(file);
-  editNewFiles.set(url,file);
-  editor.focus();
-  const sel=window.getSelection();
-  let range=editRanges.get(editor);
-  if(!range){range=document.createRange();range.selectNodeContents(editor);range.collapse(false);}
-  range.deleteContents();
-  const img=document.createElement("img");
-  img.src=url;img.alt=file.name||"첨부 사진";img.dataset.localImage="true";img.dataset.fileName=file.name||"";
-  range.insertNode(img);
-  const spacer=document.createTextNode("\n");img.after(spacer);
-  range.setStartAfter(spacer);range.collapse(true);
-  sel.removeAllRanges();sel.addRange(range);editRanges.set(editor,range.cloneRange());
-}
-
-function blockDataToEditorHtml(record){
+function draftHtmlFromRecord(record){
   const blocks=Array.isArray(record?.extra_data?.content_blocks)?record.extra_data.content_blocks:null;
   if(blocks&&blocks.length){
     return blocks.map(b=>{
@@ -577,84 +594,225 @@ function blockDataToEditorHtml(record){
       return "";
     }).join("");
   }
-  return record?.content ? `<div>${esc(record.content).replaceAll("\n","<br>")}</div>` : "";
+  return record?.content?`<div>${esc(record.content).replaceAll("\n","<br>")}</div>`:"";
 }
 
-function addEditRecord(record={}){
-  const el=document.createElement("div");
-  el.className="edit-record";el.dataset.recordId=record.id||"";
-  el.innerHTML=`
-    <div class="edit-record-head">
-      <div class="edit-record-label">RECORD</div>
-      <button class="edit-record-delete" type="button">×</button>
-    </div>
-    <label class="edit-record-date-label">DATE</label>
-    <input class="edit-record-input edit-record-date" type="date" value="${esc(record.date||new Date().toISOString().slice(0,10))}">
-    <div class="edit-record-editor-wrap">
-      <div class="edit-record-editor" contenteditable="true" data-placeholder="기록해두기.">${blockDataToEditorHtml(record)}</div>
-      <div class="edit-record-toolbar">
-        <button class="edit-record-photo" type="button">＋ PHOTO</button>
-        <input class="edit-record-photo-input" type="file" accept="image/*">
-      </div>
-    </div>`;
-
-  const editor=el.querySelector(".edit-record-editor");
-  const photoBtn=el.querySelector(".edit-record-photo");
-  const photoInput=el.querySelector(".edit-record-photo-input");
-  editor.addEventListener("keyup",()=>rememberEditSelection(editor));
-  editor.addEventListener("mouseup",()=>rememberEditSelection(editor));
-  editor.addEventListener("input",()=>rememberEditSelection(editor));
-  editor.addEventListener("focus",()=>rememberEditSelection(editor));
-  photoBtn.addEventListener("mousedown",e=>e.preventDefault());
-  photoBtn.addEventListener("click",()=>{rememberEditSelection(editor);photoInput.click()});
-  photoInput.addEventListener("change",()=>{const f=photoInput.files?.[0];if(f)insertEditImage(editor,f);photoInput.value=""});
-  el.querySelector(".edit-record-delete").onclick=()=>{el.dataset.removed="true";el.style.display="none"};
-  editRecordsEl.appendChild(el);
+function plainPreview(html){
+  const temp=document.createElement("div");
+  temp.innerHTML=html||"";
+  const text=(temp.textContent||"").replace(/\s+/g," ").trim();
+  const images=temp.querySelectorAll("img").length;
+  if(text)return text;
+  if(images)return `사진 ${images}장`;
+  return "내용 없음";
 }
 
-function htmlToBlocks(editor){
-  const result=[];let textBuffer="";
-  const flush=()=>{const v=textBuffer.replace(/\u00a0/g," ").replace(/^[\n\r]+|[\n\r]+$/g,"");if(v.trim())result.push({type:"text",value:v});textBuffer=""};
-  const walk=node=>{
-    if(node.nodeType===Node.TEXT_NODE){textBuffer+=node.nodeValue||"";return;}
-    if(node.nodeType!==Node.ELEMENT_NODE)return;
-    if(node.tagName==="IMG"){
-      flush();const src=node.getAttribute("src")||"";if(src)result.push({type:"image",url:src});textBuffer+="\n";return;
+function rememberEditSelection(editor){
+  const sel=window.getSelection();
+  if(!sel||!sel.rangeCount)return;
+  const range=sel.getRangeAt(0);
+  if(editor.contains(range.commonAncestorContainer))editor._savedRange=range.cloneRange();
+}
+
+function insertEditImage(file){
+  if(!file||!editActiveKey)return;
+  const url=URL.createObjectURL(file);
+  editNewFiles.set(url,file);
+  editRecordEditor.focus();
+  const sel=window.getSelection();
+  let range=editRecordEditor._savedRange;
+  if(!range){range=document.createRange();range.selectNodeContents(editRecordEditor);range.collapse(false);}
+  range.deleteContents();
+  const img=document.createElement("img");
+  img.src=url;img.alt=file.name||"첨부 사진";img.dataset.localImage="true";
+  range.insertNode(img);
+  const spacer=document.createElement("div");spacer.innerHTML="<br>";img.after(spacer);
+  range.setStartAfter(spacer);range.collapse(true);
+  sel.removeAllRanges();sel.addRange(range);editRecordEditor._savedRange=range.cloneRange();
+}
+
+function saveActiveDraft(){
+  if(!editActiveKey)return;
+  const draft=editDrafts.get(editActiveKey);
+  if(!draft)return;
+  draft.date=editRecordDate.value||new Date().toISOString().slice(0,10);
+  draft.html=editRecordEditor.innerHTML;
+  draft.dirty=true;
+  editDrafts.set(editActiveKey,draft);
+}
+
+function closeRecordEditor(saveDraft=true){
+  if(saveDraft)saveActiveDraft();
+  editActiveKey=null;
+  editRecordEditorPanel.hidden=true;
+  editRecordEditor.innerHTML="";
+}
+
+function renderEditRecordList(){
+  const rows=[];
+  for(const record of loadedRecords){
+    if(editRemoved.has(record.id))continue;
+    const key=`record:${record.id}`;
+    const draft=editDrafts.get(key)||{date:record.date||"",html:draftHtmlFromRecord(record)};
+    const preview=plainPreview(draft.html);
+    rows.push(`<div class="edit-record-row" data-edit-key="${esc(key)}">
+      <div class="edit-record-row-main"><span class="edit-record-row-date">${esc(formatDate(draft.date))}</span><span class="edit-record-row-text">${esc(preview)}</span></div>
+      <div class="edit-record-row-actions"><button class="edit-record-row-edit" type="button" data-edit-record="${esc(key)}">EDIT</button><button class="edit-record-row-delete" type="button" data-delete-record="${esc(key)}">×</button></div>
+    </div>`);
+  }
+  for(const [key,draft] of editDrafts){
+    if(!key.startsWith("new:")||draft.removed)continue;
+    rows.push(`<div class="edit-record-row is-new" data-edit-key="${esc(key)}">
+      <div class="edit-record-row-main"><span class="edit-record-row-date">${esc(formatDate(draft.date))}</span><span class="edit-record-row-text">${esc(plainPreview(draft.html))}</span></div>
+      <div class="edit-record-row-actions"><button class="edit-record-row-edit" type="button" data-edit-record="${esc(key)}">EDIT</button><button class="edit-record-row-delete" type="button" data-delete-record="${esc(key)}">×</button></div>
+    </div>`);
+  }
+  editRecordsEl.innerHTML=rows.length?rows.join(""):'<div class="empty" style="padding:10px 0">아직 기록이 없습니다.</div>';
+}
+
+function openRecordEditor(key){
+  saveActiveDraft();
+  const draft=editDrafts.get(key);
+  if(!draft)return;
+  editActiveKey=key;
+  document.getElementById("editRecordEditorLabel").textContent=key.startsWith("new:")?"NEW RECORD":"EDIT RECORD";
+  editRecordDate.value=draft.date||new Date().toISOString().slice(0,10);
+  editRecordEditor.innerHTML=draft.html||"";
+  editRecordEditorPanel.hidden=false;
+  editRecordEditor._savedRange=null;
+  editRecordEditor.focus();
+}
+
+function createNewEditRecord(){
+  saveActiveDraft();
+  const key=`new:${crypto.randomUUID()}`;
+  editDrafts.set(key,{date:new Date().toISOString().slice(0,10),html:"",dirty:true,newRecord:true});
+  renderEditRecordList();
+  openRecordEditor(key);
+}
+
+document.querySelectorAll(".edit-text-color-option").forEach(btn=>btn.addEventListener("click",()=>{
+  editTextColor=btn.dataset.editTextColor||"black";
+  document.querySelectorAll(".edit-text-color-option").forEach(b=>b.classList.toggle("active",b===btn));
+}));
+
+editRecordEditor.addEventListener("keyup",()=>rememberEditSelection(editRecordEditor));
+editRecordEditor.addEventListener("mouseup",()=>rememberEditSelection(editRecordEditor));
+editRecordEditor.addEventListener("input",()=>rememberEditSelection(editRecordEditor));
+editRecordEditor.addEventListener("focus",()=>rememberEditSelection(editRecordEditor));
+document.getElementById("editRecordPhoto").addEventListener("mousedown",e=>e.preventDefault());
+document.getElementById("editRecordPhoto").addEventListener("click",()=>{rememberEditSelection(editRecordEditor);document.getElementById("editRecordPhotoInput").click()});
+document.getElementById("editRecordPhotoInput").addEventListener("change",()=>{
+  const file=document.getElementById("editRecordPhotoInput").files?.[0];
+  if(file)insertEditImage(file);
+  document.getElementById("editRecordPhotoInput").value="";
+});
+
+editRecordsEl.addEventListener("click",e=>{
+  const editBtn=e.target.closest("[data-edit-record]");
+  if(editBtn){openRecordEditor(editBtn.dataset.editRecord);return;}
+  const delBtn=e.target.closest("[data-delete-record]");
+  if(!delBtn)return;
+  const key=delBtn.dataset.deleteRecord;
+  if(key.startsWith("new:")){
+    editDrafts.delete(key);
+  }else{
+    editRemoved.add(key.replace(/^record:/,""));
+  }
+  if(editActiveKey===key)closeRecordEditor(false);
+  renderEditRecordList();
+});
+
+document.getElementById("editAddRecord").addEventListener("click",createNewEditRecord);
+document.getElementById("editRecordEditorApply").addEventListener("click",()=>{
+  saveActiveDraft();
+  closeRecordEditor(false);
+  renderEditRecordList();
+});
+document.getElementById("editRecordEditorClose").addEventListener("click",()=>{closeRecordEditor(true);renderEditRecordList()});
+document.getElementById("editRecordEditorCancel").addEventListener("click",()=>{
+  if(editActiveKey){
+    const draft=editDrafts.get(editActiveKey);
+    if(draft?.dirty && !draft.newRecord){
+      const recordId=editActiveKey.replace(/^record:/,"");
+      const original=loadedRecords.find(r=>String(r.id)===String(recordId));
+      if(original)editDrafts.set(editActiveKey,{date:original.date||"",html:draftHtmlFromRecord(original),dirty:false});
+    }else if(draft?.newRecord){
+      editDrafts.delete(editActiveKey);
     }
-    if(node.tagName==="BR"){textBuffer+="\n";return;}
-    [...node.childNodes].forEach(walk);
-    if(["DIV","P","LI"].includes(node.tagName))textBuffer+="\n";
-  };
-  [...editor.childNodes].forEach(walk);flush();return result;
+  }
+  closeRecordEditor(false);renderEditRecordList();
+});
+
+function makeEditFields(type,record){
+  const box=document.getElementById("editDetails");
+  if(type==="basic"){box.innerHTML="";document.getElementById("editDetailsField").hidden=true;return;}
+  document.getElementById("editDetailsField").hidden=false;
+  const vals=record?.extra_data||{};
+  const labels=semanticLabels[type]||[];
+  const keys=["field_1","field_2","field_3","field_4"];
+  box.innerHTML=labels.map((label,i)=>{
+    const key=keys[i];
+    const multi=label==="셋리스트"||label==="감상 메모";
+    return `<div class="edit-detail"><label>${esc(label)}</label>${multi
+      ? `<textarea class="edit-detail-textarea" data-key="${key}">${esc(vals[key]||"")}</textarea>`
+      : `<input class="edit-detail-input" data-key="${key}" value="${esc(vals[key]||"")}" type="text">`}</div>`;
+  }).join("");
+}
+
+function collectDetails(type){
+  const out={};
+  if(type==="basic")return out;
+  document.querySelectorAll("#editDetails [data-key]").forEach(el=>{
+    const value=el.value.trim();
+    if(value)out[el.dataset.key]=value;
+  });
+  return out;
 }
 
 async function uploadEditImage(file,userId){
   const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/gi,"")||"jpg";
   const path=`${userId}/archive/${crypto.randomUUID()}.${ext}`;
-  const {error}=await supabase.storage.from("archive-images").upload(path,file,{
-    cacheControl:"3600",upsert:false,contentType:file.type
-  });
+  const {error}=await supabase.storage.from("archive-images").upload(path,file,{cacheControl:"3600",upsert:false,contentType:file.type});
   if(error)throw error;
   return supabase.storage.from("archive-images").getPublicUrl(path).data.publicUrl;
 }
 
-document.getElementById("editAddRecord").addEventListener("click",()=>addEditRecord());
-
-async function getUser(){
-  const {data:{user},error}=await supabase.auth.getUser();
-  if(error)throw error;
-  return user;
+async function resolveDraftBlocks(html,userId){
+  const temp=document.createElement("div");
+  temp.innerHTML=html||"";
+  const blocks=[];
+  let textBuffer="";
+  const flush=()=>{const v=textBuffer.replace(/\u00a0/g," ").replace(/^[\n\r]+|[\n\r]+$/g,"");if(v.trim())blocks.push({type:"text",value:v});textBuffer=""};
+  const walk=async node=>{
+    if(node.nodeType===Node.TEXT_NODE){textBuffer+=node.nodeValue||"";return;}
+    if(node.nodeType!==Node.ELEMENT_NODE)return;
+    if(node.tagName==="IMG"){
+      flush();let src=node.getAttribute("src")||"";
+      if(src.startsWith("blob:")){const file=editNewFiles.get(src);if(file)src=await uploadEditImage(file,userId);else src="";}
+      if(src)blocks.push({type:"image",url:src});
+      textBuffer+="\n";return;
+    }
+    if(node.tagName==="BR"){textBuffer+="\n";return;}
+    for(const child of [...node.childNodes])await walk(child);
+    if(["DIV","P","LI"].includes(node.tagName))textBuffer+="\n";
+  };
+  for(const child of [...temp.childNodes])await walk(child);
+  flush();
+  return blocks;
 }
 
 function openEdit(){
   if(!loadedArchive)return;
   document.getElementById("editArchiveName").value=loadedArchive.name||"";
   const type=loadedArchive.type||"basic";
-  makeEditFields(type,loadedRecords[0]);
+  const infoRecord=loadedRecords.find(r=>detailEntries(type,r).length)||loadedRecords[0];
+  makeEditFields(type,infoRecord);
   editTextColor=loadedArchive.text_color||"black";
   document.querySelectorAll(".edit-text-color-option").forEach(b=>b.classList.toggle("active",b.dataset.editTextColor===editTextColor));
-  editRecordsEl.innerHTML="";
-  loadedRecords.forEach(record=>addEditRecord(record));
+  editDrafts.clear();editRemoved.clear();editNewFiles.clear();closeRecordEditor(false);
+  loadedRecords.forEach(record=>editDrafts.set(`record:${record.id}`,{date:record.date||"",html:draftHtmlFromRecord(record),dirty:false}));
+  renderEditRecordList();
   document.querySelector(".archive-label").textContent="♡ EDIT ARCHIVE";
   document.getElementById("editPanel").hidden=false;
   document.getElementById("editButton").hidden=true;
@@ -662,72 +820,60 @@ function openEdit(){
 }
 
 document.getElementById("editCancel").addEventListener("click",()=>{
+  closeRecordEditor(false);
   document.getElementById("editPanel").hidden=true;
   document.getElementById("editButton").hidden=false;
-  if(loadedArchive){
-    document.querySelector(".archive-label").textContent="♡ ARCHIVE";
-  }
+  if(loadedArchive)document.querySelector(".archive-label").textContent="♡ ARCHIVE";
 });
 document.getElementById("editButton").addEventListener("click",openEdit);
 
-supabase.auth.onAuthStateChange((_event,session)=>{
-  document.getElementById("editButton").hidden=!session;
-});
+supabase.auth.onAuthStateChange((_event,session)=>{document.getElementById("editButton").hidden=!session});
 
 document.getElementById("editSave").addEventListener("click",async()=>{
   const user=await getUser();
   if(!user){alert("로그인이 필요합니다.");return;}
-
+  saveActiveDraft();
   const name=document.getElementById("editArchiveName").value.trim();
   if(!name){alert("아카이브 이름을 입력해주세요.");return;}
-
   const type=loadedArchive.type||"basic";
   const save=document.getElementById("editSave");
   save.disabled=true;save.textContent="SAVING…";
-
   try{
-    const {error:archiveError}=await supabase.from("archives")
-      .update({name,text_color:editTextColor}).eq("id",loadedArchive.id).eq("user_id",user.id);
+    const {error:archiveError}=await supabase.from("archives").update({name,text_color:editTextColor}).eq("id",loadedArchive.id).eq("user_id",user.id);
     if(archiveError)throw archiveError;
 
     const details=collectDetails(type);
-    const detailSource=loadedRecords[0];
-
-    const editors=[...editRecordsEl.querySelectorAll(".edit-record")];
-
-    for(const editor of editors){
-      const recordId=editor.dataset.recordId||"";
-      const removed=editor.dataset.removed==="true";
-      if(removed){
-        if(recordId){
-          const {error}=await supabase.from("archive_records").delete().eq("id",recordId).eq("user_id",user.id);
-          if(error)throw error;
-        }
+    let detailApplied=false;
+    for(const record of loadedRecords){
+      const recordId=record.id;
+      if(editRemoved.has(recordId)){
+        const {error}=await supabase.from("archive_records").delete().eq("id",recordId).eq("user_id",user.id);
+        if(error)throw error;
         continue;
       }
-
-      const contentBlocks=htmlToBlocks(editor.querySelector(".edit-record-editor"));
-      const resolved=[];
-      for(const block of contentBlocks){
-        if(block.type==="image"&&block.url.startsWith("blob:")){
-          const file=editNewFiles.get(block.url);
-          if(file)resolved.push({type:"image",url:await uploadEditImage(file,user.id)});
-        }else resolved.push(block);
+      const draft=editDrafts.get(`record:${recordId}`);
+      if(!draft)continue;
+      const blocks=await resolveDraftBlocks(draft.html,user.id);
+      const content=blocks.filter(b=>b.type==="text").map(b=>b.value).join("\n");
+      const imageUrl=blocks.find(b=>b.type==="image")?.url||null;
+      const extra={...(record.extra_data||{}),content_blocks:blocks};
+      if(!detailApplied){
+        delete extra.field_1;delete extra.field_2;delete extra.field_3;delete extra.field_4;
+        Object.assign(extra,details);detailApplied=true;
       }
-      const content=resolved.filter(b=>b.type==="text").map(b=>b.value).join("\n");
-      const imageUrl=resolved.find(b=>b.type==="image")?.url||null;
-      const date=editor.querySelector(".edit-record-date")?.value||new Date().toISOString().slice(0,10);
-      const title=loadedRecords.find(r=>r.id===recordId)?.title||loadedArchive.name||"후기";
+      const {error}=await supabase.from("archive_records").update({date:draft.date||record.date,title:record.title||name,content,image_url:imageUrl,extra_data:extra}).eq("id",recordId).eq("user_id",user.id);
+      if(error)throw error;
+    }
 
-      if(recordId){
-        const existing=loadedRecords.find(r=>r.id===recordId);
-        const extra={...(existing?.extra_data||{}),...details,content_blocks:resolved};
-        const {error}=await supabase.from("archive_records").update({date,title,content,image_url:imageUrl,extra_data:extra}).eq("id",recordId).eq("user_id",user.id);
-        if(error)throw error;
-      }else{
-        const {error}=await supabase.from("archive_records").insert({archive_id:loadedArchive.id,user_id:user.id,date,title,content,image_url:imageUrl,extra_data:{content_blocks:resolved}});
-        if(error)throw error;
-      }
+    for(const [key,draft] of editDrafts){
+      if(!key.startsWith("new:")||draft.removed)continue;
+      const blocks=await resolveDraftBlocks(draft.html,user.id);
+      const content=blocks.filter(b=>b.type==="text").map(b=>b.value).join("\n");
+      const imageUrl=blocks.find(b=>b.type==="image")?.url||null;
+      const extra={content_blocks:blocks};
+      if(!detailApplied){Object.assign(extra,details);detailApplied=true;}
+      const {error}=await supabase.from("archive_records").insert({archive_id:loadedArchive.id,user_id:user.id,date:draft.date||new Date().toISOString().slice(0,10),title:name,content,image_url:imageUrl,extra_data:extra});
+      if(error)throw error;
     }
 
     alert("수정되었습니다.");
@@ -735,9 +881,7 @@ document.getElementById("editSave").addEventListener("click",async()=>{
   }catch(error){
     console.error("ARCHIVE EDIT",error);
     alert("수정에 실패했습니다.\n"+(error?.message||"알 수 없는 오류"));
-  }finally{
-    save.disabled=false;save.textContent="SAVE";
-  }
+  }finally{save.disabled=false;save.textContent="SAVE";}
 });
 
 function renderCategoryArchives(category, archives){
@@ -846,7 +990,7 @@ async function loadArchive(){
     document.getElementById("archiveTitle").textContent="ARCHIVE를 찾을 수 없습니다.";return;
   }
   const {data:archive,error:archiveError}=await supabase.from("archives")
-    .select("id,name,type,image_url,created_at,user_id").eq("id",archiveId).single();
+    .select("id,name,type,image_url,text_color,created_at,user_id").eq("id",archiveId).single();
   if(archiveError){
     console.error(archiveError);
     document.getElementById("archiveTitle").textContent="ARCHIVE를 불러오지 못했습니다.";return;
