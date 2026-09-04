@@ -624,6 +624,16 @@ function makeEditFields(type,record){
         : `<input class="edit-detail-input" data-key="${key}" value="${esc(vals[key]||"")}" type="text">`}
     </div>`;
   }).join("");
+
+  // textarea의 Enter가 상위 폼/키보드 처리에 막히지 않도록 직접 처리합니다.
+  box.querySelectorAll("textarea.edit-detail-textarea").forEach(textarea=>{
+    textarea.addEventListener("keydown",e=>{
+      if(e.key !== "Enter") return;
+      e.stopPropagation();
+      // 일반 textarea의 기본 줄바꿈 동작을 그대로 사용합니다.
+      // Shift+Enter도 동일하게 새 줄을 만듭니다.
+    });
+  });
 }
 
 function collectDetails(type){
@@ -634,20 +644,6 @@ function collectDetails(type){
   });
   return out;
 }
-
-// 셋리스트/메모 textarea에서는 Enter 줄바꿈을 그대로 허용합니다.
-document.addEventListener("keydown",e=>{
-  const target=e.target;
-  if(target instanceof HTMLTextAreaElement && target.closest("#editDetails") && e.key==="Enter"){
-    // 부모/폼의 Enter 처리와 무관하게 textarea 안에 실제 줄바꿈을 넣습니다.
-    e.preventDefault();
-    e.stopPropagation();
-    const start=target.selectionStart ?? target.value.length;
-    const end=target.selectionEnd ?? start;
-    target.setRangeText("\n",start,end,"end");
-    target.dispatchEvent(new Event("input",{bubbles:true}));
-  }
-});
 
 const editRecordsEl=document.getElementById("editRecords");
 const editNewFiles=new Map();
