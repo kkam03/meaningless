@@ -449,13 +449,18 @@
     }
 
     async function removeDiaryStorageImages(post) {
-      const paths = getDiaryImageUrls(post)
+      const urls = getDiaryImageUrls(post);
+      const paths = urls
         .map(url => getStoragePathFromPublicUrl(url, "diary-images"))
         .filter(Boolean);
+
       if (!paths.length) return;
 
       const { error } = await supabase.storage.from("diary-images").remove(paths);
-      if (error) throw error;
+      if (error) {
+        console.error("DIARY STORAGE DELETE", { urls, paths, error });
+        throw new Error("사진 파일 삭제에 실패했습니다. " + error.message);
+      }
     }
 
     async function loadPost() {
