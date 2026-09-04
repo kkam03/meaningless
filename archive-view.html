@@ -94,6 +94,8 @@ header{padding:28px 0 18px}
 }
 .edit-field{margin-bottom:18px}
 .edit-field:last-of-type{margin-bottom:0}
+.edit-archive-date{margin-top:0}
+.edit-archive-date input{height:40px;box-sizing:border-box}
 .edit-record-date-label{display:block;margin-top:0;margin-bottom:5px;color:var(--point);font-size:9px;font-weight:700;letter-spacing:.08em}
 .edit-field label{
   display:block;margin-bottom:6px;
@@ -236,6 +238,21 @@ main{padding:0 0 70px}
   gap:12px;
   margin-top:4px
 }
+.archive-date{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 0;
+  border-top:1px solid var(--line);
+  font-size:10px
+}
+.archive-date-label{
+  color:var(--point);
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.08em
+}
+.archive-date-value{white-space:nowrap;color:var(--muted)}
 .detail-row{
   display:grid;
   grid-template-columns:120px 1fr;
@@ -363,6 +380,11 @@ footer{
     <div class="edit-field">
       <label>TYPE DETAILS</label>
       <div id="editDetails"></div>
+    </div>
+
+    <div class="edit-field edit-archive-date" id="editDateField">
+      <label for="editArchiveDate">DATE</label>
+      <input id="editArchiveDate" type="date" aria-label="날짜">
     </div>
 
     <div class="edit-field">
@@ -494,7 +516,10 @@ function detailEntries(type,record){
 function renderDetails(type,record){
   const box=document.getElementById("details");
   const entries=detailEntries(type,record);
-  box.innerHTML=entries.map(([key,value],i)=>{
+  const dateHtml=(type!=="travel" && record?.date)
+    ? `<div class="archive-date"><span class="archive-date-label">DATE</span><span class="archive-date-value">${esc(formatDate(record.date))}</span></div>`
+    : "";
+  box.innerHTML=dateHtml+entries.map(([key,value],i)=>{
     const label=semanticLabels[type]?.[i] || key.replaceAll("_"," ").toUpperCase();
     return `<div class="detail-row"><div class="detail-key">${esc(label)}</div><div class="detail-value">${esc(value)}</div></div>`;
   }).join("");
@@ -522,7 +547,6 @@ function renderRecords(type, skipImageUrl=""){
   }
   box.innerHTML=loadedRecords.map(record=>`
     <article class="record">
-      <div class="record-date"><span class="record-date-label">DATE</span><span class="record-date-value">${esc(formatDate(record.date))}</span></div>
       ${renderRecordBody(record, skipImageUrl)}
     </article>
   `).join("");
@@ -607,8 +631,6 @@ function addEditRecord(record={}){
       <div class="edit-record-label">RECORD</div>
       <button class="edit-record-delete" type="button">×</button>
     </div>
-    <label class="edit-record-date-label">DATE</label>
-    <input class="edit-record-input edit-record-date" type="date" value="${esc(record.date||new Date().toISOString().slice(0,10))}">
     <div class="edit-record-editor-wrap">
       <div class="edit-record-editor" contenteditable="true" data-placeholder="기록해두기.">${blockDataToEditorHtml(record)}</div>
       <div class="edit-record-toolbar">
@@ -670,6 +692,10 @@ function openEdit(){
   document.getElementById("editArchiveName").value=loadedArchive.name||"";
   const type=loadedArchive.type||"basic";
   makeEditFields(type,loadedRecords[0]);
+  const editDateField=document.getElementById("editDateField");
+  const editArchiveDate=document.getElementById("editArchiveDate");
+  if(editDateField)editDateField.style.display=type==="travel"?"none":"block";
+  if(editArchiveDate)editArchiveDate.value=loadedRecords[0]?.date||new Date().toISOString().slice(0,10);
   editTextColor=loadedArchive.text_color||"black";
   document.querySelectorAll(".edit-text-color-option").forEach(b=>b.classList.toggle("active",b.dataset.editTextColor===editTextColor));
   editRecordsEl.innerHTML="";
@@ -714,7 +740,7 @@ document.getElementById("editSave").addEventListener("click",async()=>{
     if(archiveError)throw archiveError;
 
     const details=collectDetails(type);
-    const detailSource=loadedRecords[0];
+    const archiveDate=document.getElementById("editArchiveDate")?.value||new Date().toISOString().slice(0,10);
 
     const editors=[...editRecordsEl.querySelectorAll(".edit-record")];
 
@@ -739,8 +765,11 @@ document.getElementById("editSave").addEventListener("click",async()=>{
       }
       const content=resolved.filter(b=>b.type==="text").map(b=>b.value).join("\n");
       const imageUrl=resolved.find(b=>b.type==="image")?.url||null;
-      const date=editor.querySelector(".edit-record-date")?.value||new Date().toISOString().slice(0,10);
-      const title=loadedRecords.find(r=>r.id===recordId)?.title||loadedArchive.name||"후기";
+      const existingRecord=loadedRecords.find(r=>r.id===recordId);
+      const date=type==="travel"
+        ? (existingRecord?.date||new Date().toISOString().slice(0,10))
+        : archiveDate;
+      const title=existingRecord?.title||loadedArchive.name||"후기";
 
       if(recordId){
         const existing=loadedRecords.find(r=>r.id===recordId);
