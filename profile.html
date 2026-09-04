@@ -186,11 +186,37 @@ async function loadProfile(){
   return user;
 }
 async function uploadAvatar(file,userId){
-  const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
-  const path=`${userId}/profile.${ext}`;
-  const {error}=await supabase.storage.from("profile-images").upload(path,file,{cacheControl:"3600",upsert:true,contentType:file.type});
+  // 작은 원본 이미지가 22~24px로 축소되면서 선이 깨지는 것을 줄이기 위해
+  // 표시용 이미지를 고해상도로 한 번 리샘플링해서 저장합니다.
+  const bitmap=await createImageBitmap(file);
+  const sourceW=bitmap.width, sourceH=bitmap.height;
+  const targetSize=512;
+  const canvas=document.createElement("canvas");
+  canvas.width=targetSize;
+  canvas.height=targetSize;
+  const ctx=canvas.getContext("2d");
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality="high";
+
+  const scale=Math.max(targetSize/sourceW,targetSize/sourceH);
+  const drawW=sourceW*scale, drawH=sourceH*scale;
+  const dx=(targetSize-drawW)/2, dy=(targetSize-drawH)/2;
+  ctx.drawImage(bitmap,dx,dy,drawW,drawH);
+  bitmap.close();
+
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
+  if(!blob)throw new Error("프로필 이미지를 처리하지 못했습니다.");
+
+  const path=`${userId}/profile.png`;
+  const {error}=await supabase.storage.from("profile-images").upload(path,blob,{
+    cacheControl:"31536000",
+    upsert:true,
+    contentType:"image/png"
+  });
   if(error)throw error;
-  return supabase.storage.from("profile-images").getPublicUrl(path).data.publicUrl;
+
+  const publicUrl=supabase.storage.from("profile-images").getPublicUrl(path).data.publicUrl;
+  return `${publicUrl}?v=${Date.now()}`;
 }
 document.getElementById("saveButton").onclick=async()=>{
   const nickname=document.getElementById("nickname").value.trim();
