@@ -27,8 +27,9 @@ input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--
 .type:hover{border-color:#c9dfdb;color:var(--point)}
 .type.active{border-color:var(--point);background:var(--soft);color:var(--point);font-weight:600}
 .option-fields{padding-top:2px}
-.date-field{margin-bottom:8px}.date-field input{height:40px}
-.option-panel{display:grid;gap:8px;width:100%;grid-template-columns:minmax(0,1fr)}
+.date-field{display:block;width:100%;margin-bottom:8px}.date-field input{height:40px;box-sizing:border-box;width:100%}
+.option-panel{display:grid;gap:8px;width:100%;min-width:0;grid-template-columns:minmax(0,1fr)}
+.option-panel input,.option-panel textarea{box-sizing:border-box;min-width:0;width:100%}
 .option-panel input{height:40px}
 .option-panel textarea{min-height:95px}
 .add-custom{width:max-content;margin-top:2px;padding:4px 0;border:0;background:transparent;color:var(--point);font-size:10px;cursor:pointer}
