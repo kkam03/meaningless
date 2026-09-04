@@ -123,7 +123,10 @@ header.category-mode{padding-bottom:0}
 .edit-record-editor{min-height:180px;padding:12px;outline:none;font:inherit;font-size:15px;line-height:1.85;white-space:pre-wrap;word-break:break-word}
 .edit-record-editor:empty:before{content:attr(data-placeholder);color:var(--muted)}
 .edit-record-editor:focus{box-shadow:0 0 0 3px var(--point-soft)}
-.edit-record-editor img{display:block;max-width:100%;width:auto;height:auto;margin:14px 0;border-radius:7px}\n.edit-record-editor .youtube-embed{display:block;width:100%;aspect-ratio:16/9;border:0;border-radius:8px;background:#000;margin:14px 0}\n.edit-record-youtube{border:1px solid var(--line);background:#fff;color:var(--point);border-radius:7px;padding:6px 9px;font:inherit;font-size:9px;font-weight:600;cursor:pointer}
+.edit-record-editor img{display:block;max-width:100%;width:auto;height:auto;margin:14px 0;border-radius:7px}
+.edit-record-editor .youtube-embed{display:block;width:100%;aspect-ratio:16/9;border:0;border-radius:8px;background:#000;margin:14px 0}
+.edit-record-youtube{border:1px solid var(--line);background:#fff;color:var(--point);border-radius:7px;padding:6px 9px;font:inherit;font-size:9px;font-weight:600;line-height:1.2;cursor:pointer;appearance:none;-webkit-appearance:none;box-sizing:border-box}
+.edit-record-youtube:hover{border-color:var(--point);background:var(--point-soft)}
 .edit-record-toolbar{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--line);background:var(--theme-bg)}
 .edit-record-photo{border:1px solid var(--line);background:#fff;color:var(--point);border-radius:7px;padding:6px 9px;font:inherit;font-size:9px;font-weight:600;cursor:pointer}
 .edit-record-photo-input{display:none}
@@ -282,10 +285,10 @@ main{padding:0 0 70px}
   font-size:10px;
   font-weight:700;
   letter-spacing:.08em;
-  margin-bottom:18px
+  margin-bottom:8px
 }
 .record{
-  padding:16px 0 30px;
+  padding:0 0 30px;
   border-bottom:1px solid var(--line)
 }
 .record-date{
@@ -311,9 +314,9 @@ main{padding:0 0 70px}
   letter-spacing:-.02em
 }
 .record-content{
-  margin-top:13px;
+  margin-top:10px;
   white-space:pre-wrap;
-  font-size:13px;
+  font-size:15px;
   line-height:1.9
 }
 .record-image{
@@ -321,7 +324,7 @@ main{padding:0 0 70px}
   width:100%;
   max-height:520px;
   object-fit:contain;
-  margin:18px 0 0;
+  margin:10px 0 0;
   border-radius:12px;
   border:1px solid var(--line)
 }
@@ -345,7 +348,7 @@ footer{
   .detail-row{grid-template-columns:88px 1fr;gap:12px}
   .hero-photo{max-height:360px}
 }
-.record-youtube{width:100%;aspect-ratio:16/9;border:0;border-radius:10px;background:#000;display:block;margin:16px 0;}
+.record-youtube{width:100%;aspect-ratio:16/9;border:0;border-radius:10px;background:#000;display:block;margin:10px 0;}
 </style>
 </head>
 <body>
