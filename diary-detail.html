@@ -621,10 +621,10 @@
       const postContent = $("postContent");
       const savedContent = post.content || "";
 
-      // 기존 일반 텍스트와 사진이 포함된 HTML DIARY를 모두 표시합니다.
-      if (/<img\b/i.test(savedContent)) {
+      // 기존 일반 텍스트, 사진, YouTube 임베드가 포함된 HTML DIARY를 모두 표시합니다.
+      if (/<(?:img|iframe|p|div|br|strong|em|b|i|u)\b/i.test(savedContent)) {
         const doc = new DOMParser().parseFromString(savedContent, "text/html");
-        const allowedTags = new Set(["IMG", "BR", "DIV", "P", "STRONG", "EM", "B", "I", "U"]);
+        const allowedTags = new Set(["IMG", "IFRAME", "BR", "DIV", "P", "STRONG", "EM", "B", "I", "U"]);
 
         doc.body.querySelectorAll("*").forEach(node => {
           if (!allowedTags.has(node.tagName)) {
@@ -633,12 +633,33 @@
           }
 
           [...node.attributes].forEach(attr => {
-            if (node.tagName === "IMG" && attr.name === "src" &&
-                attr.value.startsWith("https://wtadsjkexnqyzrlogmou.supabase.co/storage/v1/object/public/diary-images/")) {
+            const name = attr.name.toLowerCase();
+            const value = attr.value || "";
+
+            if (node.tagName === "IMG" && name === "src" &&
+                value.startsWith("https://wtadsjkexnqyzrlogmou.supabase.co/storage/v1/object/public/diary-images/")) {
               return;
             }
+
+            if (node.tagName === "IFRAME") {
+              const allowedIframeSrc =
+                (value.startsWith("https://www.youtube-nocookie.com/embed/") ||
+                 value.startsWith("https://www.youtube.com/embed/") ||
+                 value.startsWith("https://youtube.com/embed/"));
+              const allowedIframeAttrs = new Set([
+                "src", "title", "loading", "referrerpolicy", "allow", "allowfullscreen", "class"
+              ]);
+
+              if (name === "src" && allowedIframeSrc) return;
+              if (allowedIframeAttrs.has(name) && (name !== "class" || value === "youtube-embed")) return;
+            }
+
             node.removeAttribute(attr.name);
           });
+
+          if (node.tagName === "IFRAME" && !node.getAttribute("src")) {
+            node.remove();
+          }
         });
 
         postContent.innerHTML = doc.body.innerHTML;
