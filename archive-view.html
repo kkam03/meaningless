@@ -94,7 +94,7 @@ header{padding:28px 0 18px}
 }
 .edit-field{margin-bottom:18px}
 .edit-field:last-of-type{margin-bottom:0}
-.edit-record-date-label{display:block;margin-top:2px;margin-bottom:5px;color:var(--muted);font-size:9px;font-weight:600;letter-spacing:.06em}
+.edit-record-date-label{display:block;margin-top:0;margin-bottom:5px;color:var(--point);font-size:9px;font-weight:700;letter-spacing:.08em}
 .edit-field label{
   display:block;margin-bottom:6px;
   color:var(--point);font-size:9px;font-weight:700;letter-spacing:.08em
@@ -129,7 +129,10 @@ header{padding:28px 0 18px}
 .edit-record-label{color:var(--point);font-size:9px;font-weight:700;letter-spacing:.08em}
 .edit-record-delete{border:0;background:transparent;color:var(--muted);font-size:13px;cursor:pointer}
 .edit-record-input,.edit-record-textarea{
-  width:100%;border:1px solid var(--line);border-radius:8px;background:#fff;
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+  border:1px solid var(--line);border-radius:8px;background:#fff;
   color:var(--text);font:inherit;font-size:11px;padding:9px 10px;outline:none;margin-top:0
 }
 .edit-record-input:focus,.edit-detail-input:focus,.edit-detail-textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--point-soft)}
@@ -185,7 +188,7 @@ header{padding:28px 0 18px}
 .archive-card.text-white.has-image::after{background:linear-gradient(to bottom,rgba(0,0,0,.06),rgba(0,0,0,.5))}
 .archive-card-content{position:relative;z-index:1;display:flex;flex-direction:column;min-height:164px;height:100%}
 .archive-card-top{display:flex;justify-content:space-between;color:var(--point);font-size:9px;font-weight:700;letter-spacing:.08em}
-.archive-card-title{margin-top:auto;padding-top:22px;font-size:18px;font-weight:600;letter-spacing:-.04em;word-break:break-word}
+.archive-card-title{margin-top:auto;padding-top:22px;font-size:18px;font-weight:600;letter-spacing:-.04em;word-break:break-word;color:var(--point)}
 .archive-card-subtitle{margin-top:5px;color:var(--muted);font-size:10px;line-height:1.6;min-height:1.6em;white-space:pre-wrap;word-break:break-word}
 .archive-card-bottom{display:flex;justify-content:space-between;gap:8px;margin-top:18px;color:var(--muted);font-size:9px;letter-spacing:.05em}
 .category-description{
@@ -268,9 +271,21 @@ main{padding:0 0 70px}
   border-bottom:1px solid var(--line)
 }
 .record-date{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
   color:var(--muted);
-  font-size:10px;
-  margin-bottom:6px
+  font-size:10px
+}
+.record-date-label{
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.08em;
+  color:var(--point)
+}
+.record-date-value{
+  white-space:nowrap
 }
 .record-title{
   font-size:16px;
@@ -507,7 +522,7 @@ function renderRecords(type, skipImageUrl=""){
   }
   box.innerHTML=loadedRecords.map(record=>`
     <article class="record">
-      <div class="record-date">${esc(formatDate(record.date))}</div>
+      <div class="record-date"><span class="record-date-label">DATE</span><span class="record-date-value">${esc(formatDate(record.date))}</span></div>
       ${renderRecordBody(record, skipImageUrl)}
     </article>
   `).join("");
