@@ -251,7 +251,7 @@ main{padding:0 0 70px}
   word-break:break-word
 }
 .record-divider{
-  margin:38px 0 22px;
+  margin:28px 0 22px;
   border-top:1px solid var(--line)
 }
 .records-label{
@@ -446,7 +446,9 @@ document.addEventListener("click",e=>{if(!themeWrap.contains(e.target))themeWrap
 const params=new URLSearchParams(location.search);
 const archiveId=params.get("id");
 const categoryId=params.get("category");
-document.getElementById("backLink").href="./index.html?theme="+encodeURIComponent(currentTheme);
+document.getElementById("backLink").href = categoryId
+  ? "./archive-view.html?category="+encodeURIComponent(categoryId)+"&theme="+encodeURIComponent(currentTheme)
+  : "./index.html?theme="+encodeURIComponent(currentTheme);
 
 let loadedArchive=null;
 let loadedRecords=[];
@@ -772,7 +774,7 @@ function renderCategoryArchives(category, archives){
   records.innerHTML=`<div class="archive-grid">${archives.map(archive=>{
     const image=archive.image_url||archive._image_url||"";
     const textClass=archive.text_color==="white"?" text-white":"";
-    return `<a class="archive-card${image?" has-image":""}${textClass}" href="./archive-view.html?id=${encodeURIComponent(archive.id)}&theme=${encodeURIComponent(currentTheme)}">
+    return `<a class="archive-card${image?" has-image":""}${textClass}" href="./archive-view.html?id=${encodeURIComponent(archive.id)}&category=${encodeURIComponent(category.id)}&theme=${encodeURIComponent(currentTheme)}">
       ${image?`<img class="archive-card-image" src="${esc(image)}" alt="">`:""}
       <div class="archive-card-content">
         <div class="archive-card-top"><span>${esc((archive.type||"ARCHIVE").toUpperCase())}</span><span>↗</span></div>
