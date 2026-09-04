@@ -717,10 +717,11 @@ async function loadProfileSummary(){
     if(data?.avatar_url){
       profileAvatar.className="profile-avatar";
       profileAvatar.innerHTML="";
-      profileAvatar.src=data.avatar_url;
-      profileAvatar.alt="";
+      profileAvatar.style.backgroundImage=`url("${data.avatar_url}")`;
+      profileAvatar.style.backgroundSize="cover";
+      profileAvatar.style.backgroundPosition="center";
     }else{
-      profileAvatar.removeAttribute("src");
+      profileAvatar.style.backgroundImage="";
       profileAvatar.className="profile-avatar profile-avatar-placeholder";
       profileAvatar.textContent="♡";
     }
