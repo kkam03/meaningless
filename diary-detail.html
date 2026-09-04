@@ -201,9 +201,12 @@
     .diary-like {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
+      width: 100%;
+      margin: 14px 0 0;
+      padding: 0;
+      text-align: left;
       gap: 5px;
-      margin: 34px 0 0;
       color: var(--muted);
       font-size: 11px;
     }
@@ -262,7 +265,7 @@
     .status { color: var(--muted); font-size: 12px; }
 
     .post-divider {
-      margin-top: 78px;
+      margin-top: 42px;
       border-top: 1px solid var(--line);
     }
 
@@ -499,29 +502,41 @@
       countEl.textContent = String(count);
       button.textContent = liked ? "♥" : "♡";
       button.classList.toggle("liked", liked);
-      button.disabled = liked;
+      button.disabled = false;
       likeWrap.hidden = false;
 
       button.onclick = async () => {
-        if (button.disabled) return;
         button.disabled = true;
 
-        const { error } = await supabase.from("diary_likes").insert({
-          diary_id: postId,
-          visitor_id: visitorId
+        const { data: nextLiked, error } = await supabase.rpc("toggle_diary_like", {
+          p_diary_id: postId,
+          p_visitor_id: visitorId
         });
 
-        if (error && error.code !== "23505") {
+        if (error) {
           console.error("DIARY LIKE", error);
-          alert("하트를 남기지 못했습니다.\n" + error.message);
+          alert("하트를 변경하지 못했습니다.\n" + error.message);
           button.disabled = false;
           return;
         }
 
-        button.textContent = "♥";
-        button.classList.add("liked");
-        const current = Number(countEl.textContent || 0);
-        countEl.textContent = String(error?.code === "23505" ? current : current + 1);
+        const { count: nextCount, error: countError } = await supabase
+          .from("diary_likes")
+          .select("id", { count: "exact", head: true })
+          .eq("diary_id", postId);
+
+        if (countError) {
+          console.error("DIARY LIKE COUNT", countError);
+          alert("하트 수를 불러오지 못했습니다.\n" + countError.message);
+          button.disabled = false;
+          return;
+        }
+
+        const isLiked = nextLiked === true;
+        button.textContent = isLiked ? "♥" : "♡";
+        button.classList.toggle("liked", isLiked);
+        countEl.textContent = String(nextCount ?? 0);
+        button.disabled = false;
       };
     }
 
