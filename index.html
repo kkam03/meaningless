@@ -14,9 +14,9 @@
       --background: #ffffff;
       --text: #29262a;
       --muted: #8a8588;
-      --line: #e5eeee;
-      --point: #62b9aa;
-      --point-soft: #dff2ee;
+      --line: #e0ecea;
+      --point: #4fae9f;
+      --point-soft: #d6efea;
       --theme-bg: #f7fbfa;
     }
 
@@ -358,17 +358,9 @@
       color: var(--muted);
     }
 
-    .footer-nav {
-      display: flex;
-      gap: 20px;
-    }
-
-    .footer-nav a {
-      transition: color 0.2s ease;
-    }
-
-    .footer-nav a:hover {
-      color: var(--point);
+    .footer-copy {
+      font-size: 10px;
+      letter-spacing: 0.04em;
     }
 
 
@@ -568,16 +560,16 @@
         <button class="theme-button" id="themeButton" type="button">THEME</button>
       <div class="theme-menu">
         <button class="theme-option" type="button" data-theme="mint">
-          <span class="theme-dot" style="--theme-color:#62b9aa"></span> Mint
+          <span class="theme-dot" style="--theme-color:#4fae9f"></span> Mint
         </button>
         <button class="theme-option" type="button" data-theme="pink">
-          <span class="theme-dot" style="--theme-color:#d8799a"></span> Pink
+          <span class="theme-dot" style="--theme-color:#d3638b"></span> Pink
         </button>
         <button class="theme-option" type="button" data-theme="lavender">
-          <span class="theme-dot" style="--theme-color:#9a8bc2"></span> Lavender
+          <span class="theme-dot" style="--theme-color:#8d78bb"></span> Lavender
         </button>
         <button class="theme-option" type="button" data-theme="blue">
-          <span class="theme-dot" style="--theme-color:#70a9c2"></span> Blue
+          <span class="theme-dot" style="--theme-color:#5f9fbc"></span> Blue
         </button>
         </div>
       </div>
@@ -623,10 +615,7 @@
     </main>
 
     <footer>
-      <div class="footer-nav">
-        <a href="#">archive</a>
-        <a href="#">about</a>
-      </div>
+      <div class="footer-copy">© 2026 meaningless. All rights reserved.</div>
     </footer>
 
   </div>
@@ -639,10 +628,10 @@ const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 const $=id=>document.getElementById(id);
 
 const themes={
-  mint:{point:"#62b9aa",pointSoft:"#dff2ee",line:"#e5eeee",themeBg:"#f7fbfa"},
-  pink:{point:"#d8799a",pointSoft:"#f6dfe8",line:"#eee3e7",themeBg:"#fff8fa"},
-  lavender:{point:"#9a8bc2",pointSoft:"#e9e4f4",line:"#e8e5ee",themeBg:"#faf8fd"},
-  blue:{point:"#70a9c2",pointSoft:"#e0eef3",line:"#e3ebee",themeBg:"#f7fbfd"}
+  mint:{point:"#4fae9f",pointSoft:"#d6efea",line:"#e0ecea",themeBg:"#f7fbfa"},
+  pink:{point:"#d3638b",pointSoft:"#f3d6e1",line:"#eadde2",themeBg:"#fff8fa"},
+  lavender:{point:"#8d78bb",pointSoft:"#e5dff2",line:"#e4e1ea",themeBg:"#faf8fd"},
+  blue:{point:"#5f9fbc",pointSoft:"#dbeaf0",line:"#dfe8eb",themeBg:"#f7fbfd"}
 };
 
 const diaryList=$("diaryList"), archiveGrid=$("archiveGrid");
