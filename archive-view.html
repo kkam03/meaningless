@@ -251,12 +251,15 @@ main{padding:0 0 70px}
   gap:12px;
   margin-top:4px
 }
-.archive-date{
-  padding:4px 0 8px;
-  font-size:10px;
-  color:var(--muted)
+.archive-header-date{
+  margin-top:2px;
+  color:var(--muted);
+  font-size:16px;
+  line-height:1.35;
+  font-weight:500;
+  letter-spacing:-.02em;
 }
-.archive-date-value{white-space:nowrap}
+.archive-header-date[hidden]{display:none}
 .detail-row{
   display:grid;
   grid-template-columns:120px 1fr;
@@ -375,6 +378,7 @@ footer{
         <button class="archive-delete-button" id="archiveDeleteButton" type="button" hidden>DELETE</button>
       </div>
     </div>
+    <div class="archive-header-date" id="archiveHeaderDate" hidden></div>
   </header>
 
   <section class="edit-panel" id="editPanel" hidden aria-label="ARCHIVE EDIT">
@@ -536,13 +540,23 @@ function detailEntries(type,record){
 function renderDetails(type,record){
   const box=document.getElementById("details");
   const entries=detailEntries(type,record);
-  const dateHtml=(type!=="travel" && record?.date)
-    ? `<div class="archive-date"><span class="archive-date-value">${esc(formatDate(record.date))}</span></div>`
-    : "";
-  box.innerHTML=dateHtml+entries.map(([key,value],i)=>{
+  box.innerHTML=entries.map(([key,value],i)=>{
     const label=semanticLabels[type]?.[i] || key.replaceAll("_"," ").toUpperCase();
     return `<div class="detail-row"><div class="detail-key">${esc(label)}</div><div class="detail-value">${esc(value)}</div></div>`;
   }).join("");
+}
+
+function renderArchiveHeaderDate(record){
+  const el=document.getElementById("archiveHeaderDate");
+  if(!el)return;
+  const date=record?.date||"";
+  if(date){
+    el.textContent=formatDate(date);
+    el.hidden=false;
+  }else{
+    el.textContent="";
+    el.hidden=true;
+  }
 }
 
 function getYouTubeVideoId(value="") {
@@ -1124,6 +1138,7 @@ async function loadArchive(){
   if(heroUrl)document.getElementById("hero").innerHTML=`<img class="hero-photo" src="${esc(heroUrl)}" alt="">`;
 
   const infoRecord=loadedRecords[0]||null;
+  renderArchiveHeaderDate(infoRecord);
   renderDetails(type,infoRecord);
   // 대표사진이 RECORD 본문에도 들어있는 경우에는 한 번 더 보여주지 않습니다.
   renderRecords(type,heroUrl||"");
