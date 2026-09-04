@@ -120,10 +120,10 @@ header.category-mode{padding-bottom:0}
 .edit-text-color-option{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:7px;padding:7px 12px;font:inherit;font-size:9px;letter-spacing:.05em;cursor:pointer}
 .edit-text-color-option.active{border-color:var(--point);color:var(--point);background:var(--point-soft)}
 .edit-record-editor-wrap{border:1px solid var(--line);border-radius:8px;background:#fff;overflow:hidden;margin-top:7px}
-.edit-record-editor{min-height:180px;padding:12px;outline:none;font:inherit;font-size:11px;line-height:1.85;white-space:pre-wrap;word-break:break-word}
+.edit-record-editor{min-height:180px;padding:12px;outline:none;font:inherit;font-size:15px;line-height:1.85;white-space:pre-wrap;word-break:break-word}
 .edit-record-editor:empty:before{content:attr(data-placeholder);color:var(--muted)}
 .edit-record-editor:focus{box-shadow:0 0 0 3px var(--point-soft)}
-.edit-record-editor img{display:block;max-width:100%;width:auto;height:auto;margin:14px 0;border-radius:7px}
+.edit-record-editor img{display:block;max-width:100%;width:auto;height:auto;margin:14px 0;border-radius:7px}\n.edit-record-editor .youtube-embed{display:block;width:100%;aspect-ratio:16/9;border:0;border-radius:8px;background:#000;margin:14px 0}\n.edit-record-youtube{border:1px solid var(--line);background:#fff;color:var(--point);border-radius:7px;padding:6px 9px;font:inherit;font-size:9px;font-weight:600;cursor:pointer}
 .edit-record-toolbar{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--line);background:var(--theme-bg)}
 .edit-record-photo{border:1px solid var(--line);background:#fff;color:var(--point);border-radius:7px;padding:6px 9px;font:inherit;font-size:9px;font-weight:600;cursor:pointer}
 .edit-record-photo-input{display:none}
@@ -583,7 +583,6 @@ function renderRecords(type, skipImageUrl=""){
   }
   box.innerHTML=loadedRecords.map(record=>`
     <article class="record">
-      ${type==="basic"?"":`<div class="record-title">${esc(record.title||"기록")}</div>`}
       ${renderRecordBody(record, skipImageUrl)}
     </article>
   `).join("");
@@ -663,6 +662,47 @@ function insertEditImage(editor,file){
   sel.removeAllRanges();sel.addRange(range);editRanges.set(editor,range.cloneRange());
 }
 
+function insertEditYouTube(editor){
+  const input=prompt("YouTube URL을 입력해주세요.");
+  if(!input)return;
+  const videoId=getYouTubeVideoId(input.trim());
+  if(!videoId){
+    alert("유효한 YouTube 주소를 입력해주세요.");
+    return;
+  }
+
+  editor.focus();
+  const sel=window.getSelection();
+  let range=editRanges.get(editor);
+  if(!range){
+    range=document.createRange();
+    range.selectNodeContents(editor);
+    range.collapse(false);
+  }
+
+  range.deleteContents();
+
+  const iframe=document.createElement("iframe");
+  iframe.className="youtube-embed";
+  iframe.src=`https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}`;
+  iframe.title="YouTube video";
+  iframe.loading="lazy";
+  iframe.referrerPolicy="strict-origin-when-cross-origin";
+  iframe.allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+  iframe.allowFullscreen=true;
+  iframe.dataset.youtubeId=videoId;
+
+  range.insertNode(iframe);
+  const spacer=document.createTextNode("\n");
+  iframe.after(spacer);
+  range.setStartAfter(spacer);
+  range.collapse(true);
+
+  sel.removeAllRanges();
+  sel.addRange(range);
+  editRanges.set(editor,range.cloneRange());
+}
+
 function blockDataToEditorHtml(record){
   const blocks=Array.isArray(record?.extra_data?.content_blocks)?record.extra_data.content_blocks:null;
   if(blocks&&blocks.length){
@@ -692,12 +732,14 @@ function addEditRecord(record={}){
       <div class="edit-record-toolbar">
         <button class="edit-record-photo" type="button">＋ PHOTO</button>
         <input class="edit-record-photo-input" type="file" accept="image/*">
+        <button class="edit-record-youtube" type="button">＋ YOUTUBE</button>
       </div>
     </div>`;
 
   const editor=el.querySelector(".edit-record-editor");
   const photoBtn=el.querySelector(".edit-record-photo");
   const photoInput=el.querySelector(".edit-record-photo-input");
+  const youtubeBtn=el.querySelector(".edit-record-youtube");
   editor.addEventListener("keyup",()=>rememberEditSelection(editor));
   editor.addEventListener("mouseup",()=>rememberEditSelection(editor));
   editor.addEventListener("input",()=>rememberEditSelection(editor));
@@ -705,6 +747,8 @@ function addEditRecord(record={}){
   photoBtn.addEventListener("mousedown",e=>e.preventDefault());
   photoBtn.addEventListener("click",()=>{rememberEditSelection(editor);photoInput.click()});
   photoInput.addEventListener("change",()=>{const f=photoInput.files?.[0];if(f)insertEditImage(editor,f);photoInput.value=""});
+  youtubeBtn.addEventListener("mousedown",e=>e.preventDefault());
+  youtubeBtn.addEventListener("click",()=>{rememberEditSelection(editor);insertEditYouTube(editor)});
   el.querySelector(".edit-record-delete").onclick=()=>{el.dataset.removed="true";el.style.display="none"};
   editRecordsEl.appendChild(el);
 }
