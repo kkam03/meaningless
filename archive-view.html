@@ -28,7 +28,7 @@ a{color:inherit;text-decoration:none}
 .theme-wrap{position:fixed;top:28px;right:28px;z-index:20}
 .theme-button{
   border:0;background:transparent;color:var(--muted);
-  font:inherit;font-size:10px;letter-spacing:.08em;
+  font:inherit;font-size:11px;letter-spacing:.08em;
   cursor:pointer;padding:6px 0
 }
 .theme-button:hover{color:var(--point)}
@@ -43,31 +43,32 @@ a{color:inherit;text-decoration:none}
   display:flex;align-items:center;gap:8px;width:100%;
   padding:8px 7px;border:0;border-radius:7px;
   background:transparent;color:var(--text);
-  font:inherit;font-size:11px;text-align:left;cursor:pointer
+  font:inherit;font-size:12px;text-align:left;cursor:pointer
 }
 .theme-option:hover{background:var(--point-soft)}
 .theme-dot{width:9px;height:9px;border-radius:50%;background:var(--theme-color)}
 
 header{padding:28px 0 18px}
-.back{display:inline-block;margin-bottom:30px;color:var(--muted);font-size:11px}
+header.category-mode{padding-bottom:0}
+.back{display:inline-block;margin-bottom:30px;color:var(--muted);font-size:12px}
 .back:hover{color:var(--point)}
 
 .archive-label{
   color:var(--point);
-  font-size:11px;
+  font-size:12px;
   font-weight:700;
   letter-spacing:.08em
 }
 .archive-type{
   margin-top:7px;
   color:var(--muted);
-  font-size:10px;
+  font-size:11px;
   letter-spacing:.08em
 }
 .title-row{display:flex;align-items:flex-end;justify-content:space-between;gap:20px}
 .archive-title{
   margin:7px 0 0;
-  font-size:30px;
+  font-size:31px;
   font-weight:700;
   letter-spacing:-.05em;
   color:var(--point)
@@ -80,12 +81,12 @@ header{padding:28px 0 18px}
   border-radius:8px;
   padding:7px 12px;
   font:inherit;
-  font-size:9px;
+  font-size:11px;
   letter-spacing:.08em;
   cursor:pointer
 }
 .edit-button:hover{color:var(--point);border-color:var(--point)}
-.archive-delete-button{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:7px;padding:7px 10px;font:inherit;font-size:9px;letter-spacing:.04em;cursor:pointer}
+.archive-delete-button{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:7px;padding:7px 10px;font:inherit;font-size:10px;letter-spacing:.04em;cursor:pointer}
 .archive-delete-button:hover{color:#c55;border-color:#d9a4a4}
 .edit-panel{
   margin:0 0 30px;
@@ -101,14 +102,14 @@ header{padding:28px 0 18px}
 .edit-image-fields{display:grid;gap:10px}
 .edit-image-field{border:1px solid var(--line);border-radius:8px;padding:10px;background:#fff}
 .edit-image-picker{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.edit-image-button{border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--point);font:inherit;font-size:9px;font-weight:600;padding:7px 10px;cursor:pointer;white-space:nowrap}
+.edit-image-button{border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--point);font:inherit;font-size:10px;font-weight:600;padding:7px 10px;cursor:pointer;white-space:nowrap}
 .edit-image-button:hover{border-color:var(--point)}
-.edit-image-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:9px}
+.edit-image-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:10px}
 .edit-image-input{display:none}
-.edit-record-date-label{display:block;margin-top:0;margin-bottom:5px;color:var(--point);font-size:9px;font-weight:700;letter-spacing:.08em}
+.edit-record-date-label{display:block;margin-top:0;margin-bottom:5px;color:var(--point);font-size:10px;font-weight:700;letter-spacing:.08em}
 .edit-field label{
   display:block;margin-bottom:6px;
-  color:var(--point);font-size:9px;font-weight:700;letter-spacing:.08em
+  color:var(--point);font-size:10px;font-weight:700;letter-spacing:.08em
 }
 .edit-field input,.edit-detail-input,.edit-detail-textarea{
   width:100%;border:1px solid var(--line);border-radius:8px;
@@ -116,7 +117,7 @@ header{padding:28px 0 18px}
   padding:9px 10px;outline:none
 }
 .edit-text-color-options{display:flex;gap:7px;margin-top:8px}
-.edit-text-color-option{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:7px;padding:7px 12px;font:inherit;font-size:9px;letter-spacing:.05em;cursor:pointer}
+.edit-text-color-option{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:7px;padding:7px 12px;font:inherit;font-size:10px;letter-spacing:.05em;cursor:pointer}
 .edit-text-color-option.active{border-color:var(--point);color:var(--point);background:var(--point-soft)}
 .edit-record-editor-wrap{border:1px solid var(--line);border-radius:8px;background:#fff;overflow:hidden;margin-top:7px}
 .edit-record-editor{min-height:180px;padding:12px;outline:none;font:inherit;font-size:11px;line-height:1.85;white-space:pre-wrap;word-break:break-word}
@@ -137,7 +138,7 @@ header{padding:28px 0 18px}
   background:#fff
 }
 .edit-record-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.edit-record-label{color:var(--point);font-size:9px;font-weight:700;letter-spacing:.08em}
+.edit-record-label{color:var(--point);font-size:10px;font-weight:700;letter-spacing:.08em}
 .edit-record-delete{border:0;background:transparent;color:var(--muted);font-size:13px;cursor:pointer}
 .edit-record-input,.edit-record-textarea{
   width:100%;
@@ -159,7 +160,7 @@ header{padding:28px 0 18px}
 .edit-existing-image{display:block;width:100%;max-height:220px;object-fit:cover;border-radius:6px}
 .edit-new-photo{
   display:flex;align-items:center;gap:7px;margin-top:7px;
-  border:1px dashed var(--line);border-radius:7px;padding:7px;color:var(--muted);font-size:9px
+  border:1px dashed var(--line);border-radius:7px;padding:7px;color:var(--muted);font-size:11px
 }
 .edit-add-blocks{display:flex;gap:6px;margin-top:7px}
 .edit-add-block{
@@ -198,15 +199,15 @@ header{padding:28px 0 18px}
 .archive-card.text-white .archive-card-subtitle,.archive-card.text-white .archive-card-bottom{opacity:.9}
 .archive-card.text-white.has-image::after{background:linear-gradient(to bottom,rgba(0,0,0,.06),rgba(0,0,0,.5))}
 .archive-card-content{position:relative;z-index:1;display:flex;flex-direction:column;min-height:164px;height:100%}
-.archive-card-top{display:flex;justify-content:space-between;color:var(--point);font-size:9px;font-weight:700;letter-spacing:.08em}
-.archive-card-title{margin-top:auto;padding-top:22px;font-size:18px;font-weight:600;letter-spacing:-.04em;word-break:break-word;color:var(--point)}
-.archive-card-subtitle{margin-top:5px;color:var(--muted);font-size:10px;line-height:1.6;min-height:1.6em;white-space:pre-wrap;word-break:break-word}
-.archive-card-bottom{display:flex;justify-content:space-between;gap:8px;margin-top:18px;color:var(--muted);font-size:9px;letter-spacing:.05em}
+.archive-card-top{display:flex;justify-content:space-between;color:var(--point);font-size:10px;font-weight:700;letter-spacing:.08em}
+.archive-card-title{margin-top:auto;padding-top:22px;font-size:19px;font-weight:600;letter-spacing:-.04em;word-break:break-word;color:var(--point)}
+.archive-card-subtitle{margin-top:5px;color:var(--muted);font-size:11px;line-height:1.6;min-height:1.6em;white-space:pre-wrap;word-break:break-word}
+.archive-card-bottom{display:flex;justify-content:space-between;gap:8px;margin-top:18px;color:var(--muted);font-size:10px;letter-spacing:.05em}
 .category-description{
-  margin:8px 0 0;
+  margin:0;
   padding:0;
   color:var(--muted);
-  font-size:11px;
+  font-size:12px;
   line-height:1.7;
   white-space:pre-wrap;
 }
@@ -234,7 +235,7 @@ main{padding:0 0 70px}
   gap:8px 18px;
   margin-bottom:28px;
   color:var(--muted);
-  font-size:10px
+  font-size:12px
 }
 .meta span + span::before{
   content:"·";
@@ -249,7 +250,7 @@ main{padding:0 0 70px}
 }
 .archive-date{
   padding:4px 0 8px;
-  font-size:10px;
+  font-size:11px;
   color:var(--muted)
 }
 .archive-date-value{white-space:nowrap}
@@ -259,11 +260,11 @@ main{padding:0 0 70px}
   gap:18px;
   padding:12px 0;
   border-top:1px solid var(--line);
-  font-size:12px
+  font-size:13px
 }
 .detail-key{
   color:var(--muted);
-  font-size:10px;
+  font-size:11px;
   letter-spacing:.08em;
   text-transform:uppercase
 }
@@ -278,7 +279,7 @@ main{padding:0 0 70px}
 .records-label{
   margin-top:0;
   color:var(--point);
-  font-size:10px;
+  font-size:11px;
   font-weight:700;
   letter-spacing:.08em;
   margin-bottom:18px
@@ -293,7 +294,7 @@ main{padding:0 0 70px}
   gap:10px;
   margin-bottom:10px;
   color:var(--muted);
-  font-size:10px
+  font-size:12px
 }
 .record-date-label{
   font-size:9px;
@@ -305,14 +306,14 @@ main{padding:0 0 70px}
   white-space:nowrap
 }
 .record-title{
-  font-size:16px;
+  font-size:17px;
   font-weight:600;
   letter-spacing:-.02em
 }
 .record-content{
   margin-top:13px;
   white-space:pre-wrap;
-  font-size:12px;
+  font-size:13px;
   line-height:1.9
 }
 .record-image{
@@ -327,12 +328,12 @@ main{padding:0 0 70px}
 .empty{
   padding:24px 0;
   color:var(--muted);
-  font-size:11px
+  font-size:12px
 }
 footer{
   padding:0 0 50px;
   color:var(--muted);
-  font-size:11px
+  font-size:12px
 }
 
 @media(max-width:600px){
@@ -340,7 +341,7 @@ footer{
   .theme-wrap{top:18px;right:18px}
   header{padding-top:24px;padding-bottom:24px}
   .back{margin-bottom:26px}
-  .archive-title{font-size:24px}
+  .archive-title{font-size:26px}
   .detail-row{grid-template-columns:88px 1fr;gap:12px}
   .hero-photo{max-height:360px}
 }
@@ -570,7 +571,6 @@ function renderRecords(type, skipImageUrl=""){
   }
   box.innerHTML=loadedRecords.map(record=>`
     <article class="record">
-      <div class="record-date">${esc(formatDate(record.date))}</div>
       ${type==="basic"?"":`<div class="record-title">${esc(record.title||"기록")}</div>`}
       ${renderRecordBody(record, skipImageUrl)}
     </article>
@@ -715,42 +715,6 @@ function htmlToBlocks(editor){
 }
 
 
-function isArchiveGif(file){
-  return (file?.type || "").toLowerCase() === "image/gif"
-    || /\.gif$/i.test(file?.name || "");
-}
-
-async function resizeArchiveImage(file, maxSize = 1600, quality = 0.82) {
-  if (!file || isArchiveGif(file)) return file;
-
-  const bitmap = await createImageBitmap(file);
-  const sourceW = bitmap.width;
-  const sourceH = bitmap.height;
-  const scale = Math.min(1, maxSize / Math.max(sourceW, sourceH));
-  const targetW = Math.max(1, Math.round(sourceW * scale));
-  const targetH = Math.max(1, Math.round(sourceH * scale));
-
-  const canvas = document.createElement("canvas");
-  canvas.width = targetW;
-  canvas.height = targetH;
-  const ctx = canvas.getContext("2d");
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(bitmap, 0, 0, targetW, targetH);
-  bitmap.close();
-
-  const blob = await new Promise(resolve =>
-    canvas.toBlob(resolve, "image/jpeg", quality)
-  );
-  if (!blob) throw new Error("ARCHIVE 사진을 처리하지 못했습니다.");
-
-  const baseName = (file.name || "image").replace(/\.[^.]+$/, "");
-  return new File([blob], `${baseName}.jpg`, {
-    type: "image/jpeg",
-    lastModified: Date.now()
-  });
-}
-
 async function uploadEditImage(file,userId){
   const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/gi,"")||"jpg";
   const path=`${userId}/archive/${crypto.randomUUID()}.${ext}`;
@@ -762,7 +726,36 @@ async function uploadEditImage(file,userId){
 }
 
 async function uploadResizedArchiveImage(file,userId){
-  const resizedFile=await resizeArchiveImage(file);
+  let resizedFile=file;
+
+  const isGif=(file?.type||"").toLowerCase()==="image/gif" || /\.gif$/i.test(file?.name||"");
+  if(file && !isGif){
+    const bitmap=await createImageBitmap(file);
+    const maxSize=1600;
+    const quality=0.82;
+    const scale=Math.min(1,maxSize/Math.max(bitmap.width,bitmap.height));
+    const targetW=Math.max(1,Math.round(bitmap.width*scale));
+    const targetH=Math.max(1,Math.round(bitmap.height*scale));
+
+    const canvas=document.createElement("canvas");
+    canvas.width=targetW;
+    canvas.height=targetH;
+    const ctx=canvas.getContext("2d");
+    ctx.imageSmoothingEnabled=true;
+    ctx.imageSmoothingQuality="high";
+    ctx.drawImage(bitmap,0,0,targetW,targetH);
+    bitmap.close();
+
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",quality));
+    if(!blob)throw new Error("ARCHIVE 사진을 처리하지 못했습니다.");
+
+    const baseName=(file.name||"image").replace(/\.[^.]+$/,"");
+    resizedFile=new File([blob],`${baseName}.jpg`,{
+      type:"image/jpeg",
+      lastModified:Date.now()
+    });
+  }
+
   return uploadEditImage(resizedFile,userId);
 }
 
@@ -897,6 +890,7 @@ function renderCategoryArchives(category, archives){
   const editButton=document.getElementById("editButton");
   const addButton=document.getElementById("categoryAddButton");
 
+  document.querySelector("header").classList.add("category-mode");
   document.getElementById("archiveTitle").textContent=category.name||"ARCHIVE";
   document.querySelector(".archive-label").textContent="♡ "+(category.name||"ARCHIVE").toUpperCase();
   hero.innerHTML="";
