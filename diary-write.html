@@ -639,12 +639,16 @@
       }
     }
 
-    function updateSaveButtonState() {
-      const date = document.getElementById("date").value;
-      const title = document.getElementById("title").value.trim();
-      const content = document.getElementById("content").innerText.trim();
-      saveButton.disabled = !(date && title && content);
-    }
+function updateSaveButtonState() {
+  const date = document.getElementById("date").value;
+  const title = document.getElementById("title").value.trim();
+  const editor = document.getElementById("content");
+  const contentText = editor.innerText.trim();
+  const hasImage = editor.querySelector("img") !== null;
+  const hasContent = contentText || hasImage;
+
+  saveButton.disabled = !(date && title && hasContent);
+}
 
     ["date", "title", "content"].forEach(id => {
       document.getElementById(id).addEventListener("input", updateSaveButtonState);
