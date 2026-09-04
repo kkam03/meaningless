@@ -658,11 +658,15 @@ function openEdit(){
   document.querySelector(".archive-label").textContent="♡ EDIT ARCHIVE";
   document.getElementById("editPanel").hidden=false;
   document.getElementById("editButton").hidden=true;
+  document.querySelector("main").hidden=true;
+  document.querySelector("footer").hidden=true;
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
 document.getElementById("editCancel").addEventListener("click",()=>{
   document.getElementById("editPanel").hidden=true;
+  document.querySelector("main").hidden=false;
+  document.querySelector("footer").hidden=false;
   document.getElementById("editButton").hidden=false;
   if(loadedArchive){
     document.querySelector(".archive-label").textContent="♡ ARCHIVE";
