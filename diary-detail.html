@@ -110,8 +110,34 @@
       letter-spacing: .08em;
     }
 
+    .author {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 12px;
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .author-avatar {
+      width: 22px;
+      height: 22px;
+      flex: 0 0 22px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: var(--point-soft);
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--point);
+      font-size: 11px;
+    }
+
     .date {
-      margin-top: 9px;
+      margin-top: 8px;
       color: var(--point);
       font-size: 10px;
     }
@@ -292,6 +318,10 @@
       <div id="loading" class="status">LOADING...</div>
       <div id="post" style="display:none">
         <h1 id="postTitle"></h1>
+        <div class="author" id="postAuthor" hidden>
+          <span class="author-avatar" id="authorAvatar">♡</span>
+          <span id="authorNickname"></span>
+        </div>
         <div class="date" id="postDate"></div>
         <div class="title-grid" aria-hidden="true"></div>
         <div id="postContent" class="post-content"></div>
@@ -396,11 +426,33 @@
       if (!diaryId) throw new Error("DIARY ID가 없습니다.");
 
       const { data: post, error } = await supabase.from("diary")
-        .select("id,date,title,content,image_url,created_at")
+        .select("id,user_id,date,title,content,image_url,created_at")
         .eq("id", diaryId).single();
       if (error) throw error;
 
       $("postTitle").textContent = post.title || "";
+
+      // DIARY 작성자의 프로필 사진과 닉네임을 제목 바로 아래에 표시합니다.
+      if (post.user_id) {
+        const { data: profile } = await supabase.from("profiles")
+          .select("nickname,avatar_url")
+          .eq("id", post.user_id)
+          .maybeSingle();
+
+        if (profile?.nickname || profile?.avatar_url) {
+          $("authorNickname").textContent = profile.nickname || "";
+          const avatar = $("authorAvatar");
+          if (profile.avatar_url) {
+            avatar.textContent = "";
+            avatar.style.backgroundImage = `url("${profile.avatar_url}")`;
+          } else {
+            avatar.textContent = "♡";
+            avatar.style.backgroundImage = "";
+          }
+          $("postAuthor").hidden = false;
+        }
+      }
+
       $("postDate").textContent = formatDate(post.date);
       const postContent = $("postContent");
       const savedContent = post.content || "";
