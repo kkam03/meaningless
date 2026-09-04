@@ -127,13 +127,20 @@
       border-radius: 50%;
       overflow: hidden;
       background: var(--point-soft);
-      background-size: cover;
-      background-position: center;
       display: flex;
       align-items: center;
       justify-content: center;
       color: var(--point);
       font-size: 11px;
+    }
+
+    .author-avatar img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      image-rendering: auto;
     }
 
     .date {
@@ -443,11 +450,12 @@
           $("authorNickname").textContent = profile.nickname || "";
           const avatar = $("authorAvatar");
           if (profile.avatar_url) {
-            avatar.textContent = "";
-            avatar.style.backgroundImage = `url("${profile.avatar_url}")`;
+            const img = document.createElement("img");
+            img.src = profile.avatar_url;
+            img.alt = "";
+            avatar.replaceChildren(img);
           } else {
-            avatar.textContent = "♡";
-            avatar.style.backgroundImage = "";
+            avatar.innerHTML = "♡";
           }
           $("postAuthor").hidden = false;
         }
