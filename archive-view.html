@@ -258,7 +258,7 @@ main{padding:0 0 70px}
   border-radius:999px;
   background:#eeeeee;
   color:#777777;
-  font-size:14px;
+  font-size:10px;
   line-height:1.2;
   font-weight:500;
   letter-spacing:-.02em;
@@ -634,6 +634,14 @@ function collectDetails(type){
   });
   return out;
 }
+
+// 셋리스트/메모 textarea에서는 Enter 줄바꿈을 그대로 허용합니다.
+document.addEventListener("keydown",e=>{
+  const target=e.target;
+  if(target instanceof HTMLTextAreaElement && target.closest("#editDetails")){
+    if(e.key==="Enter") e.stopPropagation();
+  }
+});
 
 const editRecordsEl=document.getElementById("editRecords");
 const editNewFiles=new Map();
