@@ -239,20 +239,11 @@ main{padding:0 0 70px}
   margin-top:4px
 }
 .archive-date{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:12px 0;
-  border-top:1px solid var(--line);
-  font-size:10px
+  padding:4px 0 8px;
+  font-size:10px;
+  color:var(--muted)
 }
-.archive-date-label{
-  color:var(--point);
-  font-size:9px;
-  font-weight:700;
-  letter-spacing:.08em
-}
-.archive-date-value{white-space:nowrap;color:var(--muted)}
+.archive-date-value{white-space:nowrap}
 .detail-row{
   display:grid;
   grid-template-columns:120px 1fr;
@@ -507,7 +498,7 @@ function formatDate(date){
 }
 
 function detailEntries(type,record){
-  if(type==="basic"||!record?.extra_data)return [];
+  if(!record?.extra_data)return [];
   return Object.entries(record.extra_data).filter(([key,value])=>
     key!=="content_blocks" && String(value??"").trim()!==""
   );
@@ -517,7 +508,7 @@ function renderDetails(type,record){
   const box=document.getElementById("details");
   const entries=detailEntries(type,record);
   const dateHtml=(type!=="travel" && record?.date)
-    ? `<div class="archive-date"><span class="archive-date-label">DATE</span><span class="archive-date-value">${esc(formatDate(record.date))}</span></div>`
+    ? `<div class="archive-date"><span class="archive-date-value">${esc(formatDate(record.date))}</span></div>`
     : "";
   box.innerHTML=dateHtml+entries.map(([key,value],i)=>{
     const label=semanticLabels[type]?.[i] || key.replaceAll("_"," ").toUpperCase();
@@ -935,7 +926,7 @@ async function loadArchive(){
   }
   if(heroUrl)document.getElementById("hero").innerHTML=`<img class="hero-photo" src="${esc(heroUrl)}" alt="">`;
 
-  const infoRecord=loadedRecords.find(r=>detailEntries(type,r).length);
+  const infoRecord=loadedRecords[0]||null;
   renderDetails(type,infoRecord);
   // 대표사진이 RECORD 본문에도 들어있는 경우에는 한 번 더 보여주지 않습니다.
   renderRecords(type,heroUrl||"");
