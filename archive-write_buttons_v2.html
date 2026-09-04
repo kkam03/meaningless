@@ -110,14 +110,6 @@ input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--
         <input class="image-file-input" id="cardImageInput" type="file" accept="image/*">
       </div>
     </div>
-    <div class="archive-image-field">
-      <label class="field-label">COVER IMAGE</label>
-      <div class="image-picker">
-        <span class="image-file-name" id="coverImageName">VIEW 맨 위에 표시할 사진</span>
-        <button class="image-picker-button" type="button" id="coverImageButton">＋ PHOTO</button>
-        <input class="image-file-input" id="coverImageInput" type="file" accept="image/*">
-      </div>
-    </div>
   </div>
 </section>
 
@@ -285,11 +277,7 @@ const recordDate=document.getElementById("recordDate");
 const cardImageInput=document.getElementById("cardImageInput");
 const cardImageButton=document.getElementById("cardImageButton");
 const cardImageName=document.getElementById("cardImageName");
-const coverImageInput=document.getElementById("coverImageInput");
-const coverImageButton=document.getElementById("coverImageButton");
-const coverImageName=document.getElementById("coverImageName");
 let selectedCardImage=null;
-let selectedCoverImage=null;
 const optionPanels={
   basic:document.getElementById("basicOptions"),
   concert:document.getElementById("concertOptions"),
@@ -324,7 +312,6 @@ function setupArchiveImagePicker(button,input,label,setter,placeholder){
   });
 }
 setupArchiveImagePicker(cardImageButton,cardImageInput,cardImageName,file=>{selectedCardImage=file},"카드에 표시할 사진");
-setupArchiveImagePicker(coverImageButton,coverImageInput,coverImageName,file=>{selectedCoverImage=file},"VIEW 맨 위에 표시할 사진");
 
 const customRows=document.getElementById("customRows");
 document.getElementById("addCustom").addEventListener("click",()=>{
@@ -545,9 +532,7 @@ document.getElementById("save").addEventListener("click",async()=>{
     const combinedDetails={...details,content_blocks:contentBlocks};
 
     const cardImageUrl=selectedCardImage?await uploadImage(selectedCardImage,user.id):null;
-    const coverImageUrl=selectedCoverImage?await uploadResizedArchiveImage(selectedCoverImage,user.id):null;
-
-    const archivePayload={user_id:user.id,name,type:activeType,text_color:textColor,image_url:cardImageUrl,cover_image_url:coverImageUrl};
+    const archivePayload={user_id:user.id,name,type:activeType,text_color:textColor,image_url:cardImageUrl};
     if(categoryId)archivePayload.category_id=categoryId;
 
     const {data:archive,error:archiveError}=await supabase
