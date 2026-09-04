@@ -617,7 +617,7 @@ function makeEditFields(type,record){
   const keys=["field_1","field_2","field_3","field_4"];
   box.innerHTML=labels.map((label,i)=>{
     const key=keys[i];
-    const multi=label==="셋리스트"||label==="여행 메모"||label==="감상 메모";
+    const multi=label==="셋리스트"||label==="앵콜"||label==="여행 메모"||label==="감상 메모";
     return `<div class="edit-detail"><label>${esc(label)}</label>
       ${multi
         ? `<textarea class="edit-detail-textarea" data-key="${key}">${esc(vals[key]||"")}</textarea>`
