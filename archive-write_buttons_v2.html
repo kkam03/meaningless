@@ -56,6 +56,9 @@ input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--
 .record-toolbar{display:flex;align-items:center;border-top:1px solid var(--line);padding:8px 10px;background:#fff}
 .photo-button{border:0;background:transparent;color:var(--point);font:inherit;font-size:10px;font-weight:600;letter-spacing:.02em;cursor:pointer;padding:5px 2px}
 .photo-button:hover{opacity:.75}
+.youtube-button{border:0;background:transparent;color:var(--point);font:inherit;font-size:10px;font-weight:600;letter-spacing:.02em;cursor:pointer;padding:5px 2px}
+.youtube-button:hover{opacity:.75}
+.youtube-embed{display:block;width:100%;max-width:100%;aspect-ratio:16/9;height:auto;margin:16px 0;border:0;border-radius:8px;background:#000}
 .photo-input{display:none}
 .basic-placeholder{color:var(--muted);font-size:10px;padding:4px 0 2px}
 .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:48px;padding-top:18px;border-top:1px solid var(--line)}
@@ -175,6 +178,7 @@ input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--
     <div id="recordEditor" class="record-editor" contenteditable="true" data-placeholder="기록해두기."></div>
     <div class="record-toolbar">
       <button class="photo-button" type="button" id="photoButton">＋ PHOTO</button>
+      <button class="youtube-button" type="button" id="youtubeButton">＋ YOUTUBE</button>
       <input id="photoInput" class="photo-input" type="file" accept="image/*">
     </div>
   </div>
@@ -336,6 +340,7 @@ function panelValues(type){
 
 const recordEditor=document.getElementById("recordEditor");
 const photoButton=document.getElementById("photoButton");
+const youtubeButton=document.getElementById("youtubeButton");
 const photoInput=document.getElementById("photoInput");
 const pendingImages=new Map();
 let savedRange=null;
@@ -394,6 +399,63 @@ photoInput.addEventListener("change",()=>{
   const url=URL.createObjectURL(file);
   insertImageAtCursor(url,file);
   photoInput.value="";
+});
+
+function getYouTubeVideoId(value){
+  try{
+    const url=new URL(value.trim());
+    const host=url.hostname.replace(/^www\./,"").toLowerCase();
+    if(host==="youtu.be") return url.pathname.split("/").filter(Boolean)[0]||null;
+    if(host==="youtube.com" || host==="m.youtube.com"){
+      if(url.pathname==="/watch") return url.searchParams.get("v");
+      const parts=url.pathname.split("/").filter(Boolean);
+      if(["shorts","embed","live"].includes(parts[0])) return parts[1]||null;
+    }
+  }catch{}
+  const match=value.match(/(?:youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i);
+  return match?.[1]||null;
+}
+
+function insertYouTubeAtCursor(videoId){
+  recordEditor.focus();
+  const selection=window.getSelection();
+  const range=savedRange || (()=>{
+    const r=document.createRange();
+    r.selectNodeContents(recordEditor);
+    r.collapse(false);
+    return r;
+  })();
+  range.deleteContents();
+  const iframe=document.createElement("iframe");
+  iframe.className="youtube-embed";
+  iframe.src=`https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}`;
+  iframe.title="YouTube video";
+  iframe.loading="lazy";
+  iframe.referrerPolicy="strict-origin-when-cross-origin";
+  iframe.allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+  iframe.allowFullscreen=true;
+  iframe.dataset.youtubeId=videoId;
+  range.insertNode(iframe);
+  const spacer=document.createTextNode("\n");
+  iframe.after(spacer);
+  range.setStartAfter(spacer);
+  range.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(range);
+  savedRange=range.cloneRange();
+}
+
+youtubeButton.addEventListener("mousedown",e=>e.preventDefault());
+youtubeButton.addEventListener("click",()=>{
+  rememberSelection();
+  const url=prompt("YouTube 주소를 입력해주세요.");
+  if(url===null)return;
+  const videoId=getYouTubeVideoId(url);
+  if(!videoId){
+    alert("올바른 YouTube 주소를 입력해주세요.");
+    return;
+  }
+  insertYouTubeAtCursor(videoId);
 });
 
 
@@ -481,6 +543,14 @@ async function collectContentBlocks(userId){
       }else if(localSrc && !localSrc.startsWith("blob:")){
         result.push({type:"image",url:localSrc});
       }
+      textBuffer+="\n";
+      return;
+    }
+
+    if(tag==="IFRAME" && node.classList.contains("youtube-embed")){
+      flushText();
+      const videoId=node.dataset.youtubeId || getYouTubeVideoId(node.getAttribute("src")||"");
+      if(videoId) result.push({type:"youtube",videoId});
       textBuffer+="\n";
       return;
     }
