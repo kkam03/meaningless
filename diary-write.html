@@ -570,6 +570,43 @@
 
     const STORAGE_BUCKET = "diary-images";
 
+    async function resizeDiaryImage(file) {
+      // 블로그용: 긴 변 최대 1600px, JPEG 품질 0.82
+      // GIF는 애니메이션 보존을 위해 원본 그대로 업로드합니다.
+      if (file.type === "image/gif") return { file, extension: "gif" };
+
+      const bitmap = await createImageBitmap(file);
+      const maxSize = 1600;
+      const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height));
+      const width = Math.max(1, Math.round(bitmap.width * scale));
+      const height = Math.max(1, Math.round(bitmap.height * scale));
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(bitmap, 0, 0, width, height);
+      bitmap.close();
+
+      const blob = await new Promise(resolve =>
+        canvas.toBlob(resolve, "image/jpeg", 0.82)
+      );
+
+      if (!blob) throw new Error("사진을 압축하지 못했습니다.");
+
+      return {
+        file: new File(
+          [blob],
+          `${file.name.replace(/\.[^.]+$/, "")}.jpg`,
+          { type: "image/jpeg" }
+        ),
+        extension: "jpg"
+      };
+    }
+
     async function uploadPendingImages() {
       const images = [...editor.querySelectorAll("img[data-pending-image-id]")];
 
@@ -578,15 +615,15 @@
         const item = pendingImages.get(imageId);
         if (!item) continue;
 
-        const extension = (item.file.name.split(".").pop() || "jpg").toLowerCase();
-        const filePath = `${crypto.randomUUID()}.${extension}`;
+        const processed = await resizeDiaryImage(item.file);
+        const filePath = `${crypto.randomUUID()}.${processed.extension}`;
 
         const { error: uploadError } = await supabase.storage
           .from(STORAGE_BUCKET)
-          .upload(filePath, item.file, {
+          .upload(filePath, processed.file, {
             cacheControl: "3600",
             upsert: false,
-            contentType: item.file.type || undefined
+            contentType: processed.file.type
           });
 
         if (uploadError) throw uploadError;
