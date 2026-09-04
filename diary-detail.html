@@ -198,6 +198,43 @@
       background: var(--theme-bg);
     }
 
+    .diary-like {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      width: 100%;
+      margin: 14px 0 0;
+      padding: 0;
+      text-align: left;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .like-button {
+      border: 0;
+      background: transparent;
+      color: var(--point);
+      padding: 4px 6px;
+      font: inherit;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      transition: transform .15s ease;
+    }
+
+    .like-button:hover {
+      transform: scale(1.08);
+    }
+
+    .like-button.liked {
+      color: var(--point);
+    }
+
+    .like-button:disabled {
+      cursor: default;
+    }
+
     .post-actions {
       display: none;
       gap: 8px;
@@ -334,6 +371,10 @@
         <div class="title-grid" aria-hidden="true"></div>
         <div id="postContent" class="post-content"></div>
         <img id="postImage" class="diary-image" alt="" style="display:none">
+        <div class="diary-like" id="diaryLike" hidden>
+          <button class="like-button" id="likeButton" type="button" aria-label="하트">♡</button>
+          <span id="likeCount">0</span>
+        </div>
         <div class="post-actions" id="postActions">
           <button class="action-button" id="editButton" type="button">EDIT</button>
           <button class="action-button delete" id="deleteButton" type="button">DELETE</button>
@@ -463,6 +504,75 @@
       }
     }
 
+    function getVisitorId() {
+      const key = "meaningless-visitor-id";
+      let id = localStorage.getItem(key);
+      if (!id) {
+        id = crypto.randomUUID();
+        localStorage.setItem(key, id);
+      }
+      return id;
+    }
+
+    async function loadLikeState(postId) {
+      const likeWrap = $("diaryLike");
+      const button = $("likeButton");
+      const countEl = $("likeCount");
+      if (!likeWrap || !button || !countEl) return;
+
+      const visitorId = getVisitorId();
+
+      const [{ count, error: countError }, { data: mine, error: mineError }] = await Promise.all([
+        supabase.from("diary_likes").select("id", { count: "exact", head: true }).eq("diary_id", postId),
+        supabase.from("diary_likes").select("id").eq("diary_id", postId).eq("visitor_id", visitorId).limit(1)
+      ]);
+
+      if (countError) throw countError;
+      if (mineError) throw mineError;
+      if (count === null) throw new Error("하트 수를 불러오지 못했습니다.");
+
+      const liked = Array.isArray(mine) && mine.length > 0;
+      countEl.textContent = String(count);
+      button.textContent = liked ? "♥" : "♡";
+      button.classList.toggle("liked", liked);
+      button.disabled = false;
+      likeWrap.hidden = false;
+
+      button.onclick = async () => {
+        button.disabled = true;
+
+        const { data: nextLiked, error } = await supabase.rpc("toggle_diary_like", {
+          p_diary_id: postId,
+          p_visitor_id: visitorId
+        });
+
+        if (error) {
+          console.error("DIARY LIKE", error);
+          alert("하트를 변경하지 못했습니다.\n" + error.message);
+          button.disabled = false;
+          return;
+        }
+
+        const { count: nextCount, error: countError } = await supabase
+          .from("diary_likes")
+          .select("id", { count: "exact", head: true })
+          .eq("diary_id", postId);
+
+        if (countError) {
+          console.error("DIARY LIKE COUNT", countError);
+          alert("하트 수를 불러오지 못했습니다.\n" + countError.message);
+          button.disabled = false;
+          return;
+        }
+
+        const isLiked = nextLiked === true;
+        button.textContent = isLiked ? "♥" : "♡";
+        button.classList.toggle("liked", isLiked);
+        countEl.textContent = String(nextCount ?? 0);
+        button.disabled = false;
+      };
+    }
+
     async function loadPost() {
       if (!diaryId) throw new Error("DIARY ID가 없습니다.");
 
@@ -530,6 +640,8 @@
         img.alt = post.title || "DIARY PHOTO";
         img.style.display = "block";
       }
+
+      await loadLikeState(post.id);
 
       $("editButton").onclick = () => {
         location.href = addTheme(`./diary-write.html?edit=${encodeURIComponent(post.id)}`);
