@@ -447,11 +447,9 @@ const params=new URLSearchParams(location.search);
 const archiveId=params.get("id");
 const categoryId=params.get("category");
 const fromCategoryId=params.get("fromCategory");
-document.getElementById("backLink").href = fromCategoryId
+document.getElementById("backLink").href = (archiveId && fromCategoryId)
   ? "./archive-view.html?category="+encodeURIComponent(fromCategoryId)+"&theme="+encodeURIComponent(currentTheme)
-  : categoryId
-    ? "./archive-view.html?category="+encodeURIComponent(categoryId)+"&theme="+encodeURIComponent(currentTheme)
-    : "./index.html?theme="+encodeURIComponent(currentTheme);
+  : "./index.html?theme="+encodeURIComponent(currentTheme);
 
 let loadedArchive=null;
 let loadedRecords=[];
