@@ -214,6 +214,16 @@
       border-radius: 8px;
     }
 
+    .editor .youtube-embed {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      margin: 18px 0;
+      border: 0;
+      border-radius: 8px;
+      background: #000;
+    }
+
     .editor-toolbar {
       display: flex;
       justify-content: flex-end;
@@ -234,6 +244,73 @@
 
     .editor-toolbar button:hover {
       color: var(--point);
+    }
+
+    .youtube-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(41, 38, 42, .28);
+      backdrop-filter: blur(2px);
+    }
+
+    .youtube-modal-backdrop.open {
+      display: flex;
+    }
+
+    .youtube-modal {
+      width: min(420px, 100%);
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 18px 50px rgba(41, 38, 42, .12);
+    }
+
+    .youtube-modal-title {
+      margin-bottom: 14px;
+      color: var(--point);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+    }
+
+    .youtube-modal input {
+      width: 100%;
+    }
+
+    .youtube-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .youtube-modal-actions button {
+      border-radius: 8px;
+      padding: 8px 13px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--muted);
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    .youtube-modal-actions .youtube-add {
+      border-color: var(--point);
+      background: var(--point);
+      color: #fff;
+    }
+
+    .youtube-modal-error {
+      min-height: 17px;
+      margin-top: 6px;
+      color: #c56c78;
+      font-size: 10px;
     }
 
     .photo-placeholder {
@@ -373,11 +450,24 @@
           ></div>
           <div class="editor-toolbar">
             <button id="insertPhoto" type="button">＋ PHOTO</button>
+            <button id="insertYoutube" type="button">＋ YOUTUBE</button>
             <input id="photo" type="file" accept="image/*" hidden>
           </div>
         </div>
         <div class="photo-note">사진은 저장할 때 Supabase Storage에 업로드됩니다.</div>
       </section>
+
+      <div class="youtube-modal-backdrop" id="youtubeModalBackdrop">
+        <div class="youtube-modal" role="dialog" aria-modal="true" aria-labelledby="youtubeModalTitle">
+          <div class="youtube-modal-title" id="youtubeModalTitle">YOUTUBE</div>
+          <input id="youtubeUrl" type="url" placeholder="https://youtu.be/xxxxxxxxxxx">
+          <div class="youtube-modal-error" id="youtubeModalError"></div>
+          <div class="youtube-modal-actions">
+            <button id="youtubeCancel" type="button">CANCEL</button>
+            <button id="youtubeAdd" class="youtube-add" type="button">ADD</button>
+          </div>
+        </div>
+      </div>
 
       <div class="actions">
         <a href="index.html" class="cancel">CANCEL</a>
@@ -475,7 +565,7 @@
         document.getElementById("title").value = post.title || "";
         const loadedContent = post.content || "";
         document.getElementById("content").innerHTML =
-          /<\/?(img|p|div|br|strong|em|ul|ol|li)[\s>]/i.test(loadedContent)
+          /<\/?(img|iframe|p|div|br|strong|em|ul|ol|li)[\s>]/i.test(loadedContent)
             ? loadedContent
             : loadedContent.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
       }
@@ -498,6 +588,12 @@
     const editor = document.getElementById("content");
     const insertPhotoButton = document.getElementById("insertPhoto");
     const photoInput = document.getElementById("photo");
+    const insertYoutubeButton = document.getElementById("insertYoutube");
+    const youtubeModalBackdrop = document.getElementById("youtubeModalBackdrop");
+    const youtubeUrlInput = document.getElementById("youtubeUrl");
+    const youtubeModalError = document.getElementById("youtubeModalError");
+    const youtubeCancelButton = document.getElementById("youtubeCancel");
+    const youtubeAddButton = document.getElementById("youtubeAdd");
 
     let savedSelection = null;
     const pendingImages = new Map();
@@ -565,6 +661,117 @@
 
       saveEditorSelection();
       photoInput.value = "";
+      updateSaveButtonState();
+    });
+
+    function extractYouTubeId(rawUrl) {
+      let url;
+      try {
+        url = new URL(rawUrl.trim());
+      } catch {
+        return null;
+      }
+
+      const host = url.hostname.replace(/^www\./, "").toLowerCase();
+      let videoId = null;
+
+      if (host === "youtu.be") {
+        videoId = url.pathname.split("/").filter(Boolean)[0] || null;
+      } else if (host === "youtube.com" || host === "m.youtube.com") {
+        if (url.pathname === "/watch") {
+          videoId = url.searchParams.get("v");
+        } else if (url.pathname.startsWith("/shorts/")) {
+          videoId = url.pathname.split("/")[2] || null;
+        } else if (url.pathname.startsWith("/embed/")) {
+          videoId = url.pathname.split("/")[2] || null;
+        } else if (url.pathname.startsWith("/live/")) {
+          videoId = url.pathname.split("/")[2] || null;
+        }
+      }
+
+      return /^[A-Za-z0-9_-]{11}$/.test(videoId || "") ? videoId : null;
+    }
+
+    function openYoutubeModal() {
+      saveEditorSelection();
+      youtubeModalError.textContent = "";
+      youtubeUrlInput.value = "";
+      youtubeModalBackdrop.classList.add("open");
+      setTimeout(() => youtubeUrlInput.focus(), 0);
+    }
+
+    function closeYoutubeModal() {
+      youtubeModalBackdrop.classList.remove("open");
+      editor.focus();
+    }
+
+    insertYoutubeButton.addEventListener("mousedown", event => {
+      event.preventDefault();
+      openYoutubeModal();
+    });
+
+    youtubeCancelButton.addEventListener("click", closeYoutubeModal);
+
+    youtubeModalBackdrop.addEventListener("mousedown", event => {
+      if (event.target === youtubeModalBackdrop) closeYoutubeModal();
+    });
+
+    youtubeUrlInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        youtubeAddButton.click();
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        closeYoutubeModal();
+      }
+    });
+
+    youtubeAddButton.addEventListener("click", () => {
+      const videoId = extractYouTubeId(youtubeUrlInput.value);
+      if (!videoId) {
+        youtubeModalError.textContent = "유효한 YouTube 링크를 입력해주세요.";
+        youtubeUrlInput.focus();
+        return;
+      }
+
+      editor.focus();
+      const selection = window.getSelection();
+      if (savedSelection) {
+        selection.removeAllRanges();
+        selection.addRange(savedSelection);
+      } else {
+        const range = document.createRange();
+        range.selectNodeContents(editor);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+
+      const iframe = document.createElement("iframe");
+      iframe.className = "youtube-embed";
+      iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}`;
+      iframe.title = "YouTube video";
+      iframe.loading = "lazy";
+      iframe.referrerPolicy = "strict-origin-when-cross-origin";
+      iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+      iframe.setAttribute("allowfullscreen", "");
+      iframe.contentEditable = "false";
+
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(iframe);
+
+      const spacer = document.createTextNode("\n");
+      iframe.after(spacer);
+
+      const nextRange = document.createRange();
+      nextRange.setStartAfter(spacer);
+      nextRange.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(nextRange);
+
+      saveEditorSelection();
+      closeYoutubeModal();
       updateSaveButtonState();
     });
 
@@ -642,8 +849,10 @@
     function updateSaveButtonState() {
       const date = document.getElementById("date").value;
       const title = document.getElementById("title").value.trim();
-      const content = document.getElementById("content").innerText.trim();
-      saveButton.disabled = !(date && title && content);
+      const editorElement = document.getElementById("content");
+      const content = editorElement.innerText.trim();
+      const hasVisualContent = !!editorElement.querySelector("img, iframe.youtube-embed");
+      saveButton.disabled = !(date && title && (content || hasVisualContent));
     }
 
     ["date", "title", "content"].forEach(id => {
@@ -654,10 +863,12 @@
     saveButton.addEventListener("click", async () => {
       const date = document.getElementById("date").value;
       const title = document.getElementById("title").value.trim();
-      const contentText = document.getElementById("content").innerText.trim();
-      const contentHtml = document.getElementById("content").innerHTML.trim();
+      const editorElement = document.getElementById("content");
+      const contentText = editorElement.innerText.trim();
+      const contentHtml = editorElement.innerHTML.trim();
+      const hasVisualContent = !!editorElement.querySelector("img, iframe.youtube-embed");
 
-      if (!date || !title || !contentText) {
+      if (!date || !title || (!contentText && !hasVisualContent)) {
         alert("날짜, 제목, 내용을 입력해주세요.");
         return;
       }
