@@ -712,6 +712,51 @@ function htmlToBlocks(editor){
   [...editor.childNodes].forEach(walk);flush();return result;
 }
 
+
+function isArchiveGif(file){
+  return (file?.type || "").toLowerCase() === "image/gif"
+    || /\.gif$/i.test(file?.name || "");
+}
+
+async function resizeArchiveImage(file, maxSize = 1600, quality = 0.82) {
+  if (!file || isArchiveGif(file)) return file;
+
+  const bitmap = await createImageBitmap(file);
+  const sourceW = bitmap.width;
+  const sourceH = bitmap.height;
+
+  const scale = Math.min(1, maxSize / Math.max(sourceW, sourceH));
+  const targetW = Math.max(1, Math.round(sourceW * scale));
+  const targetH = Math.max(1, Math.round(sourceH * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = targetW;
+  canvas.height = targetH;
+
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(bitmap, 0, 0, targetW, targetH);
+  bitmap.close();
+
+  const blob = await new Promise(resolve =>
+    canvas.toBlob(resolve, "image/jpeg", quality)
+  );
+  if (!blob) throw new Error("ARCHIVE 사진을 처리하지 못했습니다.");
+
+  const baseName = (file.name || "image").replace(/\.[^.]+$/, "");
+  return new File([blob], `${baseName}.jpg`, {
+    type: "image/jpeg",
+    lastModified: Date.now()
+  });
+}
+
+async function uploadResizedArchiveImage(file, userId){
+  const resizedFile = await resizeArchiveImage(file);
+  return uploadImage(resizedFile, userId);
+}
+
+
 async function uploadEditImage(file,userId){
   const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/gi,"")||"jpg";
   const path=`${userId}/archive/${crypto.randomUUID()}.${ext}`;
@@ -720,6 +765,11 @@ async function uploadEditImage(file,userId){
   });
   if(error)throw error;
   return supabase.storage.from("archive-images").getPublicUrl(path).data.publicUrl;
+}
+
+async function uploadResizedArchiveImage(file,userId){
+  const resizedFile=await resizeArchiveImage(file);
+  return uploadEditImage(resizedFile,userId);
 }
 
 document.getElementById("editAddRecord").addEventListener("click",()=>addEditRecord());
@@ -787,7 +837,7 @@ document.getElementById("editSave").addEventListener("click",async()=>{
 
   try{
     const newCardImageUrl=editNewCardImage?await uploadEditImage(editNewCardImage,user.id):loadedArchive.image_url||null;
-    const newCoverImageUrl=editNewCoverImage?await uploadEditImage(editNewCoverImage,user.id):loadedArchive.cover_image_url||null;
+    const newCoverImageUrl=editNewCoverImage?await uploadResizedArchiveImage(editNewCoverImage,user.id):loadedArchive.cover_image_url||null;
 
     const {error:archiveError}=await supabase.from("archives")
       .update({name,text_color:editTextColor,image_url:newCardImageUrl,cover_image_url:newCoverImageUrl}).eq("id",loadedArchive.id).eq("user_id",user.id);
@@ -814,7 +864,7 @@ document.getElementById("editSave").addEventListener("click",async()=>{
       for(const block of contentBlocks){
         if(block.type==="image"&&block.url.startsWith("blob:")){
           const file=editNewFiles.get(block.url);
-          if(file)resolved.push({type:"image",url:await uploadEditImage(file,user.id)});
+          if(file)resolved.push({type:"image",url:await uploadResizedArchiveImage(file,user.id)});
         }else resolved.push(block);
       }
       const content=resolved.filter(b=>b.type==="text").map(b=>b.value).join("\n");
