@@ -208,6 +208,19 @@ photoInput.onchange=()=>{
   reader.onload=()=>{preview.className="profile-photo";preview.innerHTML="";preview.style.backgroundImage=`url("${reader.result}")`;preview.style.backgroundSize="cover";preview.style.backgroundPosition="center"};
   reader.readAsDataURL(file);
 };
+indexPhotoInput.onchange=()=>{
+  const file=indexPhotoInput.files?.[0];
+  if(!file)return;
+  indexPhotoName.textContent=file.name;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    indexPhotoPreview.className="index-photo-preview";
+    indexPhotoPreview.textContent="";
+    indexPhotoPreview.style.backgroundImage=`url("${reader.result}")`;
+  };
+  reader.readAsDataURL(file);
+};
+
 async function loadProfile(){
   const {data:{user},error:authError}=await supabase.auth.getUser();
   if(authError)throw authError;
