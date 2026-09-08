@@ -475,6 +475,77 @@
       flex: 0 0 auto;
     }
 
+
+    .search-wrap {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: -34px;
+      margin-bottom: 54px;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      width: 34px;
+      height: 28px;
+      padding: 0 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--background);
+      transition: width 0.2s ease, border-color 0.2s ease;
+    }
+
+    .search-box:focus-within {
+      width: 190px;
+      border-color: var(--point);
+    }
+
+    .search-icon {
+      flex: 0 0 auto;
+      color: var(--point);
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .search-input {
+      min-width: 0;
+      width: 0;
+      padding: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: 10px;
+      opacity: 0;
+      transition: width 0.2s ease, opacity 0.15s ease;
+    }
+
+    .search-box:focus-within .search-input {
+      width: 100%;
+      margin-left: 7px;
+      opacity: 1;
+    }
+
+    .search-input::placeholder {
+      color: var(--muted);
+    }
+
+    .search-submit {
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      .search-wrap {
+        margin-top: -28px;
+        margin-bottom: 46px;
+      }
+
+      .search-box:focus-within {
+        width: 165px;
+      }
+    }
+
     @media (max-width: 600px) {
       .top-nav {
         top: 18px;
@@ -586,6 +657,23 @@
       </div>
     </header>
 
+    <div class="search-wrap">
+      <form class="search-box" id="searchForm" action="./search.html" method="get">
+        <span class="search-icon">⌕</span>
+        <input
+          class="search-input"
+          id="searchInput"
+          name="q"
+          type="search"
+          placeholder="SEARCH"
+          autocomplete="off"
+          aria-label="검색"
+        >
+        <input type="hidden" name="theme" id="searchTheme">
+        <button class="search-submit" type="submit">SEARCH</button>
+      </form>
+    </div>
+
     <main>
       <div class="section-heading">
         <div class="section-title"><span class="heart">♡</span> DIARY</div>
@@ -679,6 +767,8 @@ function updateLinks(){
   if(newArchiveLink)newArchiveLink.href=`./category-write.html${q}`;
   if(diaryAllLink)diaryAllLink.href=`./diary-archive.html${q}`;
   if(loginLink)loginLink.href=`./login.html${q}`;
+  const searchTheme=$("searchTheme");
+  if(searchTheme)searchTheme.value=currentTheme;
 }
 updateLinks();
 
@@ -693,6 +783,17 @@ document.querySelectorAll(".theme-option").forEach(b=>b.addEventListener("click"
   themeWrap?.classList.remove("open");
 }));
 document.addEventListener("click",e=>{if(themeWrap&&!themeWrap.contains(e.target))themeWrap.classList.remove("open")});
+
+$("searchForm")?.addEventListener("submit",e=>{
+  const input=$("searchInput");
+  const value=(input?.value||"").trim();
+  if(!value){
+    e.preventDefault();
+    input?.focus();
+    return;
+  }
+  $("searchTheme").value=currentTheme;
+});
 
 let currentSession=null;
 
