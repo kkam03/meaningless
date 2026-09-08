@@ -915,7 +915,15 @@ document.getElementById("editCancel").addEventListener("click",()=>{
 document.getElementById("editButton").addEventListener("click",openEdit);
 
 supabase.auth.onAuthStateChange((_event,session)=>{
+  // CATEGORY 화면에서는 EDIT 버튼을 사용하지 않습니다.
+  // 인증 상태 변경 콜백이 늦게 실행되어 EDIT가 다시 나타나는 것을 방지합니다.
+  if(categoryId){
+    document.getElementById("editButton").hidden=true;
+    document.getElementById("archiveDeleteButton").hidden=true;
+    return;
+  }
   document.getElementById("editButton").hidden=!session;
+  document.getElementById("archiveDeleteButton").hidden=!session;
 });
 
 document.getElementById("editSave").addEventListener("click",async()=>{
