@@ -53,7 +53,7 @@
     .index-image-wrap {
       display: none;
       justify-content: flex-start;
-      margin: 0 0 10px;
+      margin: 0 0 4px;
     }
 
     .index-image-wrap.is-visible {
@@ -1037,19 +1037,18 @@ searchForm?.addEventListener("submit",e=>{
 let currentSession=null;
 
 async function loadProfileSummary(){
-  if(!currentSession){
-    profileLink?.classList.remove("is-visible");
-    indexImage?.removeAttribute("src");
-    indexImageWrap?.classList.remove("is-visible");
-    return;
-  }
   try{
-    const {data,error}=await supabase.from("profiles")
-      .select("nickname,avatar_url,index_image_url")
-      .eq("id",currentSession.user.id).maybeSingle();
+    const query=supabase.from("profiles").select("nickname,avatar_url,index_image_url");
+    const {data,error}=currentSession
+      ? await query.eq("id",currentSession.user.id).maybeSingle()
+      : await query.limit(1).maybeSingle();
     if(error)throw error;
-    profileLink?.classList.add("is-visible");
-    profileNickname.textContent=data?.nickname||"PROFILE";
+    if(currentSession){
+      profileLink?.classList.add("is-visible");
+      profileNickname.textContent=data?.nickname||"PROFILE";
+    }else{
+      profileLink?.classList.remove("is-visible");
+    }
 
     if(data?.index_image_url){
       indexImage.src=data.index_image_url;
