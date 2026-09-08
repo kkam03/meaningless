@@ -305,6 +305,149 @@
       border-color:var(--point);
     }
 
+    .memo-section {
+      margin-top: 62px;
+    }
+
+    .memo-heading {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin: 0 0 18px 4px;
+    }
+
+    .memo-label {
+      color: var(--point);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .memo-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .memo-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .memo-card {
+      position: relative;
+      min-height: 150px;
+      padding: 18px 20px 20px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(145deg, #ffffff 0%, var(--theme-bg) 100%);
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .memo-card::before {
+      content: "";
+      position: absolute;
+      width: 78px;
+      height: 78px;
+      right: -28px;
+      top: -28px;
+      border-radius: 50%;
+      background: var(--point-soft);
+      opacity: 0.5;
+    }
+
+    .memo-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--point);
+    }
+
+    .memo-card-date {
+      position: relative;
+      z-index: 1;
+      color: var(--muted);
+      font-size: 9px;
+      letter-spacing: 0.04em;
+    }
+
+    .memo-card-title {
+      position: relative;
+      z-index: 1;
+      margin-top: 8px;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: -0.025em;
+    }
+
+    .memo-card-content {
+      position: relative;
+      z-index: 1;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.75;
+      white-space: pre-wrap;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .memo-view-all {
+      display: flex;
+      justify-content: flex-end;
+      margin: 12px 4px 0;
+    }
+
+    .memo-view-all a {
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.03em;
+      transition: color 0.2s ease;
+    }
+
+    .memo-view-all a:hover {
+      color: var(--point);
+    }
+
+    @media (max-width: 600px) {
+      .memo-section {
+        margin-top: 52px;
+      }
+
+      .memo-heading {
+        gap: 10px;
+        margin-bottom: 13px;
+      }
+
+      .memo-label {
+        font-size: 11px;
+      }
+
+      .memo-note {
+        font-size: 10px;
+      }
+
+      .memo-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .memo-card {
+        min-height: 140px;
+        padding: 17px 18px 18px;
+      }
+
+      .memo-card-title {
+        font-size: 14px;
+      }
+
+      .memo-card-content {
+        font-size: 11px;
+      }
+    }
+
+
     .archive-card-top,
     .archive-card-bottom {
       position: relative;
@@ -698,6 +841,17 @@
         <div class="archive-grid" id="archiveGrid">
         </div>
       </section>
+
+      <section class="memo-section" id="memoSection" style="display:none;">
+        <div class="memo-heading">
+          <span class="memo-label">MEMO</span>
+          <span class="memo-note">생각나는 것들을 잠깐 적어둡니다.</span>
+        </div>
+        <div class="memo-grid" id="memoGrid"></div>
+        <div class="memo-view-all">
+          <a id="memoAllLink" href="./memo.html">VIEW ALL MEMO →</a>
+        </div>
+      </section>
     </main>
 
     <footer>
@@ -726,6 +880,7 @@ const newDiaryLink=$("newDiaryLink"), newArchiveLink=$("newArchiveLink");
 const diaryAllLink=$("diaryAllLink");
 const loginLink=$("loginLink"), themeWrap=$("themeWrap"), themeButton=$("themeButton");
 const profileLink=$("profileLink"), profileAvatar=$("profileAvatar"), profileNickname=$("profileNickname");
+const memoSection=$("memoSection"), memoGrid=$("memoGrid"), memoAllLink=$("memoAllLink");
 
 const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 const formatDate=d=>{if(!d)return"";const x=new Date(`${d}T00:00:00`);return Number.isNaN(x.getTime())?String(d):`${String(x.getMonth()+1).padStart(2,"0")}.${String(x.getDate()).padStart(2,"0")}`};
@@ -759,12 +914,45 @@ function applyTheme(n,remember=true){
 let currentTheme=getTheme();
 applyTheme(currentTheme,true);
 
+
+function renderMemos(){
+  const key="meaningless-memos";
+  let memos=[];
+  try{
+    memos=JSON.parse(localStorage.getItem(key)||"[]");
+    if(!Array.isArray(memos))memos=[];
+  }catch(error){
+    console.warn("MEMO LOAD",error);
+    memos=[];
+  }
+
+  if(!memos.length){
+    memoSection.style.display="none";
+    memoGrid.innerHTML="";
+    return;
+  }
+
+  memoSection.style.display="block";
+
+  const latest=memos.slice(0,2);
+  memoGrid.innerHTML=latest.map(m=>`
+    <a class="memo-card" href="./memo.html?theme=${encodeURIComponent(currentTheme)}">
+      <div class="memo-card-date">${esc(m.date||"")}</div>
+      <div class="memo-card-title">${esc(m.title||"UNTITLED")}</div>
+      <div class="memo-card-content">${esc(m.content||"")}</div>
+    </a>
+  `).join("");
+
+  memoAllLink.href=`./memo.html?theme=${encodeURIComponent(currentTheme)}`;
+}
+
 function updateLinks(){
   const q=`?theme=${encodeURIComponent(currentTheme)}`;
   if(newDiaryLink)newDiaryLink.href=`./diary-write.html${q}`;
   if(newArchiveLink)newArchiveLink.href=`./category-write.html${q}`;
   if(diaryAllLink)diaryAllLink.href=`./diary-archive.html${q}`;
   if(loginLink)loginLink.href=`./login.html${q}`;
+  if(memoAllLink)memoAllLink.href=`./memo.html${q}`;
   const searchTheme=$("searchTheme");
   if(searchTheme)searchTheme.value=currentTheme;
 }
@@ -995,10 +1183,15 @@ document.addEventListener("click",async e=>{
 const {data:{session}}=await supabase.auth.getSession();
 updateAuthUI(session);
 await loadLists();
+renderMemos();
 
 supabase.auth.onAuthStateChange((_event,nextSession)=>{
   updateAuthUI(nextSession);
   loadLists().catch(error=>console.error("INDEX REFRESH",error));
+});
+
+window.addEventListener("storage",e=>{
+  if(e.key==="meaningless-memos")renderMemos();
 });
 </script>
 
