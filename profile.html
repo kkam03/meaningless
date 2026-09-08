@@ -308,10 +308,15 @@ document.getElementById("saveButton").onclick=async()=>{
       indexImageUrl=data?.index_image_url||null;
     }
 
-    const {error}=await supabase.from("profiles").upsert({
-      id:user.id,nickname,avatar_url:avatarUrl,index_image_url:indexImageUrl,
-      updated_at:new Date().toISOString()
-    });
+const {error}=await supabase.from("profiles")
+  .update({
+    nickname,
+    avatar_url:avatarUrl,
+    index_image_url:indexImageUrl,
+    updated_at:new Date().toISOString()
+  })
+  .eq("id",user.id);
+    
     if(error)throw error;
     alert("프로필이 저장되었습니다.");
     window.location.href="index.html?theme="+encodeURIComponent(currentTheme);
