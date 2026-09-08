@@ -18,7 +18,7 @@
     .theme-option{display:flex;align-items:center;gap:8px;width:100%;padding:8px 7px;border:0;border-radius:7px;background:transparent;color:var(--text);font-size:11px;text-align:left;cursor:pointer}
     .theme-option:hover{background:var(--point-soft)}
     .theme-dot{width:8px;height:8px;border-radius:50%;background:var(--theme-color)}
-    header{padding:105px 0 45px}
+    header{padding:65px 0 30px}
     .back{display:inline-block;margin-bottom:38px;color:var(--muted);font-size:11px;letter-spacing:.04em}
     .back:hover{color:var(--point)}
     .label{font-size:11px;letter-spacing:.16em;color:var(--point);margin-bottom:8px}
@@ -28,7 +28,7 @@
 .memo-editor{border:1px solid var(--line)!important;border-radius:5px;padding:18px 20px 14px!important;background:var(--background);box-shadow:0 4px 14px rgba(50,100,95,.035)}
     .memo-title{width:100%;border:0;border-bottom:1px solid var(--line);outline:0;padding:8px 2px 11px;color:var(--text);font-size:18px;font-weight:500;background:transparent}
     .memo-title::placeholder,.memo-content::placeholder{color:#b5afb2}
-    .memo-content{display:block;width:100%;min-height:190px;margin-top:14px;padding:12px 2px;border:0;outline:0;resize:vertical;background:transparent;color:var(--text);font-size:12px;line-height:1.8}
+    .memo-content{display:block;width:100%;min-height:190px;margin-top:14px;padding:12px 2px;border:0;outline:0;resize:vertical;background:transparent;color:var(--text);font-size:14px;line-height:1.8}
     .memo-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:8px}
     .memo-actions button{border:0;background:transparent;color:var(--muted);font-size:10px;letter-spacing:.05em;cursor:pointer;padding:8px 0}
     .memo-actions .save{color:var(--point)}
@@ -39,7 +39,7 @@
     .memo-item:hover{transform:translateY(-3px) rotate(-.2deg);border-color:var(--point);box-shadow:0 8px 22px rgba(50,100,95,.07)}
     .memo-item-title{padding-right:58px;font-size:15px;font-weight:600;letter-spacing:-.025em}
     .memo-item-date{margin-top:6px;color:var(--point);font-size:9px;letter-spacing:.04em}
-    .memo-item-content{margin-top:19px;padding-top:13px;border-top:1px dashed var(--line);color:var(--muted);font-size:11px;line-height:1.85;white-space:pre-wrap;display:block;overflow:visible}
+    .memo-item-content{margin-top:19px;padding-top:13px;border-top:1px dashed var(--line);color:var(--muted);font-size:13px;line-height:1.85;white-space:pre-wrap;display:block;overflow:visible}
     .memo-item-actions{position:absolute;right:12px;top:13px;display:flex;gap:3px;z-index:2}
     .memo-item-actions button{border:0;background:transparent;color:var(--muted);font-size:9px;letter-spacing:.04em;cursor:pointer;padding:5px}
     .memo-item-actions button:hover{color:var(--point)}
@@ -52,9 +52,9 @@
     @media(max-width:600px){
       .container{width:calc(100% - 32px)}
       .top-nav{top:18px;right:18px}
-      header{padding-top:90px}
+      header{padding-top:60px}
       .memo-title{font-size:16px}
-      .memo-content{min-height:220px;font-size:12px}
+      .memo-content{min-height:220px;font-size:14px}
       .memo-list{column-count:1;column-gap:0;margin-top:46px}
       .memo-item{min-height:150px;padding:19px 18px 21px}
     }
