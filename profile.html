@@ -279,11 +279,11 @@ async function uploadAvatar(file,userId){
 }
 async function uploadIndexImage(file,userId){
   const path=`${userId}/index.png`;
-  const {error}=await supabase.storage.from("index-images").upload(path,file,{
+  const {error}=await supabase.storage.from("profile-images").upload(path,file,{
     cacheControl:"31536000",upsert:true,contentType:file.type
   });
   if(error)throw error;
-  const publicUrl=supabase.storage.from("index-images").getPublicUrl(path).data.publicUrl;
+  const publicUrl=supabase.storage.from("profile-images").getPublicUrl(path).data.publicUrl;
   return `${publicUrl}?v=${Date.now()}`;
 }
 
@@ -308,15 +308,10 @@ document.getElementById("saveButton").onclick=async()=>{
       indexImageUrl=data?.index_image_url||null;
     }
 
-const {error}=await supabase.from("profiles")
-  .update({
-    nickname,
-    avatar_url:avatarUrl,
-    index_image_url:indexImageUrl,
-    updated_at:new Date().toISOString()
-  })
-  .eq("id",user.id);
-    
+    const {error}=await supabase.from("profiles").upsert({
+      id:user.id,nickname,avatar_url:avatarUrl,index_image_url:indexImageUrl,
+      updated_at:new Date().toISOString()
+    });
     if(error)throw error;
     alert("프로필이 저장되었습니다.");
     window.location.href="index.html?theme="+encodeURIComponent(currentTheme);
