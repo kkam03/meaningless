@@ -125,65 +125,76 @@ header {
   color: var(--muted);
 }
 
+/* compact search */
 .search-form {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  justify-content: flex-end;
+  margin-bottom: 46px;
 }
 
 .search-box {
+  position: relative;
   display: flex;
   align-items: center;
-  width: 100%;
-  max-width: 420px;
-  height: 34px;
-  padding: 0 10px;
+  width: 34px;
+  height: 28px;
+  padding: 0 8px;
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--background);
-  transition: border-color .2s ease;
+  overflow: hidden;
+  cursor: text;
+  transition: width .2s ease, border-color .2s ease;
+}
+
+.search-box:hover {
+  border-color: var(--point);
 }
 
 .search-box:focus-within {
+  width: 190px;
   border-color: var(--point);
 }
 
 .search-icon {
+  position: relative;
+  z-index: 1;
   flex: 0 0 auto;
   color: var(--point);
   font-size: 14px;
   line-height: 1;
+  pointer-events: none;
 }
 
 .search-input {
-  min-width: 0;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
   width: 100%;
-  margin-left: 8px;
-  padding: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0 9px 0 29px;
   border: 0;
   outline: 0;
   background: transparent;
   color: var(--text);
   font: inherit;
-  font-size: 11px;
+  font-size: 10px;
+  opacity: 0;
+  cursor: text;
+  transition: opacity .15s ease;
 }
 
-.search-input::placeholder { color: #b3adaf; }
+.search-box:focus-within .search-input {
+  opacity: 1;
+}
+
+.search-input::placeholder {
+  color: #b3adaf;
+}
 
 .search-submit {
-  height: 34px;
-  padding: 0 12px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--theme-bg);
-  color: var(--point);
-  font: inherit;
-  font-size: 10px;
-  cursor: pointer;
-}
-
-.search-submit:hover {
-  border-color: var(--point);
+  display: none;
 }
 
 .summary {
@@ -192,20 +203,28 @@ header {
   color: var(--muted);
 }
 
-.results-section {
-  margin-bottom: 48px;
+.result-section {
+  margin: 0 0 72px;
 }
 
-.section-label {
+.result-section + .result-section {
+  margin-top: 72px;
+}
+
+.result-heading {
   margin: 0 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
   font-size: 10px;
   font-weight: 500;
   letter-spacing: .14em;
   color: var(--point);
 }
 
-.result-list {
-  border-top: 1px solid var(--line);
+.result-heading span {
+  margin-left: 5px;
+  color: var(--muted);
+  letter-spacing: 0;
 }
 
 .result-item {
@@ -221,7 +240,7 @@ header {
   padding-right: 8px;
 }
 
-.result-date {
+.result-meta {
   margin-bottom: 3px;
   font-size: 9px;
   color: var(--muted);
@@ -234,15 +253,10 @@ header {
   font-weight: 500;
 }
 
-.result-excerpt {
-  margin: 0;
+.result-snippet {
   color: var(--muted);
   font-size: 10px;
   line-height: 1.65;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .empty {
@@ -259,6 +273,23 @@ mark {
 }
 
 @media (max-width: 600px) {
+  .search-form {
+    margin-bottom: 40px;
+  }
+
+  .search-box:focus-within {
+    width: 165px;
+  }
+
+  .result-section {
+    margin-bottom: 54px;
+  }
+
+  .result-section + .result-section {
+    margin-top: 54px;
+  }
+
+
   header {
     padding-top: 28px;
     padding-bottom: 38px;
@@ -319,261 +350,238 @@ mark {
       </div>
     </header>
 
-    <form class="search-box" id="searchForm">
-      <span class="search-icon">⌕</span>
-      <input
-        class="search-input"
-        id="searchInput"
-        name="q"
-        type="search"
-        placeholder="SEARCH"
-        autocomplete="off"
-        aria-label="검색"
-      >
-      <button class="search-submit" type="submit">SEARCH</button>
+    <form class="search-form" id="searchForm">
+      <div class="search-box">
+        <span class="search-icon">⌕</span>
+        <input
+          class="search-input"
+          id="searchInput"
+          name="q"
+          type="search"
+          placeholder="SEARCH"
+          autocomplete="off"
+          aria-label="검색"
+        >
+      </div>
     </form>
 
     <div class="summary" id="summary"></div>
 
-    <section class="section">
-      <div class="section-heading">
-        <div class="section-title">♡ DIARY</div>
-      </div>
-      <div class="result-list" id="diaryResults"></div>
+    <section class="result-section" id="diarySection">
+      <div class="result-heading">DIARY <span id="diaryCount"></span></div>
+      <div id="diaryResults"></div>
     </section>
 
-    <section class="section">
-      <div class="section-heading">
-        <div class="section-title">ARCHIVE</div>
-      </div>
-      <div class="result-list" id="archiveResults"></div>
+    <section class="result-section" id="archiveSection">
+      <div class="result-heading">ARCHIVE <span id="archiveCount"></span></div>
+      <div id="archiveResults"></div>
     </section>
 
     <footer>© 2026 meaningless. All rights reserved.</footer>
   </div>
 
   <script type="module">
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-    import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-    const $ = id => document.getElementById(id);
+const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 
-    const themes = {
-      mint:{point:"#4fae9f",pointSoft:"#d6efea",line:"#e0ecea",themeBg:"#f7fbfa"},
-      pink:{point:"#d3638b",pointSoft:"#f3d6e1",line:"#eadde2",themeBg:"#fff8fa"},
-      lavender:{point:"#8d78bb",pointSoft:"#e5dff2",line:"#e4e1ea",themeBg:"#faf8fd"},
-      blue:{point:"#5f9fbc",pointSoft:"#dbeaf0",line:"#dfe8eb",themeBg:"#f7fbfd"}
-    };
+const themes={
+  mint:{point:"#4fae9f",pointSoft:"#d6efea",line:"#e0ecea",themeBg:"#f7fbfa"},
+  pink:{point:"#d3638b",pointSoft:"#f3d6e1",line:"#eadde2",themeBg:"#fff8fa"},
+  lavender:{point:"#8d78bb",pointSoft:"#e5dff2",line:"#e4e1ea",themeBg:"#faf8fd"},
+  blue:{point:"#5f9fbc",pointSoft:"#dbeaf0",line:"#dfe8eb",themeBg:"#f7fbfd"}
+};
 
-    const params = new URLSearchParams(location.search);
-    const currentTheme = themes[params.get("theme")] ? params.get("theme") : "mint";
-    const query = (params.get("q") || "").trim();
+function esc(v){
+  return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+function stripHtml(v){
+  const d=document.createElement("div");
+  d.innerHTML=String(v??"");
+  return d.textContent||"";
+}
+function highlight(v,q){
+  const s=String(v??"");
+  if(!q)return esc(s);
+  const safe=esc(s);
+  const re=new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi");
+  return safe.replace(re,m=>`<mark>${m}</mark>`);
+}
+function formatDate(v){
+  if(!v)return "";
+  const d=new Date(`${v}T00:00:00`);
+  return Number.isNaN(d.getTime())?String(v):
+    `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
+}
+function getTheme(){
+  const p=new URLSearchParams(location.search);
+  if(themes[p.get("theme")])return p.get("theme");
+  const m=document.cookie.match(/(?:^|;\s*)meaningless-theme=([^;]+)/);
+  const n=m?decodeURIComponent(m[1]):null;
+  return themes[n]?n:"mint";
+}
+function applyTheme(n){
+  const t=themes[n]||themes.mint;
+  document.documentElement.style.setProperty("--point",t.point);
+  document.documentElement.style.setProperty("--point-soft",t.pointSoft);
+  document.documentElement.style.setProperty("--line",t.line);
+  document.documentElement.style.setProperty("--theme-bg",t.themeBg);
+}
+const currentTheme=getTheme();
+applyTheme(currentTheme);
 
-    const esc = v => String(v ?? "")
-      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+const params=new URLSearchParams(location.search);
+const initialQuery=params.get("q")||"";
+const form=document.getElementById("searchForm");
+const input=document.getElementById("searchInput");
+const summary=document.getElementById("summary");
+const results=document.getElementById("results");
 
-    const formatDate = d => {
-      if(!d) return "";
-      const x = new Date(`${d}T00:00:00`);
-      return Number.isNaN(x.getTime()) ? String(d) :
-        `${String(x.getMonth()+1).padStart(2,"0")}.${String(x.getDate()).padStart(2,"0")}`;
-    };
+if(input)input.value=initialQuery;
 
-    function applyTheme(name) {
-      const t = themes[name] || themes.mint;
-      document.documentElement.style.setProperty("--point",t.point);
-      document.documentElement.style.setProperty("--point-soft",t.pointSoft);
-      document.documentElement.style.setProperty("--line",t.line);
-      document.documentElement.style.setProperty("--theme-bg",t.themeBg);
+async function searchAll(keyword){
+  const q=keyword.trim().toLowerCase();
+
+  const diarySection=document.getElementById("diarySection");
+  const archiveSection=document.getElementById("archiveSection");
+  const diaryResults=document.getElementById("diaryResults");
+  const archiveResults=document.getElementById("archiveResults");
+  const diaryCount=document.getElementById("diaryCount");
+  const archiveCount=document.getElementById("archiveCount");
+
+  if(!q){
+    summary.textContent="";
+    diaryResults.innerHTML="";
+    archiveResults.innerHTML="";
+    diaryCount.textContent="";
+    archiveCount.textContent="";
+    return;
+  }
+
+  summary.textContent=`"${keyword}" 검색 결과`;
+
+  const [
+    {data:diaries,error:diaryError},
+    {data:categories,error:categoryError},
+    {data:archives,error:archiveError}
+  ]=await Promise.all([
+    supabase.from("diary")
+      .select("id,date,title,content,created_at")
+      .order("date",{ascending:false})
+      .order("created_at",{ascending:false}),
+    supabase.from("archive_categories")
+      .select("id,name,description,created_at")
+      .order("created_at",{ascending:true}),
+    supabase.from("archives")
+      .select("id,name,type,category_id,created_at")
+      .order("created_at",{ascending:false})
+  ]);
+
+  if(diaryError)console.error("SEARCH DIARY",diaryError);
+  if(categoryError)console.error("SEARCH CATEGORY",categoryError);
+  if(archiveError)console.error("SEARCH ARCHIVES",archiveError);
+
+  const diaryHits=(diaries||[]).filter(x=>
+    [x.title,x.content].some(v=>String(v??"").toLowerCase().includes(q))
+  );
+
+  const categoryHits=(categories||[]).filter(x=>
+    [x.name,x.description].some(v=>String(v??"").toLowerCase().includes(q))
+  );
+
+  let recordHits=[];
+  const archiveList=archives||[];
+
+  if(archiveList.length){
+    const ids=archiveList.map(x=>x.id);
+    const {data:records,error}=await supabase.from("archive_records")
+      .select("id,archive_id,date,title,content,image_url,extra_data,created_at")
+      .in("archive_id",ids)
+      .order("date",{ascending:true})
+      .order("created_at",{ascending:true});
+
+    if(error){
+      console.error("SEARCH ARCHIVE RECORDS",error);
+    }else{
+      recordHits=(records||[]).filter(r=>{
+        const blocks=Array.isArray(r.extra_data?.content_blocks)
+          ?r.extra_data.content_blocks.filter(b=>b?.type==="text").map(b=>b.value||"").join("\n")
+          :"";
+        const extra=r.extra_data&&typeof r.extra_data==="object"
+          ?Object.entries(r.extra_data)
+            .filter(([k])=>k!=="content_blocks")
+            .map(([,v])=>String(v??"")).join("\n")
+          :"";
+        return [r.title,r.content,blocks,extra]
+          .some(v=>String(v??"").toLowerCase().includes(q));
+      });
     }
+  }
 
-    function addTheme(url) {
-      url.searchParams.set("theme", currentTheme);
-      return url;
-    }
+  const archiveHits=archiveList.filter(a=>
+    [a.name,a.type].some(v=>String(v??"").toLowerCase().includes(q)) ||
+    recordHits.some(r=>r.archive_id===a.id)
+  );
 
-    applyTheme(currentTheme);
-    $("searchInput").value = query;
+  diaryCount.textContent=diaryHits.length?` ${diaryHits.length}`:"";
+  archiveCount.textContent=(archiveHits.length+categoryHits.length)
+    ?` ${archiveHits.length+categoryHits.length}`:"";
 
-    const backUrl = addTheme(new URL("./index.html", location.href));
-    const logoUrl = addTheme(new URL("./index.html", location.href));
-    $("backLink").href = backUrl.href;
-    $("logoLink").href = logoUrl.href;
+  diaryResults.innerHTML=diaryHits.length
+    ?diaryHits.map(x=>`
+      <a class="result-item" href="./diary-detail.html?id=${encodeURIComponent(x.id)}&theme=${encodeURIComponent(currentTheme)}">
+        <div class="result-meta">${esc(formatDate(x.date))}</div>
+        <div class="result-title">${highlight(x.title,keyword)}</div>
+        ${x.content?`<div class="result-snippet">${highlight(stripHtml(x.content).slice(0,180),keyword)}</div>`:""}
+      </a>`).join("")
+    :'<div class="empty">검색 결과가 없습니다.</div>';
 
-    function normalize(v) {
-      return String(v ?? "").toLocaleLowerCase("ko-KR").trim();
-    }
+  let archiveOut="";
 
-    function highlightText(text, q) {
-      if(!q) return esc(text);
-      const source = String(text ?? "");
-      const lower = source.toLocaleLowerCase("ko-KR");
-      const target = q.toLocaleLowerCase("ko-KR");
-      const index = lower.indexOf(target);
-      if(index < 0) return esc(source);
+  if(categoryHits.length){
+    archiveOut+=categoryHits.map(x=>`
+      <a class="result-item" href="./archive-view.html?category=${encodeURIComponent(x.id)}&theme=${encodeURIComponent(currentTheme)}">
+        <div class="result-meta">CATEGORY</div>
+        <div class="result-title">${highlight(x.name,keyword)}</div>
+        ${x.description?`<div class="result-snippet">${highlight(x.description,keyword)}</div>`:""}
+      </a>`).join("");
+  }
 
-      return esc(source.slice(0,index)) +
-        "<mark>" + esc(source.slice(index,index+q.length)) + "</mark>" +
-        esc(source.slice(index+q.length));
-    }
+  if(archiveHits.length){
+    archiveOut+=archiveHits.map(a=>{
+      const hits=recordHits.filter(r=>r.archive_id===a.id);
+      const snippet=hits.map(r=>{
+        const blocks=Array.isArray(r.extra_data?.content_blocks)
+          ?r.extra_data.content_blocks.filter(b=>b?.type==="text").map(b=>b.value||"").join(" ")
+          :"";
+        const body=stripHtml(r.content||blocks);
+        return body?highlight(body.slice(0,140),keyword):"";
+      }).filter(Boolean).join(" · ");
 
-    function searchableValues(row) {
-      const excluded = new Set([
-        "id","user_id","category_id","created_at","updated_at",
-        "image_url","avatar_url","date"
-      ]);
-      return Object.entries(row || {})
-        .filter(([key,value]) =>
-          !excluded.has(key) &&
-          typeof value === "string" &&
-          value.trim()
-        )
-        .map(([,value]) => value.trim());
-    }
+      return `<a class="result-item" href="./archive-view.html?id=${encodeURIComponent(a.id)}${a.category_id?`&fromCategory=${encodeURIComponent(a.category_id)}`:""}&theme=${encodeURIComponent(currentTheme)}">
+        <div class="result-meta">${esc((a.type||"ARCHIVE").toUpperCase())}</div>
+        <div class="result-title">${highlight(a.name,keyword)}</div>
+        ${snippet?`<div class="result-snippet">${snippet}</div>`:""}
+      </a>`;
+    }).join("");
+  }
 
-    function matchesRow(row, q) {
-      if(!q) return false;
-      return searchableValues(row).some(value => normalize(value).includes(normalize(q)));
-    }
+  archiveResults.innerHTML=archiveOut||'<div class="empty">검색 결과가 없습니다.</div>';
+}
 
-    function firstUsefulValue(row, preferred = []) {
-      for(const key of preferred) {
-        if(typeof row?.[key] === "string" && row[key].trim()) return row[key].trim();
-      }
-      return searchableValues(row)[0] || "RECORD";
-    }
+form?.addEventListener("submit",e=>{
+  e.preventDefault();
+  const q=input.value.trim();
+  const url=new URL(location.href);
+  if(q)url.searchParams.set("q",q);else url.searchParams.delete("q");
+  url.searchParams.set("theme",currentTheme);
+  history.replaceState(null,"",url);
+  searchAll(q);
+});
 
-    function snippet(row, q) {
-      const values = searchableValues(row);
-      const hit = values.find(v => normalize(v).includes(normalize(q))) || values[0] || "";
-      if(!hit) return "";
-      const lower = hit.toLocaleLowerCase("ko-KR");
-      const index = lower.indexOf(q.toLocaleLowerCase("ko-KR"));
-      if(index < 0) return hit.length > 100 ? hit.slice(0,100) + "…" : hit;
-
-      const start = Math.max(0, index - 42);
-      const end = Math.min(hit.length, index + q.length + 58);
-      return (start > 0 ? "…" : "") + hit.slice(start,end) + (end < hit.length ? "…" : "");
-    }
-
-    function renderEmpty(message) {
-      return `<div class="empty">${esc(message)}</div>`;
-    }
-
-    async function loadResults() {
-      if(!query) {
-        $("summary").textContent = "검색어를 입력해주세요.";
-        $("diaryResults").innerHTML = renderEmpty("SEARCH로 검색해보세요.");
-        $("archiveResults").innerHTML = renderEmpty("SEARCH로 검색해보세요.");
-        return;
-      }
-
-      $("summary").textContent = `"${query}" 검색 결과를 불러오는 중…`;
-
-      const [
-        {data: diaries, error: diaryError},
-        {data: categories, error: categoryError},
-        {data: archives, error: archiveError}
-      ] = await Promise.all([
-        supabase.from("diary")
-          .select("id,date,title,content,image_url,created_at")
-          .order("date",{ascending:false})
-          .order("created_at",{ascending:false}),
-        supabase.from("archive_categories")
-          .select("id,name,description,image_url,text_color,created_at")
-          .order("created_at",{ascending:true}),
-        supabase.from("archives")
-          .select("*")
-      ]);
-
-      if(diaryError) {
-        console.error("SEARCH DIARY", diaryError);
-      }
-
-      if(categoryError) {
-        console.error("SEARCH CATEGORY", categoryError);
-      }
-
-      if(archiveError) {
-        console.error("SEARCH ARCHIVE", archiveError);
-      }
-
-      const diaryHits = (diaries || []).filter(row =>
-        normalize(`${row.title || ""} ${row.content || ""}`).includes(normalize(query))
-      );
-
-      const categoryHits = (categories || []).filter(row =>
-        normalize(`${row.name || ""} ${row.description || ""}`).includes(normalize(query))
-      );
-
-      const categoryMap = new Map((categories || []).map(row => [String(row.id), row]));
-      const archiveHits = (archives || [])
-        .filter(row => matchesRow(row, query))
-        .map(row => ({
-          row,
-          category: categoryMap.get(String(row.category_id))
-        }));
-
-      $("summary").textContent =
-        `"${query}" · ${diaryHits.length + categoryHits.length + archiveHits.length} results`;
-
-      $("diaryResults").innerHTML = diaryHits.length
-        ? diaryHits.map(row => `
-            <a class="result" href="./diary-detail.html?id=${encodeURIComponent(row.id)}&theme=${encodeURIComponent(currentTheme)}">
-              <div class="result-meta">${esc(formatDate(row.date))}</div>
-              <div class="result-title">${highlightText(row.title || "DIARY", query)}</div>
-              ${row.content ? `<div class="result-snippet">${highlightText(row.content, query)}</div>` : ""}
-            </a>
-          `).join("")
-        : renderEmpty("검색 결과가 없습니다.");
-
-      const categoryHtml = categoryHits.map(row => `
-        <a class="result" href="./archive-view.html?category=${encodeURIComponent(row.id)}&theme=${encodeURIComponent(currentTheme)}">
-          <div class="result-meta">ARCHIVE</div>
-          <div class="result-title">${highlightText(row.name || "ARCHIVE", query)}</div>
-          ${row.description ? `<div class="result-snippet">${highlightText(row.description, query)}</div>` : ""}
-        </a>
-      `).join("");
-
-      const archiveHtml = archiveHits.map(({row,category}) => {
-        const title = firstUsefulValue(row, ["title","name","subject"]);
-        const categoryName = category?.name || "ARCHIVE";
-        const href = category
-          ? `./archive-view.html?category=${encodeURIComponent(category.id)}&theme=${encodeURIComponent(currentTheme)}`
-          : `./index.html?theme=${encodeURIComponent(currentTheme)}`;
-
-        return `
-          <a class="result" href="${href}">
-            <div class="result-meta">${esc(categoryName)}</div>
-            <div class="result-title">${highlightText(title, query)}</div>
-            <div class="result-snippet">${highlightText(snippet(row, query), query)}</div>
-          </a>
-        `;
-      }).join("");
-
-      $("archiveResults").innerHTML =
-        categoryHtml + archiveHtml ||
-        renderEmpty("검색 결과가 없습니다.");
-    }
-
-    $("searchForm").addEventListener("submit", e => {
-      e.preventDefault();
-      const value = $("searchInput").value.trim();
-      const url = new URL(location.href);
-      if(value) url.searchParams.set("q", value);
-      else url.searchParams.delete("q");
-      url.searchParams.set("theme", currentTheme);
-      location.href = url.href;
-    });
-
-    loadResults().catch(error => {
-      console.error("SEARCH LOAD", error);
-      $("summary").textContent = "검색 중 오류가 발생했습니다.";
-      $("diaryResults").innerHTML = renderEmpty("DIARY 검색에 실패했습니다.");
-      $("archiveResults").innerHTML = renderEmpty("ARCHIVE 검색에 실패했습니다.");
-    });
-  </script>
+if(initialQuery)searchAll(initialQuery);
+</script>
 </body>
 </html>
