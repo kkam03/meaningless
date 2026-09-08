@@ -24,7 +24,8 @@
     .label{font-size:11px;letter-spacing:.16em;color:var(--point);margin-bottom:8px}
     .note{font-size:12px;color:var(--muted)}
     main{padding-bottom:70px}
-    .memo-editor{border-top:1px solid var(--line);padding-top:22px}
+    /* MEMO editor grid */
+.memo-editor{border:1px solid var(--line)!important;border-radius:5px;padding:18px 20px 14px!important;background:var(--background);box-shadow:0 4px 14px rgba(50,100,95,.035)}
     .memo-title{width:100%;border:0;border-bottom:1px solid var(--line);outline:0;padding:8px 2px 11px;color:var(--text);font-size:18px;font-weight:500;background:transparent}
     .memo-title::placeholder,.memo-content::placeholder{color:#b5afb2}
     .memo-content{display:block;width:100%;min-height:190px;margin-top:14px;padding:12px 2px;border:0;outline:0;resize:vertical;background:transparent;color:var(--text);font-size:12px;line-height:1.8}
@@ -205,7 +206,7 @@
       const content=$("memoContent").value.trim();
       if(!title&&!content){$("memoTitle").focus();return;}
 
-      const saveButton=document.querySelector(".save");
+      const saveButton=$(".save");
       saveButton.disabled=true;
       try{
         if(editingId){
