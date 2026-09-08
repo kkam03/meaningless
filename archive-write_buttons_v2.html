@@ -88,6 +88,7 @@ input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--
   .container {
     position:relative;
     z-index:1;
+    width:min(820px,calc(100% - 40px)) !important;
     margin:28px auto !important;
     padding:24px 30px 38px !important;
     border:1px solid var(--line);
@@ -95,7 +96,7 @@ input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--
     background:var(--background);
   }
   @media(max-width:600px){
-    .container{margin:16px auto !important;padding:20px 16px 30px !important;}
+    .container{width:calc(100% - 24px) !important;margin:16px auto !important;padding:20px 16px 30px !important;}
   }
 </style>
 </head>
