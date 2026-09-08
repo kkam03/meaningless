@@ -111,6 +111,9 @@
     let editingId=null;
     let currentUser=null;
 
+    // MEMO is now stored in Supabase. Remove old browser-only memos.
+    try{localStorage.removeItem("meaningless-memos");}catch(error){}
+
     function applyTheme(name){
       const t=themes[name];
       document.documentElement.style.setProperty("--point",t.point);
@@ -142,38 +145,36 @@
     }
 
     function render(){
-      if(!currentUser){
-        $("memoList").innerHTML='<div class="login-required">MEMO는 로그인한 사용자만 작성하고 볼 수 있습니다. <a href="./login.html">LOGIN →</a></div>';
-        return;
-      }
       if(!memos.length){
         $("memoList").innerHTML='<div class="empty">아직 적어둔 메모가 없습니다.</div>';
         return;
       }
-      $("memoList").innerHTML=memos.map(m=>`
+      $("memoList").innerHTML=memos.map(m=>{
+        const isOwner=!!currentUser && m.user_id===currentUser.id;
+        return `
         <article class="memo-item">
-          <div class="memo-item-actions">
+          ${isOwner?`<div class="memo-item-actions">
             <button type="button" data-edit="${esc(m.id)}">EDIT</button>
             <button type="button" data-delete="${esc(m.id)}">DELETE</button>
-          </div>
+          </div>`:""}
           <div class="memo-item-title">${esc(m.title||"UNTITLED")}</div>
           <div class="memo-item-date">${esc(formatDate(m.created_at))}</div>
           <div class="memo-item-content">${esc(m.content||"")}</div>
-        </article>`).join("");
+        </article>`;
+      }).join("");
     }
 
     async function loadMemos(){
-      if(!currentUser){memos=[];render();return;}
       const {data,error}=await supabase.from("memos")
         .select("id,user_id,title,content,created_at,updated_at")
-        .eq("user_id",currentUser.id)
         .order("created_at",{ascending:false});
       if(error){
         console.error("MEMO LOAD",error);
         $("memoList").innerHTML='<div class="empty">메모를 불러오지 못했습니다.</div>';
         return;
       }
-      memos=data||[];render();
+      memos=data||[];
+      render();
     }
 
     function clearForm(){
@@ -204,7 +205,7 @@
       const content=$("memoContent").value.trim();
       if(!title&&!content){$("memoTitle").focus();return;}
 
-      const saveButton=document.querySelector(".save");
+      const saveButton=$(".save");
       saveButton.disabled=true;
       try{
         if(editingId){
@@ -270,13 +271,7 @@
       }
 
       $("memoForm").style.display=currentUser?"block":"none";
-      render();
-
-      if(currentUser){
-        await loadMemos();
-      }else{
-        memos=[];
-      }
+      await loadMemos();
     }
 
     await refreshUser();
