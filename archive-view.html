@@ -1007,7 +1007,8 @@ function renderCategoryArchives(category, archives){
   document.querySelector(".records-label").style.marginTop="0";
   editButton.hidden=true;
   document.getElementById("archiveDeleteButton").hidden=true;
-  addButton.hidden=false;
+  // 로그인 상태 확인 전에는 ARCHIVE 추가 버튼을 숨깁니다.
+  addButton.hidden=true;
   addButton.onclick=()=>{
     location.href="./archive-write_buttons_v2.html?category="+encodeURIComponent(category.id)+"&theme="+encodeURIComponent(currentTheme);
   };
@@ -1087,6 +1088,16 @@ async function loadCategory(){
   }
 
   renderCategoryArchives(category,list);
+
+  // CATEGORY 화면의 ARCHIVE 추가 버튼은 로그인한 사용자에게만 표시합니다.
+  try{
+    const user=await getUser();
+    document.getElementById("categoryAddButton").hidden=!user;
+  }catch(error){
+    console.warn("CATEGORY AUTH CHECK:",error);
+    document.getElementById("categoryAddButton").hidden=true;
+  }
+
   return true;
 }
 
