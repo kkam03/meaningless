@@ -42,6 +42,17 @@ a {
 }
 
 
+footer {
+  padding: 32px 0 52px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.footer-copy {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
 .top-nav {
   position: relative;
   min-height: 24px;
@@ -52,12 +63,19 @@ a {
   position: absolute;
   left: 0;
   top: 22px;
+  display: inline-block;
+  font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 10px;
+  font-weight: 400;
+  line-height: 1.6;
   letter-spacing: .08em;
   color: var(--muted);
 }
 
-.top-nav .back:hover { color: var(--point); }
+.top-nav .back:hover {
+  color: var(--point);
+}
+
 
 header {
   position: relative;
@@ -99,13 +117,6 @@ header {
   padding: 28px 0 22px;
 }
 
-.back {
-  font-size: 10px;
-  letter-spacing: .08em;
-  color: var(--muted);
-}
-
-.back:hover { color: var(--point); }
 
 .legacy-logo {
   font-size: 14px;
@@ -204,15 +215,15 @@ header {
 }
 
 .result-section {
-  margin: 0 0 72px;
+  margin: 0 0 48px;
 }
 
 .result-section + .result-section {
-  margin-top: 72px;
+  margin-top: 48px;
 }
 
 .result-heading {
-  margin: 0 0 16px;
+  margin: 0 0 18px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--line);
   font-size: 10px;
@@ -241,28 +252,28 @@ header {
 }
 
 .result-meta {
-  margin-bottom: 3px;
-  font-size: 9px;
+  margin-bottom: 5px;
+  font-size: 10px;
   color: var(--muted);
   letter-spacing: .03em;
 }
 
 .result-title {
-  margin: 0 0 4px;
-  font-size: 13px;
+  margin: 0 0 6px;
+  font-size: 15px;
   font-weight: 500;
 }
 
 .result-snippet {
   color: var(--muted);
-  font-size: 10px;
-  line-height: 1.65;
+  font-size: 12px;
+  line-height: 1.7;
 }
 
 .empty {
   padding: 24px 2px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 mark {
@@ -282,11 +293,11 @@ mark {
   }
 
   .result-section {
-    margin-bottom: 54px;
+    margin-bottom: 38px;
   }
 
   .result-section + .result-section {
-    margin-top: 54px;
+    margin-top: 38px;
   }
 
 
@@ -377,7 +388,9 @@ mark {
       <div id="archiveResults"></div>
     </section>
 
-    <footer>© 2026 meaningless. All rights reserved.</footer>
+    <footer>
+      <div class="footer-copy">© 2026 meaningless. All rights reserved.</div>
+    </footer>
   </div>
 
   <script type="module">
