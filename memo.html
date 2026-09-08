@@ -205,7 +205,7 @@
       const content=$("memoContent").value.trim();
       if(!title&&!content){$("memoTitle").focus();return;}
 
-      const saveButton=$(".save");
+      const saveButton=document.querySelector(".save");
       saveButton.disabled=true;
       try{
         if(editingId){
