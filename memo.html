@@ -59,6 +59,26 @@
       .memo-item{min-height:150px;padding:19px 18px 21px}
     }
   </style>
+<style>
+  /* meaningless shared frame */
+  body {
+    background-color:#f2f3f2 !important;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420' viewBox='0 0 420 420'%3E%3Cg fill='%239da4a1' opacity='.34' font-family='Arial,sans-serif'%3E%3Ctext x='42' y='74' font-size='17'%3E%E2%9C%A7%3C/text%3E%3Ctext x='172' y='42' font-size='10'%3E%E2%9C%A7%3C/text%3E%3Ctext x='318' y='108' font-size='22'%3E%E2%9C%A7%3C/text%3E%3Ctext x='105' y='172' font-size='12'%3E%E2%9C%A7%3C/text%3E%3Ctext x='242' y='202' font-size='15'%3E%E2%9C%A7%3C/text%3E%3Ctext x='370' y='250' font-size='9'%3E%E2%9C%A7%3C/text%3E%3Ctext x='34' y='306' font-size='11'%3E%E2%9C%A7%3C/text%3E%3Ctext x='148' y='344' font-size='21'%3E%E2%9C%A7%3C/text%3E%3Ctext x='290' y='322' font-size='12'%3E%E2%9C%A7%3C/text%3E%3Ctext x='390' y='392' font-size='18'%3E%E2%9C%A7%3C/text%3E%3Ctext x='226' y='405' font-size='9'%3E%E2%9C%A7%3C/text%3E%3C/g%3E%3C/svg%3E") !important;
+    background-repeat:repeat !important;
+  }
+  .container {
+    position:relative;
+    z-index:1;
+    margin:28px auto !important;
+    padding:24px 30px 38px !important;
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:var(--background);
+  }
+  @media(max-width:600px){
+    .container{margin:16px auto !important;padding:20px 16px 30px !important;}
+  }
+</style>
 </head>
 <body>
   <div class="theme-wrap top-nav" id="themeWrap">
