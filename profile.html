@@ -52,6 +52,13 @@ main{padding-bottom:70px}
 .photo-button:hover{border-color:var(--point);background:var(--theme-bg)}
 .photo-name{color:var(--muted);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .photo-input{display:none}
+.index-photo-preview-wrap{display:flex;justify-content:flex-start;margin:0 0 10px}
+.index-photo-preview{
+  width:150px;height:90px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--line);background:var(--theme-bg);
+  background-size:cover;background-position:center;
+}
 .actions{display:flex;justify-content:flex-end;margin-top:30px}
 .save{
   border:1px solid var(--point);background:var(--point);color:#fff;border-radius:8px;
@@ -62,6 +69,7 @@ footer{padding:0 0 50px;color:var(--muted);font-size:11px}
   .container{width:min(100% - 30px,560px)}
   .theme-wrap{top:18px;right:18px}
   h1{font-size:24px}
+  .index-photo-preview{width:130px;height:78px}
 }
 </style>
 <style>
@@ -119,13 +127,20 @@ footer{padding:0 0 50px;color:var(--muted);font-size:11px}
   </div>
 
   <div class="field">
-    <label>NICKNAME</label>
-    <input id="nickname" type="text" maxlength="30" placeholder="닉네임을 입력해주세요.">
+    <label>INDEX IMAGE</label>
+    <div class="index-photo-preview-wrap">
+      <div class="index-photo-preview photo-placeholder" id="indexPhotoPreview">INDEX</div>
+    </div>
+    <div class="photo-row">
+      <button class="photo-button" id="indexPhotoButton" type="button">＋ PHOTO</button>
+      <span class="photo-name" id="indexPhotoName">사진을 선택해주세요.</span>
+      <input class="photo-input" id="indexPhotoInput" type="file" accept="image/*">
+    </div>
   </div>
 
   <div class="field">
-    <label>ABOUT</label>
-    <textarea id="bio" maxlength="300" placeholder="짧은 소개를 남겨보세요."></textarea>
+    <label>NICKNAME</label>
+    <input id="nickname" type="text" maxlength="30" placeholder="닉네임을 입력해주세요.">
   </div>
 
   <div class="actions">
@@ -179,7 +194,12 @@ const photoInput=document.getElementById("photoInput");
 const photoButton=document.getElementById("photoButton");
 const preview=document.getElementById("photoPreview");
 const photoName=document.getElementById("photoName");
+const indexPhotoInput=document.getElementById("indexPhotoInput");
+const indexPhotoButton=document.getElementById("indexPhotoButton");
+const indexPhotoPreview=document.getElementById("indexPhotoPreview");
+const indexPhotoName=document.getElementById("indexPhotoName");
 photoButton.onclick=()=>photoInput.click();
+indexPhotoButton.onclick=()=>indexPhotoInput.click();
 photoInput.onchange=()=>{
   const file=photoInput.files?.[0];
   if(!file)return;
@@ -192,11 +212,16 @@ async function loadProfile(){
   const {data:{user},error:authError}=await supabase.auth.getUser();
   if(authError)throw authError;
   if(!user){alert("로그인이 필요합니다.");return null;}
-  const {data,error}=await supabase.from("profiles").select("id,nickname,avatar_url,bio").eq("id",user.id).maybeSingle();
+  const {data,error}=await supabase.from("profiles").select("id,nickname,avatar_url,index_image_url").eq("id",user.id).maybeSingle();
   if(error)throw error;
   if(data){
     document.getElementById("nickname").value=data.nickname||"";
-    document.getElementById("bio").value=data.bio||"";
+    if(data.index_image_url){
+      indexPhotoPreview.className="index-photo-preview";
+      indexPhotoPreview.textContent="";
+      indexPhotoPreview.style.backgroundImage=`url("${data.index_image_url}")`;
+      indexPhotoName.textContent="현재 인덱스 이미지";
+    }
     if(data.avatar_url){
       preview.className="profile-photo"; preview.innerHTML="";
       preview.style.backgroundImage=`url("${data.avatar_url}")`;
@@ -239,6 +264,16 @@ async function uploadAvatar(file,userId){
   const publicUrl=supabase.storage.from("profile-images").getPublicUrl(path).data.publicUrl;
   return `${publicUrl}?v=${Date.now()}`;
 }
+async function uploadIndexImage(file,userId){
+  const path=`${userId}/index.png`;
+  const {error}=await supabase.storage.from("index-images").upload(path,file,{
+    cacheControl:"31536000",upsert:true,contentType:file.type
+  });
+  if(error)throw error;
+  const publicUrl=supabase.storage.from("index-images").getPublicUrl(path).data.publicUrl;
+  return `${publicUrl}?v=${Date.now()}`;
+}
+
 document.getElementById("saveButton").onclick=async()=>{
   const nickname=document.getElementById("nickname").value.trim();
   if(!nickname){alert("닉네임을 입력해주세요.");return;}
@@ -252,9 +287,16 @@ document.getElementById("saveButton").onclick=async()=>{
       const {data}=await supabase.from("profiles").select("avatar_url").eq("id",user.id).maybeSingle();
       avatarUrl=data?.avatar_url||null;
     }
+    let indexImageUrl=null;
+    const indexFile=indexPhotoInput.files?.[0];
+    if(indexFile) indexImageUrl=await uploadIndexImage(indexFile,user.id);
+    else {
+      const {data}=await supabase.from("profiles").select("index_image_url").eq("id",user.id).maybeSingle();
+      indexImageUrl=data?.index_image_url||null;
+    }
+
     const {error}=await supabase.from("profiles").upsert({
-      id:user.id,nickname,avatar_url:avatarUrl,
-      bio:document.getElementById("bio").value.trim(),
+      id:user.id,nickname,avatar_url:avatarUrl,index_image_url:indexImageUrl,
       updated_at:new Date().toISOString()
     });
     if(error)throw error;
