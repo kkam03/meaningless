@@ -331,64 +331,79 @@
     .memo-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
+      gap: 18px;
     }
 
     .memo-card {
       position: relative;
-      min-height: 150px;
-      padding: 18px 20px 20px;
+      min-height: 175px;
+      padding: 22px 21px 24px;
       border: 1px solid var(--line);
-      border-radius: 14px;
-      background: linear-gradient(145deg, #ffffff 0%, var(--theme-bg) 100%);
+      border-radius: 5px;
+      background: var(--background);
+      box-shadow: 0 5px 18px rgba(50,100,95,.045);
       overflow: hidden;
-      transition: transform 0.2s ease, border-color 0.2s ease;
+      transition: transform .18s ease,box-shadow .18s ease,border-color .18s ease;
     }
 
     .memo-card::before {
       content: "";
       position: absolute;
-      width: 78px;
-      height: 78px;
-      right: -28px;
-      top: -28px;
-      border-radius: 50%;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 4px;
       background: var(--point-soft);
-      opacity: 0.5;
+    }
+
+    .memo-card::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg,transparent 49%,var(--point-soft) 50%);
+      opacity: .7;
     }
 
     .memo-card:hover {
-      transform: translateY(-3px);
+      transform: translateY(-3px) rotate(-.2deg);
       border-color: var(--point);
+      box-shadow: 0 8px 22px rgba(50,100,95,.07);
     }
 
     .memo-card-date {
       position: relative;
       z-index: 1;
-      color: var(--muted);
+      margin-top: 0;
+      color: var(--point);
       font-size: 9px;
-      letter-spacing: 0.04em;
+      letter-spacing: .04em;
     }
 
     .memo-card-title {
       position: relative;
       z-index: 1;
-      margin-top: 8px;
+      padding-right: 58px;
+      margin-top: 6px;
       font-size: 15px;
-      font-weight: 500;
-      letter-spacing: -0.025em;
+      font-weight: 600;
+      letter-spacing: -.025em;
     }
 
     .memo-card-content {
       position: relative;
       z-index: 1;
-      margin-top: 12px;
+      margin-top: 19px;
+      padding-top: 13px;
+      border-top: 1px dashed var(--line);
       color: var(--muted);
-      font-size: 10px;
-      line-height: 1.75;
+      font-size: 11px;
+      line-height: 1.85;
       white-space: pre-wrap;
       display: -webkit-box;
-      -webkit-line-clamp: 3;
+      -webkit-line-clamp: 5;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
@@ -396,57 +411,28 @@
     .memo-view-all {
       display: flex;
       justify-content: flex-end;
-      margin: 12px 4px 0;
+      margin: 14px 4px 0;
     }
 
     .memo-view-all a {
       color: var(--muted);
       font-size: 10px;
-      letter-spacing: 0.03em;
-      transition: color 0.2s ease;
+      letter-spacing: .03em;
+      transition: color .2s ease;
     }
 
-    .memo-view-all a:hover {
-      color: var(--point);
-    }
+    .memo-view-all a:hover { color: var(--point); }
 
     @media (max-width: 600px) {
-      .memo-section {
-        margin-top: 52px;
-      }
-
-      .memo-heading {
-        gap: 10px;
-        margin-bottom: 13px;
-      }
-
-      .memo-label {
-        font-size: 11px;
-      }
-
-      .memo-note {
-        font-size: 10px;
-      }
-
-      .memo-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-
-      .memo-card {
-        min-height: 140px;
-        padding: 17px 18px 18px;
-      }
-
-      .memo-card-title {
-        font-size: 14px;
-      }
-
-      .memo-card-content {
-        font-size: 11px;
-      }
+      .memo-section { margin-top: 52px; }
+      .memo-heading { gap: 10px; margin-bottom: 13px; }
+      .memo-label { font-size: 11px; }
+      .memo-note { font-size: 10px; }
+      .memo-grid { grid-template-columns: 1fr; gap: 12px; }
+      .memo-card { min-height: 150px; padding: 19px 18px 21px; }
+      .memo-card-title { font-size: 14px; }
+      .memo-card-content { font-size: 11px; }
     }
-
 
     .archive-card-top,
     .archive-card-bottom {
@@ -915,35 +901,44 @@ let currentTheme=getTheme();
 applyTheme(currentTheme,true);
 
 
-function renderMemos(){
-  const key="meaningless-memos";
-  let memos=[];
+async function loadMemos(){
   try{
-    memos=JSON.parse(localStorage.getItem(key)||"[]");
-    if(!Array.isArray(memos))memos=[];
-  }catch(error){
-    console.warn("MEMO LOAD",error);
-    memos=[];
-  }
+    const {data,error}=await supabase.from("memos")
+      .select("id,title,content,created_at")
+      .order("created_at",{ascending:false})
+      .limit(2);
 
-  if(!memos.length){
+    if(error)throw error;
+
+    const memos=data||[];
+    if(!memos.length){
+      memoSection.style.display="none";
+      memoGrid.innerHTML="";
+      return;
+    }
+
+    memoSection.style.display="block";
+    memoGrid.innerHTML=memos.map(m=>`
+      <a class="memo-card" href="./memo.html?theme=${encodeURIComponent(currentTheme)}">
+        <div class="memo-card-date">${esc(formatMemoDate(m.created_at))}</div>
+        <div class="memo-card-title">${esc(m.title||"UNTITLED")}</div>
+        <div class="memo-card-content">${esc(m.content||"")}</div>
+      </a>
+    `).join("");
+
+    memoAllLink.href=`./memo.html?theme=${encodeURIComponent(currentTheme)}`;
+  }catch(error){
+    console.error("MEMO LOAD",error);
     memoSection.style.display="none";
     memoGrid.innerHTML="";
-    return;
   }
+}
 
-  memoSection.style.display="block";
-
-  const latest=memos.slice(0,2);
-  memoGrid.innerHTML=latest.map(m=>`
-    <a class="memo-card" href="./memo.html?theme=${encodeURIComponent(currentTheme)}">
-      <div class="memo-card-date">${esc(m.date||"")}</div>
-      <div class="memo-card-title">${esc(m.title||"UNTITLED")}</div>
-      <div class="memo-card-content">${esc(m.content||"")}</div>
-    </a>
-  `).join("");
-
-  memoAllLink.href=`./memo.html?theme=${encodeURIComponent(currentTheme)}`;
+function formatMemoDate(value){
+  if(!value)return "";
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime()))return String(value);
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
 }
 
 function updateLinks(){
@@ -966,6 +961,7 @@ document.querySelectorAll(".theme-option").forEach(b=>b.addEventListener("click"
   url.searchParams.set("theme",currentTheme);
   history.replaceState(null,"",url);
   updateLinks();
+  loadMemos();
   themeWrap?.classList.remove("open");
 }));
 document.addEventListener("click",e=>{if(themeWrap&&!themeWrap.contains(e.target))themeWrap.classList.remove("open")});
@@ -1183,16 +1179,14 @@ document.addEventListener("click",async e=>{
 const {data:{session}}=await supabase.auth.getSession();
 updateAuthUI(session);
 await loadLists();
-renderMemos();
+await loadMemos();
 
 supabase.auth.onAuthStateChange((_event,nextSession)=>{
   updateAuthUI(nextSession);
   loadLists().catch(error=>console.error("INDEX REFRESH",error));
+  loadMemos().catch(error=>console.error("MEMO REFRESH",error));
 });
 
-window.addEventListener("storage",e=>{
-  if(e.key==="meaningless-memos")renderMemos();
-});
 </script>
 
 </body>
