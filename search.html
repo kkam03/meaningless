@@ -41,6 +41,57 @@ a {
   margin: 0 auto;
 }
 
+
+.top-nav {
+  position: relative;
+  min-height: 24px;
+  padding-top: 22px;
+}
+
+.top-nav .back {
+  position: absolute;
+  left: 0;
+  top: 22px;
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--muted);
+}
+
+.top-nav .back:hover { color: var(--point); }
+
+header {
+  position: relative;
+  padding: 34px 0 48px;
+}
+
+.logo-main {
+  display: inline-block;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  color: var(--point);
+}
+
+.intro {
+  margin-top: 11px;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.75;
+  letter-spacing: -0.02em;
+}
+
+.intro::before {
+  content: "—";
+  margin-right: 7px;
+  color: var(--point);
+}
+
+.intro strong {
+  display: block;
+  color: var(--text);
+  font-weight: 500;
+}
+
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -56,7 +107,7 @@ a {
 
 .back:hover { color: var(--point); }
 
-.logo {
+.legacy-logo {
   font-size: 14px;
   letter-spacing: .03em;
 }
@@ -208,6 +259,20 @@ mark {
 }
 
 @media (max-width: 600px) {
+  header {
+    padding-top: 28px;
+    padding-bottom: 38px;
+  }
+
+  .logo-main {
+    font-size: 34px;
+  }
+
+  .intro {
+    margin-top: 7px;
+    font-size: 13px;
+  }
+
   .container {
     width: min(100% - 28px, 760px);
   }
@@ -242,9 +307,16 @@ mark {
 </head>
 <body>
   <div class="container">
+    <div class="top-nav">
+      <a class="back" id="backLink" href="./index.html">← BACK</a>
+    </div>
+
     <header>
-      <a class="back" id="backLink" href="./index.html">← BACK</a><br>
-      <a class="logo" id="logoLink" href="./index.html">✧ meaningless</a>
+      <a class="logo-main" id="logoLink" href="./index.html">✧ meaningless</a>
+      <div class="intro">
+        <strong>things that probably mean nothing.</strong>
+        별거 아닌 것들을 기록합니다. 가끔은 별거인 것도.
+      </div>
     </header>
 
     <form class="search-box" id="searchForm">
