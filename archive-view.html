@@ -1066,7 +1066,7 @@ document.getElementById("editSave").addEventListener("click",async()=>{
   }
 });
 
-function renderCategoryArchives(category, archives){
+function renderCategoryArchives(category, archives, page=0, totalCount=0, pageSize=24){
   const hero=document.getElementById("hero");
   const details=document.getElementById("details");
   const records=document.getElementById("records");
@@ -1083,7 +1083,6 @@ function renderCategoryArchives(category, archives){
   document.querySelector(".records-label").style.marginTop="0";
   editButton.hidden=true;
   document.getElementById("archiveDeleteButton").hidden=true;
-  // 로그인 상태 확인 전에는 ARCHIVE 추가 버튼을 숨깁니다.
   addButton.hidden=true;
   addButton.onclick=()=>{
     location.href="./archive-write_buttons_v2.html?category="+encodeURIComponent(category.id)+"&theme="+encodeURIComponent(currentTheme);
@@ -1107,10 +1106,29 @@ function renderCategoryArchives(category, archives){
       </div>
     </a>`;
   }).join("")}</div>`;
+
+  const totalPages=Math.max(1,Math.ceil(totalCount/pageSize));
+  if(totalPages>1){
+    records.insertAdjacentHTML("beforeend",`
+      <div class="archive-pagination" style="display:flex;justify-content:center;align-items:center;gap:14px;margin:28px 0 8px;">
+        <button type="button" class="archive-page-button" data-page="${page-1}" ${page<=0?"disabled":""}>←</button>
+        <span style="font-size:13px;opacity:.65;">${page+1} / ${totalPages}</span>
+        <button type="button" class="archive-page-button" data-page="${page+1}" ${page>=totalPages-1?"disabled":""}>→</button>
+      </div>
+    `);
+    records.querySelectorAll(".archive-page-button").forEach(button=>{
+      button.addEventListener("click",()=>{
+        const nextPage=Number(button.dataset.page);
+        if(nextPage>=0&&nextPage<totalPages)loadCategory(nextPage);
+      });
+    });
+  }
 }
 
-async function loadCategory(){
+async function loadCategory(page=0){
   if(!categoryId)return false;
+
+  const PAGE_SIZE=24;
 
   const {data:category,error:categoryError}=await supabase.from("archive_categories")
     .select("id,name,description")
@@ -1123,17 +1141,19 @@ async function loadCategory(){
     return true;
   }
 
-  // category_id가 실제로 연결된 ARCHIVE만 가져옵니다.
-  // 기존 상세 보기 코드는 그대로 두고, CATEGORY 화면에서만 이 분기를 사용합니다.
-  const {data:archives,error:archivesError}=await supabase.from("archives")
-    .select("id,name,type,image_url,category_id,text_color,created_at")
+  // 목록은 한 번에 24개만 가져옵니다. ARCHIVE가 많아져도 첫 화면 로딩량은 일정합니다.
+  const from=page*PAGE_SIZE;
+  const to=from+PAGE_SIZE-1;
+  const {data:archives,error:archivesError,count:totalCount}=await supabase.from("archives")
+    .select("id,name,type,image_url,category_id,text_color,created_at",{count:"exact"})
     .eq("category_id",categoryId)
-    .order("created_at",{ascending:false});
+    .order("created_at",{ascending:false})
+    .range(from,to);
 
   if(archivesError){
     console.error(archivesError);
     document.querySelector("header").classList.add("category-mode");
-  document.getElementById("archiveTitle").textContent=category.name||"ARCHIVE";
+    document.getElementById("archiveTitle").textContent=category.name||"ARCHIVE";
     document.getElementById("records").innerHTML='<div class="empty">ARCHIVE를 불러오지 못했습니다.<br><small>'+esc(archivesError?.message||"알 수 없는 오류")+'</small></div>';
     return true;
   }
@@ -1142,11 +1162,11 @@ async function loadCategory(){
   if(list.length){
     const ids=list.map(a=>a.id);
     const {data:records,error:recordsError}=await supabase.from("archive_records")
-      // CATEGORY에서는 카드에 필요한 정보만 가져옵니다.
-      // extra_data는 본문/이미지 블록까지 포함할 수 있어 데이터가 커질수록 느려질 수 있습니다.
+      // CATEGORY에서는 현재 페이지 카드에 필요한 정보만 가져옵니다.
       .select("id,archive_id,date,image_url,created_at")
       .in("archive_id",ids)
       .order("created_at",{ascending:true});
+
     if(!recordsError){
       const byArchive={};
       (records||[]).forEach(r=>{
@@ -1158,7 +1178,7 @@ async function loadCategory(){
         a._recordCount=rs.length;
         a._image_url=a.image_url||rs.find(r=>r.image_url)?.image_url||"";
         const lastRecord=rs[rs.length-1]||null;
-         a._dateLabel=lastRecord?formatDate(lastRecord.date):"";
+        a._dateLabel=lastRecord?formatDate(lastRecord.date):"";
       });
     }else{
       console.warn("CATEGORY RECORDS:",recordsError);
@@ -1166,7 +1186,7 @@ async function loadCategory(){
     }
   }
 
-  renderCategoryArchives(category,list);
+  renderCategoryArchives(category,list,page,totalCount||0,PAGE_SIZE);
 
   // CATEGORY 화면의 ARCHIVE 추가 버튼은 로그인한 사용자에게만 표시합니다.
   try{
