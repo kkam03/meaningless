@@ -44,6 +44,7 @@ input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--
 .custom-row{display:flex;gap:8px}
 .custom-row input{flex:1}
 .custom-remove{width:40px;height:40px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--muted);cursor:pointer}
+.travel-date-label{min-width:38px;color:var(--muted);font-size:9px;letter-spacing:.04em}
 .date-row{margin-bottom:8px}
 .date-row:last-child{margin-bottom:0}
 .text-color-options{display:flex;gap:8px}
@@ -165,9 +166,8 @@ input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--
   </div>
 
   <div id="travelOptions" class="option-panel" style="display:none">
-    <input type="text" placeholder="지역">
-    <input type="text" placeholder="기간 (예: 2026.09.01 — 2026.09.04)">
-    <input type="text" placeholder="동행">
+    <input type="text" placeholder="장소">
+    <textarea placeholder="여행 메모"></textarea>
   </div>
 
   <div id="movieOptions" class="option-panel" style="display:none">
@@ -326,14 +326,24 @@ function showType(type){
     type==="movie"?"MOVIE DETAILS":
     "CUSTOM FIELDS";
   if(optionPanels[type])optionPanels[type].style.display="grid";
-  if(dateField)dateField.style.display=type==="travel"?"none":"block";
+  if(dateField){
+    dateField.style.display=type==="basic"?"none":"block";
+    const dateLabel=dateField.querySelector(".field-label");
+    if(dateLabel)dateLabel.textContent=type==="travel"?"TRAVEL DATE":"DATE";
+    addDate.textContent=type==="travel"?"＋ 종료일 추가":"＋ 날짜 추가";
+    if(type!=="travel")addDate.style.display="";
+  }
 }
 typeButtons.forEach(btn=>btn.addEventListener("click",()=>showType(btn.dataset.type)));
 
 function addDateRow(value=""){
   const row=document.createElement("div");
+  const isTravel=document.querySelector(".type.active")?.dataset.type==="travel";
+  if(isTravel && dateRows.children.length>=2)return null;
   row.className="custom-row date-row";
-  row.innerHTML='<input type="date" aria-label="날짜"><button type="button" class="custom-remove" aria-label="날짜 삭제">×</button>';
+  row.innerHTML=isTravel
+    ? `<span class="travel-date-label">${dateRows.children.length===0?"시작일":"종료일"}</span><input type="date" aria-label="${dateRows.children.length===0?"시작일":"종료일"}"><button type="button" class="custom-remove" aria-label="날짜 삭제">×</button>`
+    : '<input type="date" aria-label="날짜"><button type="button" class="custom-remove" aria-label="날짜 삭제">×</button>';
 
   const input=row.querySelector("input");
   input.value=value;
@@ -344,9 +354,17 @@ function addDateRow(value=""){
       return;
     }
     row.remove();
+    if(isTravel && dateRows.children.length===1){
+      const label=dateRows.querySelector(".travel-date-label");
+      const onlyInput=dateRows.querySelector("input");
+      if(label)label.textContent="시작일";
+      if(onlyInput)onlyInput.setAttribute("aria-label","시작일");
+    }
+    if(isTravel)addDate.style.display="";
   });
 
   dateRows.appendChild(row);
+  if(isTravel && dateRows.children.length>=2)addDate.style.display="none";
   return input;
 }
 
@@ -356,7 +374,7 @@ function getRecordDates(){
     .filter(Boolean);
 }
 
-addDate.addEventListener("click",()=>addDateRow(""));
+addDate.addEventListener("click",()=>{if(document.querySelector(".type.active")?.dataset.type==="travel"&&dateRows.children.length>=2)return;addDateRow("");});
 addDateRow(new Date().toISOString().slice(0,10));
 showType("basic");
 
@@ -384,6 +402,12 @@ function panelValues(type){
   const panel=optionPanels[type];
   if(!panel)return{};
   const inputs=[...panel.querySelectorAll("input,textarea")];
+  if(type==="travel"){
+    return {
+      ...(inputs[0]?.value.trim()?{field_1:inputs[0].value.trim()}:{}),
+      ...(inputs[1]?.value.trim()?{field_3:inputs[1].value.trim()}: {})
+    };
+  }
   return inputs.reduce((obj,input,index)=>{
     const value=input.value.trim();
     if(value)obj["field_"+(index+1)]=value;
@@ -652,6 +676,7 @@ document.getElementById("save").addEventListener("click",async()=>{
     const details=panelValues(activeType);
     const contentBlocks=await collectContentBlocks(user.id);
 
+    const combinedDetails={...details,content_blocks:contentBlocks};
 
     const cardImageUrl=selectedCardImage?await uploadImage(selectedCardImage,user.id):null;
     const archivePayload={user_id:user.id,name,type:activeType,text_color:textColor,image_url:cardImageUrl};
@@ -673,13 +698,18 @@ document.getElementById("save").addEventListener("click",async()=>{
     const firstImage=contentBlocks.find(block=>block.type==="image")?.url||null;
 
     const recordDates=getRecordDates();
+    if(activeType==="travel" && recordDates.length>1 && recordDates[1] < recordDates[0]){
+      alert("종료일은 시작일보다 빠를 수 없습니다.");
+      saveButton.disabled=false;
+      saveButton.textContent="SAVE";
+      return;
+    }
     const primaryDate=recordDates[0]||new Date().toISOString().slice(0,10);
 
     // 여러 날짜는 하나의 RECORD 안에 보관합니다.
     // 기존 date 컬럼에는 첫 날짜를 넣고, 전체 날짜 목록은 extra_data.record_dates에 저장합니다.
     const recordExtraData={
-      ...details,
-      content_blocks:contentBlocks,
+      ...combinedDetails,
       record_dates:recordDates.length?recordDates:[primaryDate]
     };
 
@@ -690,8 +720,7 @@ document.getElementById("save").addEventListener("click",async()=>{
         user_id:user.id,
         date:primaryDate,
         title:name,
-        // content 컬럼은 NOT NULL이라 빈 문자열로 유지하고, 실제 본문은 content_blocks에 저장합니다.
-        content:"",
+        content:plainText,
         image_url:firstImage,
         extra_data:recordExtraData
       });
