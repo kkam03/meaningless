@@ -1021,9 +1021,11 @@ document.getElementById("editSave").addEventListener("click",async()=>{
       const content=resolved.filter(b=>b.type==="text").map(b=>b.value).join("\n");
       const existingRecord=loadedRecords.find(r=>r.id===recordId);
       const imageUrl=resolved.find(b=>b.type==="image")?.url||existingRecord?.image_url||null;
+      // 여러 날짜를 쓰는 RECORD는 첫 날짜를 date 컬럼에도 동기화합니다.
+      // 기존 날짜를 유지하면 카드가 수정 전 날짜를 계속 표시하게 됩니다.
       const date=type==="travel"
         ? (existingRecord?.date||new Date().toISOString().slice(0,10))
-        : (existingRecord?.date||primaryDate);
+        : primaryDate;
       const title=existingRecord?.title||loadedArchive.name||"후기";
 
       if(recordId){
