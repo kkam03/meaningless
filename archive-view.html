@@ -110,6 +110,7 @@ header.category-mode{padding-bottom:0}
 .edit-image-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:9px}
 .edit-image-input{display:none}
 .edit-record-date-label{display:block;margin-top:0;margin-bottom:5px;color:var(--point);font-size:10px;font-weight:700;letter-spacing:.08em}
+.travel-date-label{min-width:38px;color:var(--muted);font-size:9px;letter-spacing:.04em}
 .edit-field label{
   display:block;margin-bottom:6px;
   color:var(--point);font-size:9px;font-weight:700;letter-spacing:.08em
@@ -591,7 +592,7 @@ let loadedRecords=[];
 
 const semanticLabels={
   concert:["공연장","회차","셋리스트","앵콜"],
-  travel:["장소","숙소","여행 메모"],
+  travel:["장소","여행 메모"],
   movie:["감독","별점","감상 메모"],
   custom:[]
 };
@@ -601,6 +602,14 @@ function formatDate(date){
   const d=new Date(`${date}T00:00:00`);
   if(Number.isNaN(d.getTime()))return String(date);
   return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
+}
+
+function formatTravelDateLabel(record){
+  const dates=getRecordDates(record);
+  if(!dates.length)return "";
+  const start=formatDate(dates[0]);
+  const end=formatDate(dates[dates.length-1]);
+  return dates.length>1 && end!==start ? `${start}~${end}` : start;
 }
 
 function getRecordDates(record){
@@ -613,7 +622,11 @@ function getRecordDates(record){
 
 function detailEntries(type,record){
   if(type==="basic"||!record?.extra_data)return [];
-  return Object.entries(record.extra_data).filter(([key,value])=>
+  const vals=record.extra_data||{};
+  const fieldMap=type==="travel"
+    ? [["field_1",vals.field_1],["field_3",vals.field_3]]
+    : Object.entries(vals).filter(([key])=>key.startsWith("field_"));
+  return fieldMap.filter(([key,value])=>
     key!=="content_blocks" && String(value??"").trim()!==""
   );
 }
@@ -621,8 +634,13 @@ function detailEntries(type,record){
 function renderDetails(type,record){
   const box=document.getElementById("details");
   const entries=detailEntries(type,record);
-  box.innerHTML=entries.map(([key,value],i)=>{
-    const label=semanticLabels[type]?.[i] || key.replaceAll("_"," ").toUpperCase();
+  box.innerHTML=entries.map(([key,value])=>{
+    let label;
+    if(type==="travel") label=key==="field_1"?"장소":"여행 메모";
+    else {
+      const index=Math.max(0,Number(key.replace("field_", ""))-1);
+      label=semanticLabels[type]?.[index] || key.replaceAll("_"," ").toUpperCase();
+    }
     return `<div class="detail-row"><div class="detail-key">${esc(label)}</div><div class="detail-value">${esc(value)}</div></div>`;
   }).join("");
 }
@@ -690,10 +708,10 @@ function makeEditFields(type,record){
   const box=document.getElementById("editDetails");
   if(type==="basic"){box.innerHTML="";return;}
   const vals=record?.extra_data||{};
-  const labels=semanticLabels[type]||[];
-  const keys=["field_1","field_2","field_3","field_4"];
-  box.innerHTML=labels.map((label,i)=>{
-    const key=keys[i];
+  const fields=type==="travel"
+    ? [["장소","field_1"],["여행 메모","field_3"]]
+    : (semanticLabels[type]||[]).map((label,i)=>[label,["field_1","field_2","field_3","field_4"][i]]);
+  box.innerHTML=fields.map(([label,key])=>{
     const multi=label==="셋리스트"||label==="앵콜"||label==="여행 메모"||label==="감상 메모";
     return `<div class="edit-detail"><label>${esc(label)}</label>
       ${multi
@@ -832,7 +850,10 @@ function blockDataToEditorHtml(record){
 function addEditDateRow(value=""){
   const row=document.createElement("div");
   row.className="edit-date-row";
-  row.innerHTML='<input type="date" aria-label="날짜"><button type="button" class="edit-record-delete" aria-label="날짜 삭제">×</button>';
+  const isTravel=loadedArchive?.type==="travel";
+  row.innerHTML=isTravel
+    ? `<span class="travel-date-label">${editDateRows.children.length===0?"시작일":"종료일"}</span><input type="date" aria-label="${editDateRows.children.length===0?"시작일":"종료일"}"><button type="button" class="edit-record-delete" aria-label="날짜 삭제">×</button>`
+    : '<input type="date" aria-label="날짜"><button type="button" class="edit-record-delete" aria-label="날짜 삭제">×</button>';
 
   const input=row.querySelector("input");
   input.value=value;
@@ -843,9 +864,17 @@ function addEditDateRow(value=""){
       return;
     }
     row.remove();
+    if(isTravel && editDateRows.children.length===1){
+      const label=editDateRows.querySelector(".travel-date-label");
+      const onlyInput=editDateRows.querySelector("input");
+      if(label)label.textContent="시작일";
+      if(onlyInput)onlyInput.setAttribute("aria-label","시작일");
+    }
+    if(isTravel)editAddDate.style.display="";
   });
 
   editDateRows.appendChild(row);
+  if(isTravel && editDateRows.children.length>=2)editAddDate.style.display="none";
 }
 
 function getEditDates(){
@@ -854,7 +883,10 @@ function getEditDates(){
     .filter(Boolean);
 }
 
-editAddDate.addEventListener("click",()=>addEditDateRow(""));
+editAddDate.addEventListener("click",()=>{
+  if(loadedArchive?.type==="travel" && editDateRows.children.length>=2)return;
+  addEditDateRow("");
+});
 
 function addEditRecord(record={}){
   const el=document.createElement("div");
@@ -1042,7 +1074,12 @@ function openEdit(){
   const type=loadedArchive.type||"basic";
   makeEditFields(type,loadedRecords[0]);
   const editDateField=document.getElementById("editDateField");
-  if(editDateField)editDateField.style.display=type==="travel"?"none":"block";
+  if(editDateField){
+    editDateField.style.display="block";
+    const dateLabel=editDateField.querySelector("label");
+    if(dateLabel)dateLabel.textContent=type==="travel"?"TRAVEL DATE":"DATE";
+    editAddDate.textContent=type==="travel"?"＋ 종료일 추가":"＋ 날짜 추가";
+  }
 
   editDateRows.innerHTML="";
   const firstRecord=loadedRecords[0]||null;
@@ -1113,6 +1150,10 @@ document.getElementById("editSave").addEventListener("click",async()=>{
 
     const details=collectDetails(type);
     const editDates=getEditDates();
+    if(type==="travel" && editDates.length>1 && editDates[1] < editDates[0]){
+      alert("종료일은 시작일보다 빠를 수 없습니다.");
+      return;
+    }
     const primaryDate=editDates[0]||new Date().toISOString().slice(0,10);
 
     const editors=[...editRecordsEl.querySelectorAll(".edit-record")];
@@ -1141,9 +1182,7 @@ document.getElementById("editSave").addEventListener("click",async()=>{
       const imageUrl=resolved.find(b=>b.type==="image")?.url||existingRecord?.image_url||null;
       // 여러 날짜를 쓰는 RECORD는 첫 날짜를 date 컬럼에도 동기화합니다.
       // 기존 날짜를 유지하면 카드가 수정 전 날짜를 계속 표시하게 됩니다.
-      const date=type==="travel"
-        ? (existingRecord?.date||new Date().toISOString().slice(0,10))
-        : primaryDate;
+      const date=primaryDate;
       const title=existingRecord?.title||loadedArchive.name||"후기";
 
       if(recordId){
@@ -1152,7 +1191,7 @@ document.getElementById("editSave").addEventListener("click",async()=>{
           ...(existing?.extra_data||{}),
           ...details,
           content_blocks:resolved,
-          ...(type!=="travel" ? {record_dates:editDates.length?editDates:[primaryDate]} : {})
+          {record_dates:editDates.length?editDates:[primaryDate]}
         };
         const {error}=await supabase.from("archive_records").update({date,title,content,image_url:imageUrl,extra_data:extra}).eq("id",recordId).eq("user_id",user.id);
         if(error)throw error;
@@ -1281,7 +1320,7 @@ async function loadCategory(page=0){
     const ids=list.map(a=>a.id);
     const {data:records,error:recordsError}=await supabase.from("archive_records")
       // CATEGORY에서는 현재 페이지 카드에 필요한 정보만 가져옵니다.
-      .select("id,archive_id,date,image_url,created_at")
+      .select("id,archive_id,date,image_url,created_at,extra_data->record_dates")
       .in("archive_id",ids)
       .order("created_at",{ascending:true});
 
@@ -1296,7 +1335,7 @@ async function loadCategory(page=0){
         a._recordCount=rs.length;
         a._image_url=a.image_url||rs.find(r=>r.image_url)?.image_url||"";
         const lastRecord=rs[rs.length-1]||null;
-        a._dateLabel=lastRecord?formatDate(lastRecord.date):"";
+        a._dateLabel=a.type==="travel" ? (lastRecord?formatTravelDateLabel(lastRecord):"") : (lastRecord?formatDate(lastRecord.date):"");
       });
     }else{
       console.warn("CATEGORY RECORDS:",recordsError);
