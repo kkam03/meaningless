@@ -1128,7 +1128,7 @@ function renderCategoryArchives(category, archives, page=0, totalCount=0, pageSi
 async function loadCategory(page=0){
   if(!categoryId)return false;
 
-  const PAGE_SIZE=24;
+  const PAGE_SIZE=12;
 
   const {data:category,error:categoryError}=await supabase.from("archive_categories")
     .select("id,name,description")
