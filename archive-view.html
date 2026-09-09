@@ -1144,7 +1144,7 @@ async function loadCategory(){
     const {data:records,error:recordsError}=await supabase.from("archive_records")
       // CATEGORY에서는 카드에 필요한 정보만 가져옵니다.
       // extra_data는 본문/이미지 블록까지 포함할 수 있어 데이터가 커질수록 느려질 수 있습니다.
-      .select("id,archive_id,date,image_url,created_at")
+      .select("id,archive_id,date,image_url,extra_data->record_dates,created_at")
       .in("archive_id",ids)
       .order("created_at",{ascending:true});
     if(!recordsError){
@@ -1157,7 +1157,9 @@ async function loadCategory(){
         const rs=byArchive[a.id]||[];
         a._recordCount=rs.length;
         a._image_url=a.image_url||rs.find(r=>r.image_url)?.image_url||"";
-        a._dateLabel=rs.length?formatDate(rs[rs.length-1].date):"";
+        const lastRecord=rs[rs.length-1]||null;
+         const recordDates=Array.isArray(lastRecord?.record_dates)?lastRecord.record_dates.filter(Boolean):[];
+         a._dateLabel=recordDates.length?formatDate(recordDates[recordDates.length-1]):(lastRecord?formatDate(lastRecord.date):"");
       });
     }else{
       console.warn("CATEGORY RECORDS:",recordsError);
