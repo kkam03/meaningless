@@ -1191,7 +1191,7 @@ document.getElementById("editSave").addEventListener("click",async()=>{
           ...(existing?.extra_data||{}),
           ...details,
           content_blocks:resolved,
-          {record_dates:editDates.length?editDates:[primaryDate]}
+          ...(type!=="travel" ? {record_dates:editDates.length?editDates:[primaryDate]} : {})
         };
         const {error}=await supabase.from("archive_records").update({date,title,content,image_url:imageUrl,extra_data:extra}).eq("id",recordId).eq("user_id",user.id);
         if(error)throw error;
