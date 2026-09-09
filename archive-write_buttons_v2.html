@@ -652,7 +652,6 @@ document.getElementById("save").addEventListener("click",async()=>{
     const details=panelValues(activeType);
     const contentBlocks=await collectContentBlocks(user.id);
 
-    const combinedDetails={...details,content_blocks:contentBlocks};
 
     const cardImageUrl=selectedCardImage?await uploadImage(selectedCardImage,user.id):null;
     const archivePayload={user_id:user.id,name,type:activeType,text_color:textColor,image_url:cardImageUrl};
@@ -679,7 +678,8 @@ document.getElementById("save").addEventListener("click",async()=>{
     // 여러 날짜는 하나의 RECORD 안에 보관합니다.
     // 기존 date 컬럼에는 첫 날짜를 넣고, 전체 날짜 목록은 extra_data.record_dates에 저장합니다.
     const recordExtraData={
-      ...combinedDetails,
+      ...details,
+      content_blocks:contentBlocks,
       record_dates:recordDates.length?recordDates:[primaryDate]
     };
 
@@ -690,7 +690,6 @@ document.getElementById("save").addEventListener("click",async()=>{
         user_id:user.id,
         date:primaryDate,
         title:name,
-        content:plainText,
         image_url:firstImage,
         extra_data:recordExtraData
       });
