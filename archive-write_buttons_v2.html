@@ -690,6 +690,8 @@ document.getElementById("save").addEventListener("click",async()=>{
         user_id:user.id,
         date:primaryDate,
         title:name,
+        // content 컬럼은 NOT NULL이라 빈 문자열로 유지하고, 실제 본문은 content_blocks에 저장합니다.
+        content:"",
         image_url:firstImage,
         extra_data:recordExtraData
       });
