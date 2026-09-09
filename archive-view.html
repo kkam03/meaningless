@@ -1030,7 +1030,7 @@ function renderCategoryArchives(category, archives){
     const image=archive.image_url||archive._image_url||"";
     const textClass=archive.text_color==="white"?" text-white":"";
     return `<a class="archive-card${image?" has-image":""}${textClass}" href="./archive-view.html?id=${encodeURIComponent(archive.id)}&fromCategory=${encodeURIComponent(category.id)}&theme=${encodeURIComponent(currentTheme)}">
-      ${image?`<img class="archive-card-image" src="${esc(image)}" alt="">`:""}
+      ${image?`<img class="archive-card-image" src="${esc(image)}" alt="" loading="lazy" decoding="async">`:""}
       <div class="archive-card-content">
         <div class="archive-card-top"><span>${esc((archive.type||"ARCHIVE").toUpperCase())}</span><span>↗</span></div>
         <div class="archive-card-title">${esc(archive.name)}</div>
@@ -1074,7 +1074,9 @@ async function loadCategory(){
   if(list.length){
     const ids=list.map(a=>a.id);
     const {data:records,error:recordsError}=await supabase.from("archive_records")
-      .select("id,archive_id,date,image_url,extra_data,created_at")
+      // CATEGORY에서는 카드에 필요한 정보만 가져옵니다.
+      // extra_data는 본문/이미지 블록까지 포함할 수 있어 데이터가 커질수록 느려질 수 있습니다.
+      .select("id,archive_id,date,image_url,created_at")
       .in("archive_id",ids)
       .order("created_at",{ascending:true});
     if(!recordsError){
@@ -1086,7 +1088,7 @@ async function loadCategory(){
       list.forEach(a=>{
         const rs=byArchive[a.id]||[];
         a._recordCount=rs.length;
-        a._image_url=a.image_url||rs.find(r=>r.image_url)?.image_url||rs.flatMap(r=>Array.isArray(r.extra_data?.content_blocks)?r.extra_data.content_blocks:[]).find(b=>b?.type==="image"&&b.url)?.url||"";
+        a._image_url=a.image_url||rs.find(r=>r.image_url)?.image_url||"";
         a._dateLabel=rs.length?formatDate(rs[rs.length-1].date):"";
       });
     }else{
