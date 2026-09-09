@@ -99,6 +99,9 @@ header.category-mode{padding-bottom:0}
 .edit-field:last-of-type{margin-bottom:0}
 .edit-archive-date{margin-top:0}
 .edit-archive-date input{height:40px;box-sizing:border-box}
+.edit-date-row{display:flex;gap:8px;margin-bottom:8px}
+.edit-date-row:last-child{margin-bottom:0}
+.edit-date-row input{flex:1;min-width:0}
 .edit-image-fields{display:grid;gap:10px}
 .edit-image-field{border:1px solid var(--line);border-radius:8px;padding:10px;background:#fff}
 .edit-image-picker{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -432,8 +435,9 @@ footer{
     </div>
 
     <div class="edit-field edit-archive-date" id="editDateField">
-      <label for="editArchiveDate">DATE</label>
-      <input id="editArchiveDate" type="date" aria-label="날짜">
+      <label>DATE</label>
+      <div id="editDateRows"></div>
+      <button class="edit-add-record" id="editAddDate" type="button">＋ 날짜 추가</button>
     </div>
 
     <div class="edit-field">
@@ -555,6 +559,14 @@ function formatDate(date){
   return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
 }
 
+function getRecordDates(record){
+  const dates=Array.isArray(record?.extra_data?.record_dates)
+    ? record.extra_data.record_dates.filter(Boolean)
+    : [];
+  if(dates.length)return dates;
+  return record?.date?[record.date]:[];
+}
+
 function detailEntries(type,record){
   if(type==="basic"||!record?.extra_data)return [];
   return Object.entries(record.extra_data).filter(([key,value])=>
@@ -574,9 +586,9 @@ function renderDetails(type,record){
 function renderArchiveHeaderDate(record){
   const el=document.getElementById("archiveHeaderDate");
   if(!el)return;
-  const date=record?.date||"";
-  if(date){
-    el.textContent=formatDate(date);
+  const dates=getRecordDates(record);
+  if(dates.length){
+    el.textContent=dates.map(formatDate).join(" · ");
     el.hidden=false;
   }else{
     el.textContent="";
@@ -667,6 +679,8 @@ function collectDetails(type){
 }
 
 const editRecordsEl=document.getElementById("editRecords");
+const editDateRows=document.getElementById("editDateRows");
+const editAddDate=document.getElementById("editAddDate");
 const editNewFiles=new Map();
 const editRanges=new Map();
 let editTextColor="black";
@@ -770,6 +784,33 @@ function blockDataToEditorHtml(record){
   }
   return record?.content ? `<div>${esc(record.content).replaceAll("\n","<br>")}</div>` : "";
 }
+
+function addEditDateRow(value=""){
+  const row=document.createElement("div");
+  row.className="edit-date-row";
+  row.innerHTML='<input type="date" aria-label="날짜"><button type="button" class="edit-record-delete" aria-label="날짜 삭제">×</button>';
+
+  const input=row.querySelector("input");
+  input.value=value;
+
+  row.querySelector(".edit-record-delete").addEventListener("click",()=>{
+    if(editDateRows.children.length<=1){
+      input.value="";
+      return;
+    }
+    row.remove();
+  });
+
+  editDateRows.appendChild(row);
+}
+
+function getEditDates(){
+  return [...editDateRows.querySelectorAll('input[type="date"]')]
+    .map(input=>input.value)
+    .filter(Boolean);
+}
+
+editAddDate.addEventListener("click",()=>addEditDateRow(""));
 
 function addEditRecord(record={}){
   const el=document.createElement("div");
@@ -883,9 +924,16 @@ function openEdit(){
   const type=loadedArchive.type||"basic";
   makeEditFields(type,loadedRecords[0]);
   const editDateField=document.getElementById("editDateField");
-  const editArchiveDate=document.getElementById("editArchiveDate");
   if(editDateField)editDateField.style.display=type==="travel"?"none":"block";
-  if(editArchiveDate)editArchiveDate.value=(loadedRecords.find(r=>r?.date)?.date)||new Date().toISOString().slice(0,10);
+
+  editDateRows.innerHTML="";
+  const firstRecord=loadedRecords[0]||null;
+  const dates=getRecordDates(firstRecord);
+  if(dates.length){
+    dates.forEach(date=>addEditDateRow(date));
+  }else{
+    addEditDateRow(new Date().toISOString().slice(0,10));
+  }
   editTextColor=loadedArchive.text_color||"black";
   editNewCardImage=null;
   if(editCardImageInput)editCardImageInput.value="";
@@ -946,7 +994,8 @@ document.getElementById("editSave").addEventListener("click",async()=>{
     if(archiveError)throw archiveError;
 
     const details=collectDetails(type);
-    const archiveDate=document.getElementById("editArchiveDate")?.value||null;
+    const editDates=getEditDates();
+    const primaryDate=editDates[0]||new Date().toISOString().slice(0,10);
 
     const editors=[...editRecordsEl.querySelectorAll(".edit-record")];
 
@@ -974,16 +1023,33 @@ document.getElementById("editSave").addEventListener("click",async()=>{
       const imageUrl=resolved.find(b=>b.type==="image")?.url||existingRecord?.image_url||null;
       const date=type==="travel"
         ? (existingRecord?.date||new Date().toISOString().slice(0,10))
-        : (archiveDate||existingRecord?.date||new Date().toISOString().slice(0,10));
+        : (existingRecord?.date||primaryDate);
       const title=existingRecord?.title||loadedArchive.name||"후기";
 
       if(recordId){
         const existing=loadedRecords.find(r=>r.id===recordId);
-        const extra={...(existing?.extra_data||{}),...details,content_blocks:resolved};
+        const extra={
+          ...(existing?.extra_data||{}),
+          ...details,
+          content_blocks:resolved,
+          ...(type!=="travel" ? {record_dates:editDates.length?editDates:[primaryDate]} : {})
+        };
         const {error}=await supabase.from("archive_records").update({date,title,content,image_url:imageUrl,extra_data:extra}).eq("id",recordId).eq("user_id",user.id);
         if(error)throw error;
       }else{
-        const {error}=await supabase.from("archive_records").insert({archive_id:loadedArchive.id,user_id:user.id,date,title,content,image_url:imageUrl,extra_data:{content_blocks:resolved}});
+        const {error}=await supabase.from("archive_records").insert({
+          archive_id:loadedArchive.id,
+          user_id:user.id,
+          date,
+          title,
+          content,
+          image_url:imageUrl,
+          extra_data:{
+            ...details,
+            content_blocks:resolved,
+            ...(type!=="travel" ? {record_dates:editDates.length?editDates:[primaryDate]} : {})
+          }
+        });
         if(error)throw error;
       }
     }
