@@ -881,6 +881,80 @@ function addEditRecord(record={}){
   editor.addEventListener("mouseup",()=>rememberEditSelection(editor));
   editor.addEventListener("input",()=>rememberEditSelection(editor));
   editor.addEventListener("focus",()=>rememberEditSelection(editor));
+
+  function removeEditImage(img){
+    if(!img || !editor.contains(img))return false;
+    const src=img.getAttribute("src")||"";
+    if(src){
+      const file=editNewFiles.get(src);
+      if(file)editNewFiles.delete(src);
+      if(src.startsWith("blob:")){
+        try{URL.revokeObjectURL(src)}catch(_){}
+      }
+    }
+    const next=img.nextSibling;
+    if(next && next.nodeType===Node.TEXT_NODE && !next.nodeValue.trim()) next.remove();
+    img.remove();
+    return true;
+  }
+
+  editor.addEventListener("click",e=>{
+    const img=e.target?.closest?.("img");
+    if(img)removeEditImage(img);
+  });
+
+  // 사진을 드래그/선택하지 않아도 커서가 사진 바로 뒤에 있을 때
+  // Backspace(또는 바로 앞에 있을 때 Delete)로 사진을 삭제합니다.
+  editor.addEventListener("keydown",e=>{
+    if(e.key!=="Backspace" && e.key!=="Delete")return;
+    const sel=window.getSelection();
+    if(!sel || !sel.rangeCount || !sel.isCollapsed)return;
+    const range=sel.getRangeAt(0);
+    if(!editor.contains(range.commonAncestorContainer))return;
+
+    let node=range.startContainer;
+    let offset=range.startOffset;
+
+    const findPreviousImage=()=>{
+      if(node.nodeType===Node.TEXT_NODE){
+        if(e.key==="Backspace" && offset===0){
+          let p=node.previousSibling;
+          while(p && p.nodeType===Node.TEXT_NODE && !p.nodeValue.trim())p=p.previousSibling;
+          if(p?.nodeType===Node.ELEMENT_NODE && p.tagName==="IMG")return p;
+        }
+        return null;
+      }
+      if(e.key==="Backspace" && offset>0){
+        let p=node.childNodes[offset-1];
+        while(p && p.nodeType===Node.TEXT_NODE && !p.nodeValue.trim())p=p.previousSibling;
+        if(p?.nodeType===Node.ELEMENT_NODE && p.tagName==="IMG")return p;
+      }
+      return null;
+    };
+
+    const findNextImage=()=>{
+      if(node.nodeType===Node.TEXT_NODE){
+        if(e.key==="Delete" && offset===node.nodeValue.length){
+          let n=node.nextSibling;
+          while(n && n.nodeType===Node.TEXT_NODE && !n.nodeValue.trim())n=n.nextSibling;
+          if(n?.nodeType===Node.ELEMENT_NODE && n.tagName==="IMG")return n;
+        }
+        return null;
+      }
+      if(e.key==="Delete" && offset<node.childNodes.length){
+        let n=node.childNodes[offset];
+        while(n && n.nodeType===Node.TEXT_NODE && !n.nodeValue.trim())n=n.nextSibling;
+        if(n?.nodeType===Node.ELEMENT_NODE && n.tagName==="IMG")return n;
+      }
+      return null;
+    };
+
+    const img=e.key==="Backspace"?findPreviousImage():findNextImage();
+    if(img){
+      e.preventDefault();
+      removeEditImage(img);
+    }
+  });
   photoBtn.addEventListener("mousedown",e=>e.preventDefault());
   photoBtn.addEventListener("click",()=>{rememberEditSelection(editor);photoInput.click()});
   photoInput.addEventListener("change",()=>{const f=photoInput.files?.[0];if(f)insertEditImage(editor,f);photoInput.value=""});
