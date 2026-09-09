@@ -17,12 +17,21 @@
 
 * { box-sizing: border-box; }
 
-html, body {
+html {
   margin: 0;
   padding: 0;
-  background: var(--background);
+  background: #f2f3f2;
+}
+
+html, body {
   color: var(--text);
   font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #f2f3f2;
 }
 
 body {
@@ -355,8 +364,12 @@ mark {
 </style>
 <style>
   /* meaningless shared frame */
+  html {
+    background-color:#f2f3f2 !important;
+  }
   body {
     background-color:#f2f3f2 !important;
+    display:flow-root;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420' viewBox='0 0 420 420'%3E%3Cg fill='%239da4a1' opacity='.34' font-family='Arial,sans-serif'%3E%3Ctext x='42' y='74' font-size='17'%3E%E2%9C%A7%3C/text%3E%3Ctext x='172' y='42' font-size='10'%3E%E2%9C%A7%3C/text%3E%3Ctext x='318' y='108' font-size='22'%3E%E2%9C%A7%3C/text%3E%3Ctext x='105' y='172' font-size='12'%3E%E2%9C%A7%3C/text%3E%3Ctext x='242' y='202' font-size='15'%3E%E2%9C%A7%3C/text%3E%3Ctext x='370' y='250' font-size='9'%3E%E2%9C%A7%3C/text%3E%3Ctext x='34' y='306' font-size='11'%3E%E2%9C%A7%3C/text%3E%3Ctext x='148' y='344' font-size='21'%3E%E2%9C%A7%3C/text%3E%3Ctext x='290' y='322' font-size='12'%3E%E2%9C%A7%3C/text%3E%3Ctext x='390' y='392' font-size='18'%3E%E2%9C%A7%3C/text%3E%3Ctext x='226' y='405' font-size='9'%3E%E2%9C%A7%3C/text%3E%3C/g%3E%3C/svg%3E") !important;
     background-repeat:repeat !important;
   }
@@ -538,7 +551,7 @@ async function searchAll(keyword){
   if(archiveList.length){
     const ids=archiveList.map(x=>x.id);
     const {data:records,error}=await supabase.from("archive_records")
-      .select("id,archive_id,date,title,content,image_url,extra_data,created_at")
+      .select("id,archive_id,date,title,content,created_at")
       .in("archive_id",ids)
       .order("date",{ascending:true})
       .order("created_at",{ascending:true});
@@ -546,18 +559,49 @@ async function searchAll(keyword){
     if(error){
       console.error("SEARCH ARCHIVE RECORDS",error);
     }else{
-      recordHits=(records||[]).filter(r=>{
-        const blocks=Array.isArray(r.extra_data?.content_blocks)
-          ?r.extra_data.content_blocks.filter(b=>b?.type==="text").map(b=>b.value||"").join("\n")
-          :"";
-        const extra=r.extra_data&&typeof r.extra_data==="object"
-          ?Object.entries(r.extra_data)
-            .filter(([k])=>k!=="content_blocks")
-            .map(([,v])=>String(v??"")).join("\n")
-          :"";
-        return [r.title,r.content,blocks,extra]
-          .some(v=>String(v??"").toLowerCase().includes(q));
-      });
+      const allRecords=records||[];
+
+      // 대부분의 기록은 title/content만으로 검색하고,
+      // content가 비어 있는 예전 기록만 extra_data까지 확인합니다.
+      // 이미지가 들어 있는 큰 extra_data를 모든 기록에서 내려받지 않아
+      // 검색 결과가 쌓여도 불필요한 데이터 전송을 줄입니다.
+      recordHits=allRecords.filter(r=>
+        [r.title,r.content]
+          .some(v=>String(v??"").toLowerCase().includes(q))
+      );
+
+      const legacyIds=allRecords
+        .filter(r=>!String(r.content??"").trim())
+        .map(r=>r.id);
+
+      if(legacyIds.length){
+        const {data:legacyRecords,error:legacyError}=await supabase
+          .from("archive_records")
+          .select("id,archive_id,extra_data")
+          .in("id",legacyIds);
+
+        if(legacyError){
+          console.error("SEARCH LEGACY ARCHIVE RECORDS",legacyError);
+        }else{
+          const legacyHits=(legacyRecords||[]).filter(r=>{
+            const blocks=Array.isArray(r.extra_data?.content_blocks)
+              ?r.extra_data.content_blocks
+                  .filter(b=>b?.type==="text")
+                  .map(b=>b.value||"")
+                  .join("\n")
+              :"";
+            const extra=r.extra_data&&typeof r.extra_data==="object"
+              ?Object.entries(r.extra_data)
+                  .filter(([k])=>k!=="content_blocks")
+                  .map(([,v])=>String(v??""))
+                  .join("\n")
+              :"";
+            return [blocks,extra]
+              .some(v=>String(v??"").toLowerCase().includes(q));
+          });
+          recordHits=[...recordHits,...legacyHits];
+        }
+      }
     }
   }
 
