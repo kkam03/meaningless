@@ -44,6 +44,8 @@ input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--
 .custom-row{display:flex;gap:8px}
 .custom-row input{flex:1}
 .custom-remove{width:40px;height:40px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--muted);cursor:pointer}
+.date-row{margin-bottom:8px}
+.date-row:last-child{margin-bottom:0}
 .text-color-options{display:flex;gap:8px}
 .text-color-option{padding:7px 12px;border:1px solid var(--line);border-radius:20px;background:#fff;color:var(--muted);font-size:10px;cursor:pointer}
 .text-color-option.active{border-color:var(--point);background:var(--soft);color:var(--point);font-weight:600}
@@ -181,8 +183,9 @@ input:focus,textarea:focus{border-color:var(--point);box-shadow:0 0 0 3px var(--
 </section>
 
 <section class="field date-field" id="dateField" style="display:none">
-  <label class="field-label" for="recordDate">DATE</label>
-  <input id="recordDate" type="date" aria-label="날짜">
+  <label class="field-label">DATE</label>
+  <div id="dateRows"></div>
+  <button class="add-custom" id="addDate" type="button">＋ 날짜 추가</button>
 </section>
 
 <section class="field">
@@ -298,7 +301,8 @@ const typeButtons=document.querySelectorAll(".type");
 const optionFields=document.getElementById("optionFields");
 const optionLabel=document.getElementById("optionLabel");
 const dateField=document.getElementById("dateField");
-const recordDate=document.getElementById("recordDate");
+const dateRows=document.getElementById("dateRows");
+const addDate=document.getElementById("addDate");
 const cardImageInput=document.getElementById("cardImageInput");
 const cardImageButton=document.getElementById("cardImageButton");
 const cardImageName=document.getElementById("cardImageName");
@@ -325,7 +329,35 @@ function showType(type){
   if(dateField)dateField.style.display=type==="travel"?"none":"block";
 }
 typeButtons.forEach(btn=>btn.addEventListener("click",()=>showType(btn.dataset.type)));
-recordDate.value=new Date().toISOString().slice(0,10);
+
+function addDateRow(value=""){
+  const row=document.createElement("div");
+  row.className="custom-row date-row";
+  row.innerHTML='<input type="date" aria-label="날짜"><button type="button" class="custom-remove" aria-label="날짜 삭제">×</button>';
+
+  const input=row.querySelector("input");
+  input.value=value;
+
+  row.querySelector(".custom-remove").addEventListener("click",()=>{
+    if(dateRows.children.length<=1){
+      input.value="";
+      return;
+    }
+    row.remove();
+  });
+
+  dateRows.appendChild(row);
+  return input;
+}
+
+function getRecordDates(){
+  return [...dateRows.querySelectorAll('input[type="date"]')]
+    .map(input=>input.value)
+    .filter(Boolean);
+}
+
+addDate.addEventListener("click",()=>addDateRow(""));
+addDateRow(new Date().toISOString().slice(0,10));
 showType("basic");
 
 function setupArchiveImagePicker(button,input,label,setter,placeholder){
@@ -641,16 +673,26 @@ document.getElementById("save").addEventListener("click",async()=>{
 
     const firstImage=contentBlocks.find(block=>block.type==="image")?.url||null;
 
+    const recordDates=getRecordDates();
+    const primaryDate=recordDates[0]||new Date().toISOString().slice(0,10);
+
+    // 여러 날짜는 하나의 RECORD 안에 보관합니다.
+    // 기존 date 컬럼에는 첫 날짜를 넣고, 전체 날짜 목록은 extra_data.record_dates에 저장합니다.
+    const recordExtraData={
+      ...combinedDetails,
+      record_dates:recordDates.length?recordDates:[primaryDate]
+    };
+
     const {error:recordError}=await supabase
       .from("archive_records")
       .insert({
         archive_id:archive.id,
         user_id:user.id,
-        date:(recordDate.value||new Date().toISOString().slice(0,10)),
+        date:primaryDate,
         title:name,
         content:plainText,
         image_url:firstImage,
-        extra_data:combinedDetails
+        extra_data:recordExtraData
       });
 
     if(recordError)throw recordError;
