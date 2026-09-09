@@ -1159,7 +1159,7 @@ async function loadCategory(){
         a._image_url=a.image_url||rs.find(r=>r.image_url)?.image_url||"";
         const lastRecord=rs[rs.length-1]||null;
          const recordDates=Array.isArray(lastRecord?.record_dates)?lastRecord.record_dates.filter(Boolean):[];
-         a._dateLabel=recordDates.length?formatDate(recordDates[recordDates.length-1]):(lastRecord?formatDate(lastRecord.date):"");
+         a._dateLabel=recordDates.length?formatDate(recordDates[0]):(lastRecord?formatDate(lastRecord.date):"");
       });
     }else{
       console.warn("CATEGORY RECORDS:",recordsError);
